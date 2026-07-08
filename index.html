@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Hardware — Landseed AI Technology Ecosystem</title>
+<meta name="description" content="The Landseed AI Technology Ecosystem in 3D — seven products for conservation: AI camera-alert systems, acoustic monitors, long-range gateways and the Shaman analytics brain. Drag to orbit, click a device to inspect." />
+<meta name="theme-color" content="#070F07" />
+<link rel="canonical" href="https://hardware-catalogue.pages.dev/" />
+<!-- Open Graph / Twitter share card -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Landseed" />
+<meta property="og:title" content="Landseed Hardware — the AI Technology Ecosystem in 3D" />
+<meta property="og:description" content="Seven products for conservation — AI camera-alert systems, acoustic monitors, long-range gateways and the Shaman analytics brain — rendered live in 3D." />
+<meta property="og:url" content="https://hardware-catalogue.pages.dev/" />
+<meta property="og:image" content="https://hardware-catalogue.pages.dev/public/og.jpg?v=1" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="The Landseed hardware bay — seven conservation devices rendered in 3D around the Shaman analytics core." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Landseed Hardware — the AI Technology Ecosystem in 3D" />
+<meta name="twitter:description" content="Seven products for conservation, rendered live in 3D. Drag to orbit, click a device to inspect." />
+<meta name="twitter:image" content="https://hardware-catalogue.pages.dev/public/og.jpg?v=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/styles.css?v=1" />
+<!-- discover the big three.js module early so it downloads in parallel with the app code -->
+<link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
+</head>
+<body class="booting">
+
+<canvas id="scene"></canvas>
+<svg id="leaders"></svg>
+<div id="labels"></div>
+
+<div id="loader"><div class="emblem-spin"></div><span>assembling the hardware bay</span></div>
+
+<header class="hud">
+  <div class="brand"><img src="./public/landseed-wordmark.svg" alt="Landseed" /></div>
+  <div class="hud-right"><span class="hud-tag">AI Technology Ecosystem · Product Line</span></div>
+</header>
+
+<div id="hint"><span>drag to orbit · scroll to zoom · click a device to inspect</span></div>
+
+<!-- product-line key (catalogue view) — right rail, tappable rows -->
+<div id="plegend">
+  <div class="wl-h">Product line<span class="wl-tap">tap a device ↗</span></div>
+  <div class="pl-group">To see</div>
+  <div class="wl-row dv" data-dev="serengeti"><i></i><b>Serengeti</b><em>$199–225</em></div>
+  <div class="wl-row dv" data-dev="villageguard"><i></i><b>VillageGuard</b><em>$299</em></div>
+  <div class="pl-group">To see &amp; listen</div>
+  <div class="wl-row dv" data-dev="junglewallah"><i></i><b>Jungle-Wallah</b><em>custom</em></div>
+  <div class="pl-group">To listen</div>
+  <div class="wl-row dv" data-dev="wolf"><i></i><b>Wolf</b><em>$100 tgt</em></div>
+  <div class="pl-group">To connect</div>
+  <div class="wl-row dv" data-dev="gateway"><i></i><b>Gateway</b><em>$150 tgt</em></div>
+  <div class="pl-group">To report</div>
+  <div class="wl-row dv" data-dev="mobile"><i></i><b>Mobile</b><em>$50 tgt</em></div>
+  <div class="pl-group">To understand</div>
+  <div class="wl-row dv" data-dev="shaman"><i></i><b>Shaman</b><em>subscription</em></div>
+  <div class="wl-sep"></div>
+  <div class="pl-foot">Every sensor feeds Shaman — the measurement layer for Earth Credits.</div>
+</div>
+
+<!-- spec rail (device views) — filled by main.js from the device record -->
+<aside id="specs" aria-label="specifications">
+  <div id="specs-scroll"></div>
+</aside>
+
+<!-- bold caption card -->
+<div id="caption" class="in">
+  <div id="cap-kicker"></div>
+  <h1 id="cap-title">Landseed Hardware</h1>
+  <p id="cap-line"></p>
+  <div id="cap-stats"></div>
+  <div id="cap-links"></div>
+</div>
+
+<!-- chapter navigation (replaces scrolling) -->
+<nav id="chapters" aria-label="devices">
+  <button class="chip on" data-go="catalogue">Catalogue</button>
+  <button class="chip" data-go="serengeti">Serengeti</button>
+  <button class="chip" data-go="villageguard">VillageGuard</button>
+  <button class="chip" data-go="gateway">Gateway</button>
+  <button class="chip" data-go="junglewallah">Jungle-Wallah</button>
+  <button class="chip" data-go="wolf">Wolf</button>
+  <button class="chip" data-go="mobile">Mobile</button>
+  <span class="chip-div" aria-hidden="true"></span>
+  <button class="chip dive" data-go="shaman">Shaman ↗</button>
+</nav>
+
+<script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module" src="./src/main.js?v=1"></script>
+</body>
+</html>
