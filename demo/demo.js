@@ -162,16 +162,23 @@ function noise(x, z) {
          (hAt(i, j + 1) * (1 - su) + hAt(i + 1, j + 1) * su) * sv;
 }
 const riverZ = (x) => 4.5 + 5.5 * Math.sin((x + 32) * .09);
+function fbm(x, z) {
+  return 1.0 * noise(x, z) + .5 * noise(x * 2.1 + 7, z * 2.1 + 3) + .25 * noise(x * 4.3 + 13, z * 4.3 + 11);
+}
 function heightAt(x, z) {
   if (dem) {
     let h = demAt(x, z) + .18 * noise(x * .4, z * .4);
     const gv = Math.exp(-(((x - 17) ** 2 + (z + 12.5) ** 2)) / 30);
     return h * (1 - gv) + Math.max(.3, demAt(17, -12.5)) * gv;                    // village still flattens
   }
-  let h = 1.5 * noise(x * .06 + 9, z * .06 + 4) + .55 * noise(x * .16, z * .16) + .22 * noise(x * .4, z * .4) - .72;
-  h += 5.6 * Math.exp(-((x + 24) ** 2) / 52) * (0.7 + 0.3 * noise(z * .1, 3));   // western ridge
+  // domain-warped fbm — natural drainage and soft interlocking spurs
+  const wx = x + 6 * noise(x * .045 + 31, z * .045 + 17) - 3;
+  const wz = z + 6 * noise(x * .045 + 5, z * .045 + 47) - 3;
+  let h = 1.35 * fbm(wx * .06, wz * .06) + .3 * noise(x * .5, z * .5) - 1.05;
+  h += 5.6 * Math.exp(-((x + 24) ** 2) / 52) * (0.72 + 0.28 * noise(z * .1, 3)); // western ridge
   const dr = z - riverZ(x);
-  h -= 2.2 * Math.exp(-(dr * dr) / 2.4);                                          // river trench
+  h -= 2.3 * Math.exp(-(dr * dr) / 3.4);                                          // wider, softer valley
+  h -= .5 * Math.exp(-(dr * dr) / 14);                                            // valley shoulders
   const gv = Math.exp(-(((x - 17) ** 2 + (z + 12.5) ** 2)) / 30);
   h = h * (1 - gv) + .5 * gv;                                                     // village flat
   return Math.max(h, -1.7);
@@ -195,7 +202,7 @@ function nearCurve(curve, x, z, n = 60) {
 }
 
 {
-  const geo = new THREE.PlaneGeometry(110, 84, 190, 146).rotateX(-Math.PI / 2);
+  const geo = new THREE.PlaneGeometry(110, 84, 300, 230).rotateX(-Math.PI / 2);
   const pos = geo.attributes.position;
   const col = new Float32Array(pos.count * 3);
   const cGrass1 = new THREE.Color(0x44603a), cGrass2 = new THREE.Color(0x54693c), cDry = new THREE.Color(0x6e7145);
@@ -209,9 +216,13 @@ function nearCurve(curve, x, z, n = 60) {
     pos.setY(i, h);
     const n = noise(x * .11 + 40, z * .11 + 7);
     tmp.copy(cGrass1).lerp(cGrass2, n).lerp(cDry, Math.max(0, (-z - 6) / 30) * .5);   // dryer to the south
-    if (n > .55 && z > -8 && x > -20 && x < 10) tmp.lerp(cForest, .75);
-    if (h > 3.2) tmp.lerp(cRock, Math.min(1, (h - 3.2) / 1.6));
-    if (!dem && Math.abs(z - riverZ(x)) < 2.1) tmp.lerp(cSand, .55);
+    if (z > -8 && x > -20 && x < 10) tmp.lerp(cForest, .75 * Math.min(1, Math.max(0, (n - .48) / .14)));   // soft forest edge
+    if (h > 2.9) tmp.lerp(cRock, Math.min(1, (h - 2.9) / 2));
+    if (!dem) {
+      const rd = Math.abs(z - riverZ(x));
+      if (rd < 3) tmp.lerp(cSand, .5 * Math.max(0, 1 - rd / 3));                       // graded banks
+      if (rd < 6) tmp.lerp(cForest, .12 * Math.max(0, 1 - rd / 6));                    // riparian green
+    }
     if (nearCurve(trail, x, z, 40) < 1) tmp.lerp(cDirt, .55);
     if (nearCurve(road, x, z, 30) < 1.1) tmp.lerp(cDirt, .7);
     const cropD = ((x - 12.6) ** 2) / 9 + ((z + 7) ** 2) / 5;
@@ -232,15 +243,67 @@ function nearCurve(curve, x, z, n = 60) {
   scene.add(ground);
 }
 
+// flowing water — scrolling ripple texture over a deep base
+const waterTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d');
+  x.fillStyle = '#245062'; x.fillRect(0, 0, 256, 256);
+  let sd2 = 77; const r2 = () => (sd2 = (sd2 * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 240; i++) {
+    x.strokeStyle = `rgba(255,255,255,${.02 + r2() * .05})`;
+    x.lineWidth = 1 + r2() * 1.6;
+    const y = r2() * 256;
+    x.beginPath(); x.moveTo(0, y); x.bezierCurveTo(85, y + r2() * 8 - 4, 170, y + r2() * 8 - 4, 256, y); x.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(7, 5);
+  return t;
+})();
 const water = new THREE.Mesh(
   new THREE.PlaneGeometry(110, 84).rotateX(-Math.PI / 2),
-  new THREE.MeshStandardMaterial({ color: 0x23485a, roughness: .14, metalness: .3, transparent: true, opacity: .92 }));
+  new THREE.MeshStandardMaterial({ map: waterTex, color: 0xaac9d6, roughness: .22, metalness: .22, transparent: true, opacity: .92 }));
 water.position.y = dem ? -.15 : -.35;
 scene.add(water);
 
+// soft clouds in the sky (their shadows live in the breathing sunlight)
+const cloudShadows = [];
+{
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+  const x = c.getContext('2d');
+  for (const [cx2, cy, r] of [[80, 70, 46], [130, 58, 52], [180, 72, 40], [110, 82, 38]]) {
+    const g = x.createRadialGradient(cx2, cy, 4, cx2, cy, r);
+    g.addColorStop(0, 'rgba(235,225,210,.5)'); g.addColorStop(1, 'rgba(235,225,210,0)');
+    x.fillStyle = g; x.beginPath(); x.arc(cx2, cy, r, 0, 7); x.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  for (let i = 0; i < 4; i++) {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, opacity: .5, fog: false, depthWrite: false }));
+    sp.position.set(-60 + i * 42, 32 + (i % 2) * 7, -40 - i * 14);
+    sp.scale.set(46, 20, 1);
+    scene.add(sp);
+    cloudShadows.push({ m: sp, ph: 9 + i * 1.7, sky: true });
+  }
+}
+// fireflies at the forest edge — dusk, alive
+let fireflies;
+{
+  const N = 70, fp = new Float32Array(N * 3), base = [];
+  let sd3 = 41; const r3 = () => (sd3 = (sd3 * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < N; i++) {
+    const x2 = -14 + r3() * 18, z2 = 2 + r3() * 15;
+    base.push([x2, heightAt(x2, z2) + .5 + r3() * 1.6, z2]);
+    fp.set(base[i], i * 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(fp, 3));
+  fireflies = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xd8f2a0, size: .1, transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false }));
+  fireflies.userData.base = base;
+  scene.add(fireflies);
+}
+
 /* ── vegetation & rocks (instanced, three species) ──────────────────────── */
 
-const SPOTS = [[6.8, 10.2], [-4.5, 5.6], [12.9, -8.6], [-12, 10.5], [-8.5, 15.5], [-15.5, 14.5], [-3, 14.5], [-21.5, -3.5], [-12.8, 12.6], [-11.5, 13.5]];
+const SPOTS = [[6.8, 10.2], [-4.5, 5.6], [12.9, -8.6], [-12, 10.5], [-8.5, 15.5], [-15.5, 14.5], [-3, 14.5], [-21.5, -3.5], [-12.8, 12.6], [-11.5, 13.5], [-9.8, 14.2], [-7.8, 16], [-6.5, 17.5]];
 function scatterOK(x, z, h) {
   if (h < -.2 || h > 3.6) return false;
   if (Math.abs(z - riverZ(x)) < 2.4) return false;
@@ -327,6 +390,25 @@ function scatterOK(x, z, h) {
   }
   bushes.count = nB; rocks.count = nR;
   scene.add(bushes, rocks);
+
+  // grass tufts — small, everywhere the story walks
+  const tuftG = new THREE.ConeGeometry(.09, .42, 4);
+  const tufts = new THREE.InstancedMesh(tuftG, leafM(), 900);
+  let nG = 0; guard = 0;
+  const GT1 = new THREE.Color(0x5d7a42), GT2 = new THREE.Color(0x6d8449);
+  while (nG < 900 && guard++ < 12000) {
+    const x = (rnd() - .5) * 70, z = (rnd() - .5) * 50;
+    const h = heightAt(x, z);
+    if (h < -.1 || h > 2.6) continue;
+    if (Math.abs(z - riverZ(x)) < 1.6) continue;
+    if ((x - 17) ** 2 + (z + 12.5) ** 2 < 30) continue;
+    const sc = .6 + rnd() * .9;
+    pv.set(x, h + .18 * sc, z); q.setFromAxisAngle(Y, rnd() * 6.28); sv.set(sc, sc, sc);
+    m.compose(pv, q, sv); tufts.setMatrixAt(nG, m);
+    tufts.setColorAt(nG, rnd() > .5 ? GT1 : GT2); nG++;
+  }
+  tufts.count = nG;
+  scene.add(tufts);
 }
 
 /* ── park boundary ──────────────────────────────────────────────────────── */
@@ -558,36 +640,89 @@ scene.add(guard1, guard2);
 const guardState = { u: 0 };
 const guardPath = new THREE.CatmullRomCurve3([V3(16.2, 0, -12.8), V3(14.6, 0, -10.4), V3(13.4, 0, -8.2)]);
 
-// elephants — walking legs, flapping ears
+// elephants v2 — jointed legs (hip+knee), segmented swaying trunk, hinged ears
 function elephant(sc = 1) {
   const g = new THREE.Group();
-  const grey = new THREE.MeshStandardMaterial({ color: 0x97938a, roughness: .88 });
-  const body = new THREE.Mesh(new THREE.SphereGeometry(.62, 12, 10), grey);
-  body.scale.set(1.4, 1.02, .95); body.position.y = .98; body.castShadow = true;
-  const shoulders = new THREE.Mesh(new THREE.SphereGeometry(.5, 10, 8), grey);
-  shoulders.position.set(.55, 1.18, 0);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(.38, 10, 9), grey);
-  head.position.set(1.05, 1.18, 0);
-  const earG = new THREE.SphereGeometry(.4, 8, 6);
-  const e1 = new THREE.Mesh(earG, grey); e1.scale.set(.1, 1.05, .8); e1.position.set(.88, 1.3, .42); e1.rotation.x = .18;
-  const e2 = e1.clone(); e2.position.z = -.42; e2.rotation.x = -.18;
-  const trunk = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(
-    [V3(1.35, 1.05, 0), V3(1.58, .7, 0), V3(1.55, .35, 0), V3(1.42, .1, 0)]), 8, .1, 6), grey);
-  const legs = [];
-  const legG = new THREE.CylinderGeometry(.14, .16, .86, 7);
-  for (const [lx, lz] of [[-.45, .3], [-.45, -.3], [.45, .3], [.45, -.3]]) {
-    const l = new THREE.Mesh(legG, grey); l.position.set(lx, .43, lz); l.castShadow = true;
-    legs.push(l); g.add(l);
+  const hide = new THREE.MeshStandardMaterial({ color: 0x95908a, roughness: .88 });
+  const hideD = new THREE.MeshStandardMaterial({ color: 0x87827c, roughness: .9 });
+  // body — one clean elongated mass, gently higher at the shoulder
+  const barrel = new THREE.Mesh(new THREE.SphereGeometry(.72, 18, 14), hide);
+  barrel.scale.set(1.6, 1.02, .95); barrel.position.set(.1, 1.2, 0);
+  barrel.rotation.z = -.07; barrel.castShadow = true;
+  // head — domed crown, cheeks, mouth
+  const head = new THREE.Group();
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(.42, 12, 10), hide);
+  skull.scale.set(.92, 1, .84);
+  const crown = new THREE.Mesh(new THREE.SphereGeometry(.3, 10, 8), hide);
+  crown.position.set(-.05, .3, 0);
+  const jaw = new THREE.Mesh(new THREE.SphereGeometry(.2, 8, 7), hideD);
+  jaw.position.set(.22, -.28, 0);
+  head.add(skull, crown, jaw);
+  head.position.set(1.32, 1.6, 0);
+  // ears — big hinged discs, pivoted at the front edge
+  const ears = [];
+  for (const side of [1, -1]) {
+    const pivot = new THREE.Group();
+    const ear = new THREE.Mesh(new THREE.CylinderGeometry(.42, .5, .05, 12, 1).rotateZ(Math.PI / 2), hideD);
+    ear.scale.set(.14, 1, .86);
+    ear.position.z = side * .38;
+    pivot.add(ear);
+    pivot.position.set(-.12, .08, side * .1);
+    pivot.rotation.y = side * .35;
+    head.add(pivot);
+    ears.push(pivot);
   }
-  const tuskM = new THREE.MeshStandardMaterial({ color: 0xd6cdb2, roughness: .55 });
-  const t1 = new THREE.Mesh(new THREE.ConeGeometry(.035, .3, 6), tuskM);
-  t1.rotation.z = -2.35; t1.position.set(1.32, .86, .13);       // sweeping forward-down beside the trunk
-  const t2 = t1.clone(); t2.position.z = -.13;
-  const tail = new THREE.Mesh(new THREE.CylinderGeometry(.03, .015, .6, 5), grey);
-  tail.rotation.z = .5; tail.position.set(-.85, .85, 0);
-  g.add(body, shoulders, head, e1, e2, trunk, t1, t2, tail);
+  // trunk — six tapering segments, each a joint
+  const trunkSegs = [];
+  let parent = head, py = -.22;
+  for (let i = 0; i < 6; i++) {
+    const seg = new THREE.Group();
+    const r1 = .13 - i * .015;
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(r1 - .012, r1, .3, 8), hide);
+    tube.position.y = -.15;
+    seg.add(tube);
+    seg.position.set(i === 0 ? .38 : 0, py, 0);
+    parent.add(seg);
+    trunkSegs.push(seg);
+    parent = seg; py = -.29;
+  }
+  // tusks
+  const tuskM = new THREE.MeshStandardMaterial({ color: 0xd9d0b6, roughness: .5 });
+  for (const side of [1, -1]) {
+    const tusk = new THREE.Mesh(new THREE.ConeGeometry(.045, .5, 7), tuskM);
+    tusk.rotation.z = -2.2; tusk.rotation.x = side * .18;
+    tusk.position.set(.4, -.3, side * .14);
+    head.add(tusk);
+  }
+  // legs — hip + knee joints
+  const legs = [];
+  const upperG = new THREE.CylinderGeometry(.17, .15, .55, 8);
+  const lowerG = new THREE.CylinderGeometry(.14, .16, .5, 8);
+  for (const [lx, lz] of [[.62, .3], [.62, -.3], [-.52, .32], [-.52, -.32]]) {
+    const hip = new THREE.Group();
+    hip.position.set(lx, 1.02, lz);
+    const upper = new THREE.Mesh(upperG, hide);
+    upper.position.y = -.27; upper.castShadow = true;
+    hip.add(upper);
+    const knee = new THREE.Group();
+    knee.position.y = -.55;
+    const lower = new THREE.Mesh(lowerG, hide);
+    lower.position.y = -.25; lower.castShadow = true;
+    const toe = new THREE.Mesh(new THREE.CylinderGeometry(.17, .18, .1, 8), hideD);
+    toe.position.y = -.48;
+    knee.add(lower, toe);
+    hip.add(knee);
+    g.add(hip);
+    legs.push({ hip, knee });
+  }
+  // tail
+  const tail = new THREE.Group();
+  const t1 = new THREE.Mesh(new THREE.CylinderGeometry(.045, .03, .55, 6), hide);
+  t1.position.y = -.27; tail.add(t1);
+  tail.position.set(-1.05, 1.35, 0); tail.rotation.z = .35;
+  g.add(barrel, head, tail);
   g.scale.setScalar(sc);
-  g.userData = { legs, ears: [e1, e2] };
+  g.userData = { legs, ears, trunkSegs, tail, head, phase: Math.random ? 0 : 0 };
   return g;
 }
 const herd = new THREE.Group();
@@ -632,14 +767,21 @@ new GLTFLoader().load('./assets/wolf.glb', (g) => {
   const clips = g.animations;
   // the rig's armature carries a baked 100× scale that bounding boxes miss —
   // rendered height ≈ 5.5 units at scale 1, so ~0.2 gives a real wolf
-  const sc0 = .2;
+  const sc0 = .34;
   const spots = [[0, 0, 0, 0], [-1.15, .95, .7, 1], [-.95, -1.05, -.5, 2]];
   for (const [px, pz, ry, i] of spots) {
     const w = SkeletonUtils.clone(g.scene);
     w.scale.setScalar(sc0 * (1 - i * .09));
     w.position.set(px, 0, pz);
     w.rotation.y = ry;
-    w.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
+    w.traverse(o => {
+      if (o.isMesh) {
+        o.castShadow = true; o.frustumCulled = false;
+        o.material = o.material.clone();
+        o.material.color.multiplyScalar(1.22);
+        o.material.roughness = .82;
+      }
+    });
     const mixer = new THREE.AnimationMixer(w);
     const idle = clips.find(c => c.name.endsWith('|Idle'));
     const act = mixer.clipAction(idle);
@@ -663,6 +805,29 @@ function howl(w) {                                       // muzzle lifts on the 
   for (let i = 0; i < 3; i++)
     setTimeout(() => ringAt(wp.x, wp.z, HUES.listen, 1.5 + i * .45, wp.y + 1.15), 500 + i * 380);
 }
+// a call travels: faint pink pulse runs from the animal to each unit, then the
+// unit visibly breathes it in
+function soundPulse(from, unit) {
+  const to = unit.position.clone().setY(unit.position.y + 1.1);
+  const mid = from.clone().lerp(to, .5); mid.y += .8;
+  const curve = new THREE.QuadraticBezierCurve3(from.clone(), mid, to);
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(24)),
+    new THREE.LineBasicMaterial({ color: 0xf0c8ec, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const dot = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: 0xf6def4, transparent: true, opacity: .95, depthWrite: false }));
+  dot.scale.setScalar(.5);
+  scene.add(line, dot);
+  const st = { u: 0 };
+  gsap.to(line.material, { opacity: .4, duration: .2 });
+  gsap.to(st, {
+    u: 1, duration: .8, ease: 'sine.in',
+    onUpdate: () => dot.position.copy(curve.getPoint(st.u)),
+    onComplete: () => {
+      scene.remove(dot);
+      gsap.to(line.material, { opacity: 0, duration: .4, onComplete: () => scene.remove(line) });
+      intakeAt(unit.position.x, unit.position.z);
+    },
+  });
+}
 // sound arriving AT a sensor — rings contract onto the unit: intake, visualised
 function intakeAt(x, z) {
   const m = new THREE.Mesh(new THREE.TorusGeometry(1, .04, 8, 48).rotateX(Math.PI / 2),
@@ -680,7 +845,7 @@ const storks = [];
 new GLTFLoader().load('./assets/stork.glb', (g) => {
   for (let i = 0; i < 2; i++) {
     const b = SkeletonUtils.clone(g.scene);
-    b.scale.setScalar(.016);
+    b.scale.setScalar(.011);
     b.traverse(o => { if (o.isMesh) o.castShadow = true; });
     const mixer = new THREE.AnimationMixer(b);
     mixer.clipAction(g.animations[0]).play();
@@ -824,7 +989,7 @@ function feed(hue, title, text) {
   const list = $('#feed-list');
   list.prepend(el);
   gsap.to(el, { opacity: 1, x: 0, duration: .5, ease: 'power2.out' });
-  while (list.children.length > 5) list.removeChild(list.lastChild);
+  while (list.children.length > 4) list.removeChild(list.lastChild);
   sfx.feed();
 }
 function thumb(kind) {
@@ -1001,71 +1166,6 @@ function clockStr() {
   return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
 }
 
-/* ── sector map ─────────────────────────────────────────────────────────── */
-
-const mapC = $('#map-c'), mapX = mapC.getContext('2d');
-let mapBase = null;
-const mapPt = (x, z) => [(x + 38) / 76 * 416, (z + 28) / 56 * 312];
-function snapshotMap() {
-  const rt = new THREE.WebGLRenderTarget(416, 312);
-  const oc = new THREE.OrthographicCamera(-38, 38, 28, -28, 1, 120);
-  oc.position.set(0, 60, 0); oc.up.set(0, 0, -1); oc.lookAt(0, 0, 0);
-  const fog = scene.fog; scene.fog = null;
-  renderer.setRenderTarget(rt);
-  renderer.render(scene, oc);
-  const px = new Uint8Array(416 * 312 * 4);
-  renderer.readRenderTargetPixels(rt, 0, 0, 416, 312, px);
-  renderer.setRenderTarget(null);
-  scene.fog = fog;
-  // linear → sRGB (the render target skips the output pass)
-  for (let i = 0; i < px.length; i += 4) {
-    px[i] = 255 * Math.pow(px[i] / 255, 1 / 2.2);
-    px[i + 1] = 255 * Math.pow(px[i + 1] / 255, 1 / 2.2);
-    px[i + 2] = 255 * Math.pow(px[i + 2] / 255, 1 / 2.2);
-  }
-  const img = mapX.createImageData(416, 312);
-  for (let y = 0; y < 312; y++)   // flip Y
-    img.data.set(px.subarray((311 - y) * 416 * 4, (312 - y) * 416 * 4), y * 416 * 4);
-  const off = document.createElement('canvas'); off.width = 416; off.height = 312;
-  off.getContext('2d').putImageData(img, 0, 0);
-  mapBase = off;
-  rt.dispose();
-}
-const MAP_SENSORS = [
-  [6.8, 10.2, HUES.see], [-4.5, 5.6, HUES.see], [12.9, -8.6, HUES.guard],
-  [-12, 10.5, HUES.listen], [-8.5, 15.5, HUES.listen], [-15.5, 14.5, HUES.listen],
-  [-3, 14.5, 0xFF8C42], [-21.5, -3.5, HUES.link], [17, -12.3, HUES.brain],
-];
-function drawMap() {
-  if (!mapBase) return;
-  mapX.globalAlpha = 1;
-  mapX.drawImage(mapBase, 0, 0);
-  mapX.fillStyle = 'rgba(4,8,5,.26)';
-  mapX.fillRect(0, 0, 416, 312);
-  for (const [x, z, hue] of MAP_SENSORS) {
-    const [mx, my] = mapPt(x, z);
-    mapX.fillStyle = hex(hue);
-    mapX.beginPath(); mapX.arc(mx, my, 4, 0, 7); mapX.fill();
-  }
-  const dot = (obj, color, r = 5) => {
-    const [mx, my] = mapPt(obj.position.x, obj.position.z);
-    mapX.fillStyle = color; mapX.strokeStyle = 'rgba(0,0,0,.6)'; mapX.lineWidth = 1.5;
-    mapX.beginPath(); mapX.arc(mx, my, r, 0, 7); mapX.fill(); mapX.stroke();
-  };
-  dot(poachers, '#ff5a4d');
-  dot(herd, '#d8d4c8');
-  if (jeep.visible) dot(jeep, '#7fe6a3');
-  // camera wedge
-  const [cx, cy] = mapPt(camP.x, camP.z);
-  const ang = Math.atan2(camL.x - camP.x, camL.z - camP.z);
-  mapX.fillStyle = 'rgba(240,240,234,.28)';
-  mapX.beginPath();
-  mapX.moveTo(cx, cy);
-  mapX.lineTo(cx + Math.sin(ang - .4) * 36, cy + Math.cos(ang - .4) * 36);
-  mapX.lineTo(cx + Math.sin(ang + .4) * 36, cy + Math.cos(ang + .4) * 36);
-  mapX.closePath(); mapX.fill();
-}
-
 /* ── timeline — 78 s, six chapters in order ─────────────────────────────── */
 
 const tl = gsap.timeline({ repeat: -1, paused: true });
@@ -1172,18 +1272,26 @@ tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, peo
 
 // ── listening 50–62 · wolves howl, birds call, the array breathes it in
 cam(50, [16, 13, 2], [-11, 1, 11], 1.8, 'power1.in');               // crane over the river
-cam(51.8, [-2.5, 8, 21], [-12.6, 1, 12.4], 2.4, 'power2.out');      // settle on the pack clearing
+cam(51.8, [-5.5, 5.6, 18.6], [-12.8, 1, 12.5], 2.4, 'power2.out');  // settle close on the pack
 tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 6), null, 52);
 tl.call(() => howl(wolvesAnim[0]), null, 52.4);                     // the lead howls…
-tl.call(() => { wolves.forEach((w, i) => setTimeout(() => intakeAt(w.position.x, w.position.z), i * 220)); }, null, 53.1);
+tl.call(() => {
+  const wp = new THREE.Vector3();
+  (wolvesAnim[0] || pack).getWorldPosition(wp); wp.y += 1;
+  wolves.forEach((w, i) => setTimeout(() => soundPulse(wp, w), i * 200));
+}, null, 53.1);
 tl.call(() => howl(wolvesAnim[1] || wolvesAnim[0]), null, 54);                       // …an answer…
-tl.call(() => { wolves.forEach((w, i) => setTimeout(() => intakeAt(w.position.x, w.position.z), i * 220)); }, null, 54.7);
+tl.call(() => {
+  const wp = new THREE.Vector3();
+  (wolvesAnim[1] || wolvesAnim[0] || pack).getWorldPosition(wp); wp.y += 1;
+  wolves.forEach((w, i) => setTimeout(() => soundPulse(wp, w), i * 200));
+}, null, 54.7);
 tl.call(() => {                                                     // …and a bird overhead
   if (storks[0]) {
     const wp = new THREE.Vector3(); storks[0].b.getWorldPosition(wp);
-    ringAt(wp.x, wp.z, 0xE682E6, 2.6, wp.y);
+    ringAt(wp.x, wp.z, 0xE682E6, 2.2, wp.y);
+    wolves.forEach((w, i) => setTimeout(() => soundPulse(wp.clone(), w), 200 + i * 200));
   }
-  wolves.forEach((w, i) => setTimeout(() => intakeAt(w.position.x, w.position.z), 260 + i * 220));
 }, null, 55.6);
 tl.call(() => bearings(-12.8, 12.6), null, 56.6);
 tl.call(() => {
@@ -1322,9 +1430,19 @@ function tick(dt, t) {
     const hc = herdState.curve === 'in' ? herdIn : herdOut;
     placeOnCurve(herd, hc, herdState.curve === 'in' ? herdState.u : 1 - herdState.u, t * 2.2, .02, true);
   }
-  for (const e of eles) {
-    e.userData.legs.forEach((l, i) => { l.rotation.x = Math.sin(t * 3.1 + i * Math.PI) * .38; });
-    e.userData.ears.forEach((ear, i) => { ear.rotation.y = Math.sin(t * 1.7 + i) * .18; });
+  for (let k = 0; k < eles.length; k++) {
+    const e = eles[k], u = e.userData;
+    if (!u.legs || !u.legs.length) continue;                       // drop-in rigs animate themselves
+    const ph = t * 2.6 + k * 1.9;
+    u.legs.forEach((l, i) => {                                     // diagonal gait: FL+BR / FR+BL
+      const lp = ph + (i === 0 || i === 3 ? 0 : Math.PI);
+      l.hip.rotation.z = Math.sin(lp) * .3;
+      l.knee.rotation.z = Math.max(0, Math.sin(lp + .9)) * .45;
+    });
+    u.ears.forEach((ear, i) => { ear.rotation.y += (Math.sin(t * 1.4 + i * 2 + k) * .22 + (i ? -.35 : .35) - ear.rotation.y) * .06; });
+    u.trunkSegs.forEach((seg2, i) => { seg2.rotation.z = .1 + Math.sin(t * 1.1 + k - i * .55) * .085; });
+    u.tail.rotation.x = Math.sin(t * 1.9 + k) * .3;
+    u.head.rotation.z = Math.sin(ph * .5) * .04;
   }
   if (guard1.visible) {
     placeOnCurve(guard1, guardPath, guardState.u, t * 6, .015);
@@ -1344,7 +1462,7 @@ function tick(dt, t) {
 
   for (const st of storks) {
     const a = t * .22 + st.ph;
-    st.b.position.set(-11 + Math.cos(a) * 4.2, 4.7 + Math.sin(t * .55 + st.ph) * .4, 12.6 + Math.sin(a) * 3.6);
+    st.b.position.set(-11 + Math.cos(a) * 3.6, 3.5 + Math.sin(t * .55 + st.ph) * .35, 12.6 + Math.sin(a) * 3.2);
     st.b.rotation.y = -a - Math.PI / 2;
   }
   sat.position.x = -2 + Math.sin(t * .05) * 5;
@@ -1363,7 +1481,25 @@ function tick(dt, t) {
     a.needsUpdate = true;
   }
 
-  water.material.opacity = .86 + Math.sin(t * 1.3) * .04;
+  waterTex.offset.x = t * .012; waterTex.offset.y = t * .004;
+  water.material.opacity = .88 + Math.sin(t * 1.3) * .03;
+  for (const cs of cloudShadows) {
+    cs.m.position.x += .006;
+    if (cs.m.position.x > 90) cs.m.position.x = -90;
+  }
+  if (fireflies) {
+    const fa = fireflies.geometry.attributes.position;
+    const fb = fireflies.userData.base;
+    for (let i = 0; i < fb.length; i++) {
+      fa.setXYZ(i,
+        fb[i][0] + Math.sin(t * .7 + i * 1.7) * .5,
+        fb[i][1] + Math.sin(t * 1.1 + i * 2.3) * .3,
+        fb[i][2] + Math.cos(t * .6 + i * 1.3) * .5);
+    }
+    fa.needsUpdate = true;
+    fireflies.material.opacity = .5 + .3 * Math.sin(t * 2.2);
+  }
+  sun.intensity = 2.75 + .18 * Math.sin(t * .13) + .1 * noise(t * .05, 3.3);       // living light
   grade.uniforms.uTime.value = t;
 
   camera.position.set(camP.x, camP.y, camP.z);
@@ -1382,12 +1518,12 @@ function tick(dt, t) {
     wl.el.style.display = off ? 'none' : '';
     if (!off) {
       wl.el.style.left = ((proj.x * .5 + .5) * innerWidth) + 'px';
-      wl.el.style.top = ((-proj.y * .5 + .5) * innerHeight) + 'px';
+      wl.el.style.top = Math.max(118, (-proj.y * .5 + .5) * innerHeight) + 'px';
       wl.el.style.opacity = Math.min(.92, Math.max(.5, (30 - camera.position.distanceTo(wl.pos)) / 18));
     }
   }
   markChapter();
-  if ((frame++ & 3) === 0) { drawMap(); $('#feed-clock').textContent = clockStr(); }
+  if ((frame++ & 3) === 0) $('#feed-clock').textContent = clockStr();
 
   composer.render();
 }
@@ -1416,7 +1552,6 @@ window.__demo = {
 animate();
 // boot via plain timers so it completes even in a backgrounded tab
 setTimeout(() => {
-  snapshotMap();
   const loader = $('#loader');
   loader.style.transition = 'opacity .7s';
   loader.style.opacity = '0';

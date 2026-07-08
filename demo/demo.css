@@ -77,10 +77,7 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #feed,bo
   #chapters{bottom:50px;overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
 }
 
-/* sector map — the Risk-board overview that keeps you oriented */
-#map{position:fixed;left:26px;top:104px;z-index:25;width:212px;border-radius:11px;overflow:hidden;background:rgba(6,12,8,.72);border:1px solid rgba(240,240,234,.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:none;opacity:.94}
-#map .map-h{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(240,240,234,.66);padding:7px 11px 6px;border-bottom:1px solid rgba(240,240,234,.1)}
-#map canvas{display:block;width:100%;height:auto}
-body.booting #map{opacity:0!important}
-#map{transition:opacity 1s ease}
-@media(max-width:900px){#map{display:none}}
+/* film chrome depth */
+.bar{height:52px}
+.hud{top:52px}
+#feed{top:112px}
