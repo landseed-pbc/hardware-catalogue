@@ -5,3 +5,5 @@
 - `demo/assets/stork.glb` — animated bird from the three.js examples (MIT).
 - `demo/assets/field/*.jpg` — field capture imagery supplied by Landseed
   (project archive), cropped for the demo alert cards.
+- `demo/assets/wolf.glb` — animated Wolf from Quaternius' Animated Animals
+  pack (https://quaternius.com, CC0 1.0).

@@ -591,55 +591,74 @@ function elephant(sc = 1) {
   return g;
 }
 const herd = new THREE.Group();
-const eles = [elephant(1.1), elephant(.9), elephant(.58)];
+let eles = [elephant(1.1), elephant(.9), elephant(.58)];
 eles.forEach((e, i) => { e.position.set(-i * 1.45 - (i % 2) * .3, 0, (i % 2) * 1.05 - .45); herd.add(e); });
+// drop-in: place a licensed animated rig at demo/assets/elephant.glb and the
+// procedural family is replaced automatically (Walk clip auto-selected)
+new GLTFLoader().load('./assets/elephant.glb', (g) => {
+  const box = new THREE.Box3().setFromObject(g.scene);
+  const sc0 = 2.3 / (box.max.y - box.min.y);
+  const clips = g.animations;
+  const walk = clips.find(c => /walk/i.test(c.name)) || clips[0];
+  eles.forEach(e => herd.remove(e));
+  eles = [];
+  const spots = [[0, 0, 0], [-1.6, 1, 1], [-1.3, -1.1, 2]];
+  for (const [px, pz, i] of spots) {
+    const e = SkeletonUtils.clone(g.scene);
+    e.scale.setScalar(sc0 * (1 - i * .18));
+    e.position.set(px, 0, pz);
+    e.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    if (walk) {
+      const mixer = new THREE.AnimationMixer(e);
+      const a = mixer.clipAction(walk); a.play(); a.time = i * .4;
+      mixers.push(mixer);
+    }
+    e.userData = { legs: [], ears: [] };
+    herd.add(e); eles.push(e);
+  }
+}, undefined, () => {});
 herd.visible = false;                                          // enters with its own chapter
 scene.add(herd);
 const herdState = { u: 0, curve: 'in', turning: false };
 
-// the wolf pack — the animals the Wolf array hears
-function wolfAnimal(sc = 1) {
-  const g = new THREE.Group();
-  const fur = new THREE.MeshStandardMaterial({ color: 0x8a8274, roughness: .92 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x5e574c, roughness: .92 });
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.16, .5, 3, 8).rotateZ(Math.PI / 2), fur);
-  body.position.y = .48; body.castShadow = true;
-  const chest = new THREE.Mesh(new THREE.SphereGeometry(.19, 8, 7), fur);
-  chest.position.set(.25, .5, 0);
-  const head = new THREE.Group();
-  const skull = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 7), fur);
-  const snout = new THREE.Mesh(new THREE.BoxGeometry(.16, .09, .09), dark);
-  snout.position.set(.14, -.02, 0);
-  const earG = new THREE.ConeGeometry(.04, .09, 5);
-  const e1 = new THREE.Mesh(earG, dark); e1.position.set(-.03, .13, .06);
-  const e2 = e1.clone(); e2.position.z = -.06;
-  head.add(skull, snout, e1, e2);
-  head.position.set(.48, .62, 0);
-  const tail = new THREE.Mesh(new THREE.CapsuleGeometry(.045, .3, 3, 6).rotateZ(2.4), fur);
-  tail.position.set(-.42, .5, 0);
-  const legG = new THREE.CylinderGeometry(.035, .03, .42, 6);
-  for (const [lx, lz] of [[-.26, .1], [-.26, -.1], [.26, .1], [.26, -.1]]) {
-    const l = new THREE.Mesh(legG, dark); l.position.set(lx, .21, lz); g.add(l);
-  }
-  g.add(body, chest, head, tail);
-  g.scale.setScalar(sc);
-  g.userData.head = head;
-  return g;
-}
+// the wolf pack — Quaternius' animated rig (CC0), three clones with real clips
 const PACK_AT = [-12.8, 12.6];
 const pack = new THREE.Group();
-const wolvesAnim = [wolfAnimal(1.05), wolfAnimal(.9), wolfAnimal(.8)];
-wolvesAnim[0].position.set(0, 0, 0);
-wolvesAnim[1].position.set(-.9, 0, .8); wolvesAnim[1].rotation.y = .7;
-wolvesAnim[2].position.set(-.7, 0, -.9); wolvesAnim[2].rotation.y = -.5;
-wolvesAnim.forEach(w => pack.add(w));
 pack.position.set(PACK_AT[0], heightAt(PACK_AT[0], PACK_AT[1]), PACK_AT[1]);
 pack.rotation.y = 1.2;
 scene.add(pack);
-function howl(w) {                                       // muzzle lifts, holds, settles — rings ripple out
-  const head = w.userData.head;
-  gsap.to(head.rotation, { z: .52, duration: 1.0, ease: 'sine.inOut' });
-  gsap.to(head.rotation, { z: 0, duration: .9, delay: 2.1, ease: 'sine.inOut' });
+const wolvesAnim = [];
+new GLTFLoader().load('./assets/wolf.glb', (g) => {
+  const clips = g.animations;
+  // the rig's armature carries a baked 100× scale that bounding boxes miss —
+  // rendered height ≈ 5.5 units at scale 1, so ~0.2 gives a real wolf
+  const sc0 = .2;
+  const spots = [[0, 0, 0, 0], [-1.15, .95, .7, 1], [-.95, -1.05, -.5, 2]];
+  for (const [px, pz, ry, i] of spots) {
+    const w = SkeletonUtils.clone(g.scene);
+    w.scale.setScalar(sc0 * (1 - i * .09));
+    w.position.set(px, 0, pz);
+    w.rotation.y = ry;
+    w.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
+    const mixer = new THREE.AnimationMixer(w);
+    const idle = clips.find(c => c.name.endsWith('|Idle'));
+    const act = mixer.clipAction(idle);
+    act.play();
+    act.time = i * .7;
+    mixers.push(mixer);
+    w.userData.headBone = w.getObjectByName('Head') || w.getObjectByName('Neck');
+    pack.add(w);
+    wolvesAnim.push(w);
+  }
+}, undefined, () => console.warn('wolf asset unavailable'));
+
+function howl(w) {                                       // muzzle lifts on the actual neck bone
+  if (!w) return;
+  const b = w.userData.headBone;
+  if (b) {
+    gsap.to(b.rotation, { x: -.85, duration: 1.0, ease: 'sine.inOut' });
+    gsap.to(b.rotation, { x: 0, duration: .9, delay: 2.1, ease: 'sine.inOut', overwrite: false });
+  }
   const wp = new THREE.Vector3(); w.getWorldPosition(wp);
   for (let i = 0; i < 3; i++)
     setTimeout(() => ringAt(wp.x, wp.z, HUES.listen, 1.5 + i * .45, wp.y + 1.15), 500 + i * 380);
@@ -1157,7 +1176,7 @@ cam(51.8, [-2.5, 8, 21], [-12.6, 1, 12.4], 2.4, 'power2.out');      // settle on
 tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 6), null, 52);
 tl.call(() => howl(wolvesAnim[0]), null, 52.4);                     // the lead howls…
 tl.call(() => { wolves.forEach((w, i) => setTimeout(() => intakeAt(w.position.x, w.position.z), i * 220)); }, null, 53.1);
-tl.call(() => howl(wolvesAnim[1]), null, 54);                       // …an answer…
+tl.call(() => howl(wolvesAnim[1] || wolvesAnim[0]), null, 54);                       // …an answer…
 tl.call(() => { wolves.forEach((w, i) => setTimeout(() => intakeAt(w.position.x, w.position.z), i * 220)); }, null, 54.7);
 tl.call(() => {                                                     // …and a bird overhead
   if (storks[0]) {
