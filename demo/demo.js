@@ -417,6 +417,24 @@ pFigs[0].add(rifle);
 scene.add(poachers);
 const poach = { u: 0.02, stopped: false };
 
+// the poachers' pickup, left at the north track — the thing the informant photographs
+{
+  const dark = new THREE.MeshStandardMaterial({ color: 0x23261f, roughness: .7, metalness: .15 });
+  const truck = new THREE.Group();
+  const bed = new THREE.Mesh(new THREE.BoxGeometry(1.7, .5, .85), dark); bed.position.y = .55; bed.castShadow = true;
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(.65, .42, .8), new THREE.MeshStandardMaterial({ color: 0x1c1f19, roughness: .6 }));
+  cab.position.set(.45, .98, 0);
+  const wG = new THREE.CylinderGeometry(.2, .2, .15, 10).rotateX(Math.PI / 2);
+  const wM = new THREE.MeshStandardMaterial({ color: 0x121109, roughness: .95 });
+  for (const [wx, wz] of [[-.55, .45], [-.55, -.45], [.55, .45], [.55, -.45]]) {
+    const w = new THREE.Mesh(wG, wM); w.position.set(wx, .2, wz); truck.add(w);
+  }
+  truck.add(bed, cab);
+  truck.position.set(28.8, heightAt(28.8, 17.9), 17.9);
+  truck.rotation.y = 2.1;
+  scene.add(truck);
+}
+
 // the informant at the north track, Landseed Mobile in hand
 const informant = figure(0x4e5a66, .82);
 informant.position.set(26.5, heightAt(26.5, 16.6), 16.6);
@@ -757,11 +775,12 @@ cam(.02, [24, 19, 34], [-4, .5, 0], 9.8, 'sine.inOut');
 tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station', 'Cameras at the chokepoints, three ears in the forest, a gateway on the ridge — the brain above headquarters.', 6.5), null, 2.6);
 
 // ── intrusion 10–24 · the report comes first, then the cameras confirm
-cam(10, [31, 7, 25.5], [23.5, 1.2, 14], 2.6);
+cam(10, [31.5, 7.5, 24.5], [25.5, 1, 15.8], 2.6);
 tl.call(() => {
+  flashAt(V3(26.5, heightAt(26.5, 16.6) + 1.2, 16.6), 0xcfe8ff);      // the phone takes its photo
   popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', 'vehicle', 5, 140);
   stMobHQ.play(2.4);
-  feed(HUES.report, 'Mobile-07 · report', 'Vehicle at the north track · photo received at HQ');
+  feed(HUES.report, 'Mobile-07 · report', 'Vehicle at the north track · direct-to-cell · photo at HQ');
 }, null, 11.2);
 tl.call(() => caption(HUES.report, 'To report · Human in the loop', 'The first sensor is a person', 'An informant’s photo reaches HQ before the men are inside. The cameras are already waiting.', 5.5), null, 11.6);
 tl.to(poach, { u: .52, duration: 6.5, ease: 'none' }, 12.5);
@@ -774,7 +793,7 @@ tl.call(() => {                                                     // DETECTION
   popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×3', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', 'human', 5.5, 160);
 }, null, 19);
 tl.call(() => { stSer1Gate.play(2.6); feed(HUES.see, 'Serengeti-01 · alert', 'Human ×3 at the chokepoint · image → Gateway over LoRa'); }, null, 19.9);
-tl.call(() => { fireUplink(); feed(HUES.link, 'Gateway · uplink', 'Woke from deep sleep · relayed by satellite — no cell for 40 km'); }, null, 21.2);
+tl.call(() => { fireUplink(); feed(HUES.link, 'Gateway · uplink', 'Woke from deep sleep · relayed by satellite — no cell inside the park'); }, null, 21.2);
 tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ · Landseed AI', 'Alert on rangers’ phones · 28 s after trigger'); }, null, 22.4);
 tl.to(poach, { u: .74, duration: 12, ease: 'none' }, 19.2);
 
@@ -791,7 +810,7 @@ tl.call(() => {                                                     // second ca
   stSer2Gate.play(2);
   feed(HUES.see, 'Serengeti-02 · confirm', 'Track confirmed heading for the ford');
 }, null, 28.2);
-cam(30.6, [-3, 10, 12], [-6, .8, 2.3], 1.6, 'power1.in');           // arc round toward the ford — no whip
+cam(30.6, [3.5, 12, -1], [-6, .8, 2.3], 1.6, 'power1.in');           // arc toward the ford — one continuous sweep
 cam(32.2, [-1.5, 10.5, 8], [-6.2, .8, 2.2], 1.9, 'power2.out');
 tl.call(() => {                                                     // INTERCEPT
   poach.stopped = true;
@@ -803,11 +822,12 @@ tl.call(() => {                                                     // INTERCEPT
 tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Like the 20 arrests across 13 gangs that earlier versions made possible, beginning in the Serengeti.', 4.5), null, 33);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
-cam(34.4, [2, 13, -2], [10, 1, -5], 1.8, 'power1.in');              // crane up from the ford
+cam(34.4, [8, 13, 3.5], [10, 1, -5], 1.8, 'power1.in');             // crane up from the ford
 cam(36.2, [19.5, 7.5, 1], [11, 1, -6.5], 2.4, 'power2.out');        // settle over the crop edge
 tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 5.5), null, 36.4);
 tl.to(herdState, { u: .78, duration: 7.2, ease: 'none' }, 34.4);
-cam(39.2, [5.8, 4.4, -10.8], [10.8, 1.1, -3.2], 2.8, 'sine.inOut'); // low over the open crops — the herd crosses the frame
+cam(39.2, [14.5, 5.4, -9.8], [11, 1.2, -4.4], 1.7, 'power1.in');    // orbit the crops in one direction…
+cam(40.9, [5.8, 4.4, -10.8], [10.8, 1.1, -3.2], 1.9, 'power2.out'); // …and settle low — no counter-rotation
 tl.to(herdState, { u: 1, duration: 3.2, ease: 'none' }, 41.6);
 tl.call(() => {                                                     // DETECTION 2
   flashAt(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), 0xffe9bd);
@@ -848,21 +868,21 @@ for (const [t, r] of [[53.2, 3.4], [55.2, 4.4]]) {
 tl.call(() => bearings(-12.5, 13), null, 56.2);
 tl.call(() => { stWolfGate.play(2.4); feed(HUES.listen, 'Wolf array · fix', 'Primate troop · 3 bearings agree · location on the map'); }, null, 57.4);
 tl.call(() => {
-  popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · IND-041 · IND-017 · density updated', 'reid', 4.5, 140);
-  stJWGate.play(2.4);
-  feed(0xFF8C42, 'Jungle-Wallah · survey', 'Two individuals re-identified · abundance revised');
+  ringAt(-3, 14.5, 0xFF8C42, 2);                                      // Wi-Fi offload pulse — no airtime by design
+  popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · offloaded on patrol pass · density updated', 'reid', 4.5, 140);
+  feed(0xFF8C42, 'Jungle-Wallah · survey', 'Offloaded on patrol pass · two individuals re-identified');
 }, null, 58.6);
 tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Calls become bearings, detections become densities — the measurement layer for Earth Credits.', 3.6), null, 59.4);
 
 // ── network 62–78 · one continuous pull to the whole board
-cam(62, [8, 26, 30], [-2, 0, -2], 4.5);
+cam(62, [-2, 25, 29], [-2, 0, -2], 4.5);
 tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landscape, reporting', 'See, listen, connect, report — every detection lands in Landseed AI, and the record writes itself.', 9), null, 63.5);
 tl.call(() => { stSer1Gate.play(3); stSer2Gate.play(3); stMobHQ.play(3); }, null, 65);
-tl.call(() => { stWolfGate.play(3); stJWGate.play(3); }, null, 65.9);
+tl.call(() => { stWolfGate.play(3); }, null, 65.9);
 tl.call(() => { fireUplink(); stVGHQ.play(3); }, null, 66.9);
 tl.call(() => { stSatHQ.play(3); }, null, 68);
 tl.call(() => feed(HUES.brain, 'Landseed AI · report', 'Daily summary compiled · Earth Credits registry updated'), null, 69);
-cam(66.5, [-8, 23, 27], [-2, 0, -2], 11.5, 'sine.inOut');
+cam(66.5, [-10, 22, 31], [-2, 0, -2], 11.5, 'sine.inOut');
 tl.call(() => {}, null, 78);
 
 tl.eventCallback('onRepeat', () => {
