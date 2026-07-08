@@ -61,3 +61,15 @@ why that file's texture path is root-relative). Verify by seeking:
 `__demo.tl.pause(); __demo.tl.time(T); __demo.tl.play()` — callbacks re-fire on
 forward seeks only. Planned to become the default page, with the current
 catalogue moving to /catalogue, once perfected.
+
+### Demo v4 notes
+- Detection popups render the REAL scene from the sensor's lens (`sensorSnap`,
+  IR-graded, boxes projected from true actor positions).
+- Humans are rigged Soldier.glb clones (three.js examples, MIT — see
+  ATTRIBUTION.md) with Idle/Walk clips via `setGait`.
+- Filmic grade ShaderPass (teal-orange, vignette, grain) after OutputPass.
+- Sensors are clickable → `/#<id>` catalogue deep-links (hover tooltip).
+- `?terrain=real&lat=&lon=` loads AWS Terrain Tiles (top-level await) and swaps
+  `heightAt` to the DEM; falls back to procedural on failure.
+- Iterate against the LIVE deploy and bump `demo.js?v=N` on every deploy — the
+  Pages CDN caches aggressively.

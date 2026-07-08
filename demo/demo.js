@@ -14,6 +14,52 @@ import { BUILDERS } from '../src/devices.js?v=5';
 
 const $ = (s) => document.querySelector(s);
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+/* ── optional real terrain (AWS Terrain Tiles, public domain data) ─────────
+   /demo/?terrain=real&lat=..&lon=..  — same simulation, real topography. */
+const qs = new URLSearchParams(location.search);
+const REAL = qs.get('terrain') === 'real';
+let dem = null;   // {grid: Float32Array, n, base}
+async function loadDEM() {
+  const lat = parseFloat(qs.get('lat') || '-2.34');
+  const lon = parseFloat(qs.get('lon') || '34.82');
+  const z = 11;
+  const n = Math.pow(2, z);
+  const xt = Math.floor((lon + 180) / 360 * n);
+  const yt = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n);
+  const cv = document.createElement('canvas'); cv.width = cv.height = 512;
+  const cx = cv.getContext('2d');
+  const jobs = [];
+  for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+    jobs.push(new Promise((res, rej) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => { cx.drawImage(img, dx * 256, dy * 256); res(); };
+      img.onerror = rej;
+      img.src = `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${xt + dx}/${yt + dy}.png`;
+    }));
+  }
+  await Promise.all(jobs);
+  const px = cx.getImageData(0, 0, 512, 512).data;
+  const grid = new Float32Array(512 * 512);
+  for (let i = 0; i < 512 * 512; i++)
+    grid[i] = px[i * 4] * 256 + px[i * 4 + 1] + px[i * 4 + 2] / 256 - 32768;
+  const sorted = Float32Array.from(grid).sort();
+  dem = { grid, n: 512, base: sorted[Math.floor(sorted.length * .12)] };
+}
+if (REAL) { try { await Promise.race([loadDEM(), new Promise((_, r) => setTimeout(r, 8000))]); } catch (e) { dem = null; console.warn('DEM unavailable — procedural terrain', e); } }
+function demAt(x, z) {
+  // world 76×56 → central window of the 512² DEM
+  const u = (x + 38) / 76 * 430 + 41, v = (z + 28) / 56 * 316 + 98;
+  const i0 = Math.floor(u), j0 = Math.floor(v), fu = u - i0, fv = v - j0;
+  const g = dem.grid, n = dem.n;
+  const a = g[j0 * n + i0], b = g[j0 * n + i0 + 1], c = g[(j0 + 1) * n + i0], d2 = g[(j0 + 1) * n + i0 + 1];
+  const e = (a * (1 - fu) + b * fu) * (1 - fv) + (c * (1 - fu) + d2 * fu) * fv;
+  return Math.min(6.4, Math.max(-1.6, (e - dem.base) / 240));
+}
 const HUES = { see: 0x00FF64, guard: 0xFFC800, link: 0x32C8FF, listen: 0xE682E6, brain: 0x9B6CE0, report: 0x1482FF };
 
 /* ── renderer / scene / light ───────────────────────────────────────────── */
@@ -84,6 +130,23 @@ const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .2, .7, .88));
 composer.addPass(new OutputPass());
+const grade = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
+  fragmentShader: `varying vec2 vUv; uniform sampler2D tDiffuse; uniform float uTime;
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    void main(){
+      vec4 c = texture2D(tDiffuse, vUv);
+      float l = dot(c.rgb, vec3(.299, .587, .114));
+      c.rgb *= mix(vec3(.93, 1.02, 1.09), vec3(1.07, 1.0, .9), smoothstep(.12, .85, l));   // teal shadows, warm highs
+      c.rgb = mix(vec3(l), c.rgb, .92);                                                    // gentle desaturation
+      float d = distance(vUv, vec2(.5, .46));
+      c.rgb *= 1. - .3 * smoothstep(.42, .86, d);                                          // vignette
+      c.rgb += (hash(vUv * vec2(1920., 1080.) + fract(uTime) * 7.) * 2. - 1.) * .025;      // grain
+      gl_FragColor = c;
+    }`,
+});
+composer.addPass(grade);
 
 /* ── terrain ────────────────────────────────────────────────────────────── */
 
@@ -100,6 +163,11 @@ function noise(x, z) {
 }
 const riverZ = (x) => 4.5 + 5.5 * Math.sin((x + 32) * .09);
 function heightAt(x, z) {
+  if (dem) {
+    let h = demAt(x, z) + .18 * noise(x * .4, z * .4);
+    const gv = Math.exp(-(((x - 17) ** 2 + (z + 12.5) ** 2)) / 30);
+    return h * (1 - gv) + Math.max(.3, demAt(17, -12.5)) * gv;                    // village still flattens
+  }
   let h = 1.5 * noise(x * .06 + 9, z * .06 + 4) + .55 * noise(x * .16, z * .16) + .22 * noise(x * .4, z * .4) - .72;
   h += 5.6 * Math.exp(-((x + 24) ** 2) / 52) * (0.7 + 0.3 * noise(z * .1, 3));   // western ridge
   const dr = z - riverZ(x);
@@ -143,7 +211,7 @@ function nearCurve(curve, x, z, n = 60) {
     tmp.copy(cGrass1).lerp(cGrass2, n).lerp(cDry, Math.max(0, (-z - 6) / 30) * .5);   // dryer to the south
     if (n > .55 && z > -8 && x > -20 && x < 10) tmp.lerp(cForest, .75);
     if (h > 3.2) tmp.lerp(cRock, Math.min(1, (h - 3.2) / 1.6));
-    if (Math.abs(z - riverZ(x)) < 2.1) tmp.lerp(cSand, .55);
+    if (!dem && Math.abs(z - riverZ(x)) < 2.1) tmp.lerp(cSand, .55);
     if (nearCurve(trail, x, z, 40) < 1) tmp.lerp(cDirt, .55);
     if (nearCurve(road, x, z, 30) < 1.1) tmp.lerp(cDirt, .7);
     const cropD = ((x - 12.6) ** 2) / 9 + ((z + 7) ** 2) / 5;
@@ -167,7 +235,7 @@ function nearCurve(curve, x, z, n = 60) {
 const water = new THREE.Mesh(
   new THREE.PlaneGeometry(110, 84).rotateX(-Math.PI / 2),
   new THREE.MeshStandardMaterial({ color: 0x23485a, roughness: .14, metalness: .3, transparent: true, opacity: .92 }));
-water.position.y = -.35;
+water.position.y = dem ? -.15 : -.35;
 scene.add(water);
 
 /* ── vegetation & rocks (instanced, three species) ──────────────────────── */
@@ -333,13 +401,15 @@ function place(id, x, z, ry, sc = 2) {
   return g;
 }
 
-place('serengeti', 6.8, 10.2, 1.4, 1.9);
-place('serengeti', -4.5, 5.6, 1.25, 1.9);
-place('villageguard', 12.9, -8.6, -.4, 1.9);
-const wolves = [place('wolf', -12, 10.5, .6, 2.1), place('wolf', -8.5, 15.5, 0, 2.1), place('wolf', -15.5, 14.5, 1, 2.1)];
-place('junglewallah', -3, 14.5, 2.4, 1.9);
-place('gateway', -21.5, -3.5, 1.1, 2.6);
-const sAI = place('ai', 17, -12.3, 0, .85);
+const SENSORS = [];
+function placeS(id, x, z, ry, sc) { const g = place(id, x, z, ry, sc); SENSORS.push({ id, g }); return g; }
+placeS('serengeti', 6.8, 10.2, 1.4, 1.9);
+placeS('serengeti', -4.5, 5.6, 1.25, 1.9);
+placeS('villageguard', 12.9, -8.6, -.4, 1.9);
+const wolves = [placeS('wolf', -12, 10.5, .6, 2.1), placeS('wolf', -8.5, 15.5, 0, 2.1), placeS('wolf', -15.5, 14.5, 1, 2.1)];
+placeS('junglewallah', -3, 14.5, 2.4, 1.9);
+placeS('gateway', -21.5, -3.5, 1.1, 2.6);
+const sAI = placeS('ai', 17, -12.3, 0, .85);
 sAI.position.y = heightAt(17, -12.3) + 2.6;
 sAI.userData.baseY = sAI.position.y;
 
@@ -380,14 +450,45 @@ const sat = new THREE.Group();
 
 /* ── actors ─────────────────────────────────────────────────────────────── */
 
-function figure(color, h = .8, skin = 0x6b503c) {
+// rigged human — cloned from the shared Soldier asset with real clips
+let soldierProto = null, soldierClips = null;
+const mixers = [];
+await new Promise((res) => {
+  new GLTFLoader().load('./assets/soldier.glb', (g) => { soldierProto = g.scene; soldierClips = g.animations; res(); },
+    undefined, () => { console.warn('soldier asset unavailable'); res(); });
+});
+function figure(color, h = .8) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.145, h * .62, 3, 8), new THREE.MeshStandardMaterial({ color, roughness: .88 }));
-  body.position.y = h * .66; body.castShadow = true;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(.115, 10, 10), new THREE.MeshStandardMaterial({ color: skin, roughness: .8 }));
-  head.position.y = h * 1.22;
-  g.add(body, head);
+  if (soldierProto) {
+    const inst = SkeletonUtils.clone(soldierProto);
+    inst.scale.setScalar(.62);
+    inst.traverse(o => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.material = o.material.clone();
+        o.material.color = new THREE.Color(color).multiplyScalar(1.6);
+        o.material.roughness = .9;
+      }
+    });
+    const mixer = new THREE.AnimationMixer(inst);
+    const act = {};
+    for (const c of soldierClips) act[c.name] = mixer.clipAction(c);
+    act.Idle?.play();
+    g.add(inst);
+    g.userData.mixer = mixer; g.userData.act = act; g.userData.mode = 'Idle';
+    mixers.push(mixer);
+  } else {
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(.145, h * .62, 3, 8), new THREE.MeshStandardMaterial({ color, roughness: .88 }));
+    body.position.y = h * .66; body.castShadow = true;
+    g.add(body);
+  }
   return g;
+}
+function setGait(fig, mode) {                                   // 'Idle' | 'Walk' | 'Run'
+  const a = fig.userData.act; if (!a || fig.userData.mode === mode) return;
+  a[fig.userData.mode]?.fadeOut(.25);
+  a[mode]?.reset().fadeIn(.25).play();
+  fig.userData.mode = mode;
 }
 // a hand lamp: real spotlight + tiny emissive body — light on the ground, no geometry cones
 function handLamp(fig, hue = 0xffd9a0, intensity = 14) {
@@ -396,7 +497,7 @@ function handLamp(fig, hue = 0xffd9a0, intensity = 14) {
   bulb.position.set(.14, .8, .3);
   fig.add(bulb);
   const sp = new THREE.SpotLight(hue, intensity, 10, .42, .7, 1.6);
-  sp.position.set(.14, .95, .25);
+  sp.position.set(.14, .9, .25);
   const tgt = new THREE.Object3D(); tgt.position.set(.14, -.4, 4.5);
   fig.add(tgt); sp.target = tgt;
   fig.add(sp);
@@ -412,7 +513,7 @@ pFigs.forEach((f, i) => {
 });
 handLamp(pFigs[0], 0xffd9a0, 12);
 const rifle = new THREE.Mesh(new THREE.CylinderGeometry(.022, .022, .9, 5), new THREE.MeshStandardMaterial({ color: 0x241f18 }));
-rifle.rotation.z = 1.12; rifle.position.set(-.34, .95, -.15);
+rifle.rotation.z = 1.12; rifle.position.set(-.2, .85, -.12);
 pFigs[0].add(rifle);
 scene.add(poachers);
 const poach = { u: 0.02, stopped: false };
@@ -433,6 +534,7 @@ const poach = { u: 0.02, stopped: false };
   truck.position.set(28.8, heightAt(28.8, 17.9), 17.9);
   truck.rotation.y = 2.1;
   scene.add(truck);
+  window.__pickup = truck;
 }
 
 // the informant at the north track, Landseed Mobile in hand
@@ -490,6 +592,7 @@ function elephant(sc = 1) {
 const herd = new THREE.Group();
 const eles = [elephant(1.1), elephant(.9), elephant(.58)];
 eles.forEach((e, i) => { e.position.set(-i * 1.45 - (i % 2) * .3, 0, (i % 2) * 1.05 - .45); herd.add(e); });
+herd.visible = false;                                          // enters with its own chapter
 scene.add(herd);
 const herdState = { u: 0, curve: 'in', turning: false };
 
@@ -670,12 +773,60 @@ function thumb(kind) {
   }
   return c;
 }
+// render the world through the sensor's own lens — the alert card shows what
+// the camera genuinely saw, IR-graded for the night units, boxes projected
+// from the true actor positions
+function sensorSnap(from, look, { ir = false, boxes = [] } = {}) {
+  const W = 392, H = 192;
+  const cam2 = new THREE.PerspectiveCamera(52, W / H, .1, 200);
+  cam2.position.copy(from); cam2.lookAt(look); cam2.updateMatrixWorld();
+  const rt = new THREE.WebGLRenderTarget(W, H);
+  renderer.setRenderTarget(rt);
+  renderer.render(scene, cam2);
+  const px = new Uint8Array(W * H * 4);
+  renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
+  renderer.setRenderTarget(null); rt.dispose();
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const img = x.createImageData(W, H);
+  for (let y = 0; y < H; y++) for (let i = 0; i < W; i++) {
+    const si = ((H - 1 - y) * W + i) * 4, di = (y * W + i) * 4;
+    let r = Math.pow(px[si] / 255, 1 / 2.2) * 255,
+        g = Math.pow(px[si + 1] / 255, 1 / 2.2) * 255,
+        b = Math.pow(px[si + 2] / 255, 1 / 2.2) * 255;
+    if (ir) { const l = (r * .3 + g * .6 + b * .1) * 1.7 + 22; r = l * .4; g = Math.min(255, l * 1.04); b = l * .48; }
+    img.data[di] = r; img.data[di + 1] = g; img.data[di + 2] = b; img.data[di + 3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+  if (ir) { x.fillStyle = 'rgba(255,255,255,.05)'; for (let y = 0; y < H; y += 3) x.fillRect(0, y, W, 1); }
+  const v = new THREE.Vector3();
+  x.lineWidth = 2; x.font = "700 12px 'Hanken Grotesk'";
+  for (const bx of boxes) {
+    v.copy(bx.top).project(cam2);
+    const tx = (v.x * .5 + .5) * W, ty = (-v.y * .5 + .5) * H;
+    v.copy(bx.bot).project(cam2);
+    const by = (-v.y * .5 + .5) * H;
+    const hgt = Math.max(10, by - ty), wid = Math.max(12, hgt * bx.ar);
+    x.strokeStyle = bx.col;
+    x.strokeRect(tx - wid / 2, ty - 4, wid, hgt + 8);
+    if (bx.tag) { x.fillStyle = bx.col; x.fillText(bx.tag, Math.max(4, tx - wid / 2), Math.max(12, ty - 8)); }
+  }
+  x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 22, W, 22);
+  x.fillStyle = '#e8efe6'; x.fillText((ir ? 'IR · ' : '') + clockStr(), 9, H - 7);
+  x.fillStyle = '#ff5a4d'; x.beginPath(); x.arc(W - 14, H - 12, 4, 0, 7); x.fill();
+  return c;
+}
+const boxFor = (obj, height, ar, col, tag) => {
+  const w = new THREE.Vector3(); obj.getWorldPosition(w);
+  return { top: w.clone().setY(w.y + height), bot: w.clone().setY(w.y + .02), ar, col, tag };
+};
+
 const pops = [];
 function popup(world, hue, title, conf, sub, kind, hold = 6.5, dx = 0) {
   const el = document.createElement('div');
   el.className = 'pop';
   el.style.setProperty('--fa', hex(hue));
-  el.appendChild(thumb(kind));
+  el.appendChild(kind instanceof HTMLCanvasElement ? kind : thumb(kind));
   const b = document.createElement('div'); b.className = 'p-b';
   b.innerHTML = `<div class="p-t">${title}<em>${conf}</em></div><div class="p-s">${sub}</div>`;
   el.appendChild(b);
@@ -778,7 +929,9 @@ tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station'
 cam(10, [31.5, 7.5, 24.5], [25.5, 1, 15.8], 2.6);
 tl.call(() => {
   flashAt(V3(26.5, heightAt(26.5, 16.6) + 1.2, 16.6), 0xcfe8ff);      // the phone takes its photo
-  popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', 'vehicle', 5, 140);
+  const shot = sensorSnap(V3(26.9, heightAt(26.5, 16.6) + 1.15, 16.9), V3(28.8, heightAt(28.8, 17.9) + .7, 17.9),
+    { boxes: [boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] });
+  popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', shot, 5, 140);
   stMobHQ.play(2.4);
   feed(HUES.report, 'Mobile-07 · report', 'Vehicle at the north track · direct-to-cell · photo at HQ');
 }, null, 11.2);
@@ -790,7 +943,9 @@ tl.call(() => {                                                     // DETECTION
   const pp = trail.getPoint(poach.u);
   ringAt(pp.x, pp.z, HUES.see, 3.4);
   gsap.fromTo(fovSer1, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×3', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', 'human', 5.5, 160);
+  const shot = sensorSnap(V3(6.8, heightAt(6.8, 10.2) + 1.5, 10.2), V3(pp.x, heightAt(pp.x, pp.z) + .9, pp.z),
+    { ir: true, boxes: pFigs.map((f, i) => boxFor(f, 1.3, .42, '#00FF64', i === 0 ? 'HUMAN 0.96' : null)) });
+  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×3', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', shot, 5.5, 160);
 }, null, 19);
 tl.call(() => { stSer1Gate.play(2.6); feed(HUES.see, 'Serengeti-01 · alert', 'Human ×3 at the chokepoint · image → Gateway over LoRa'); }, null, 19.9);
 tl.call(() => { fireUplink(); feed(HUES.link, 'Gateway · uplink', 'Woke from deep sleep · relayed by satellite — no cell inside the park'); }, null, 21.2);
@@ -825,6 +980,7 @@ tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Like th
 cam(34.4, [8, 13, 3.5], [10, 1, -5], 1.8, 'power1.in');             // crane up from the ford
 cam(36.2, [19.5, 7.5, 1], [11, 1, -6.5], 2.4, 'power2.out');        // settle over the crop edge
 tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 5.5), null, 36.4);
+tl.call(() => { herd.visible = true; }, null, 34.3);
 tl.to(herdState, { u: .78, duration: 7.2, ease: 'none' }, 34.4);
 cam(39.2, [14.5, 5.4, -9.8], [11, 1.2, -4.4], 1.7, 'power1.in');    // orbit the crops in one direction…
 cam(40.9, [5.8, 4.4, -10.8], [10.8, 1.1, -3.2], 1.9, 'power2.out'); // …and settle low — no counter-rotation
@@ -833,7 +989,9 @@ tl.call(() => {                                                     // DETECTION
   flashAt(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), 0xffe9bd);
   ringAt(12.4, -6.4, HUES.guard, 3.2);
   gsap.fromTo(fovVG, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · IR optics · alert < 1 KB · direct-to-cell', 'elephant', 5, -150);
+  const shot = sensorSnap(V3(12.9, heightAt(12.9, -8.6) + 1.5, -8.6), V3(12, heightAt(12.4, -6.4) + 1.1, -5.6),
+    { ir: true, boxes: eles.map((e, i) => boxFor(e, 1.9 * e.scale.x, 1.5, '#FFC800', i === 0 ? 'ELEPHANT 0.99' : null)) });
+  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · IR optics · alert < 1 KB · direct-to-cell', shot, 5, -150);
   stVGHQ.play(2.2);
   feed(HUES.guard, 'VillageGuard-04 · alert', 'Elephant ×3 approaching the fields');
 }, null, 44.9);
@@ -887,13 +1045,44 @@ tl.call(() => {}, null, 78);
 
 tl.eventCallback('onRepeat', () => {
   poach.u = .02; poach.stopped = false;
-  herdState.u = 0; herdState.curve = 'in'; herdState.turning = false;
+  herdState.u = 0; herdState.curve = 'in'; herdState.turning = false; herd.visible = false;
   jeepState.u = 0; jeepState.on = false; jeepState.arrived = false;
   jeep.visible = false;
   jeep.userData.lights.forEach(m => m.emissiveIntensity = 0);
   guard1.visible = guard2.visible = false; guardState.u = 0;
   gsap.set(lampMat, { emissiveIntensity: 0 }); gsap.set(villageLight, { intensity: 0 });
   $('#feed-list').innerHTML = '';
+});
+
+/* ── the funnel: every sensor is a doorway into the catalogue ───────────── */
+
+const stip = document.createElement('div');
+stip.id = 'stip';
+stip.style.cssText = 'position:fixed;z-index:32;padding:6px 11px;border-radius:8px;background:rgba(7,15,7,.85);border:1px solid rgba(240,240,234,.16);font:600 12px "Hanken Grotesk",sans-serif;color:#F0F0EA;pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;transform:translate(-50%,-160%)';
+document.body.appendChild(stip);
+const sRay = new THREE.Raycaster();
+const sMouse = new THREE.Vector2();
+const NAMES = { serengeti: 'Serengeti', villageguard: 'VillageGuard', gateway: 'Gateway', junglewallah: 'Jungle-Wallah', wolf: 'Wolf', mobile: 'Mobile', ai: 'Landseed AI' };
+function pickSensor(e) {
+  sMouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  sRay.setFromCamera(sMouse, camera);
+  for (const rec of SENSORS) if (sRay.intersectObject(rec.g, true).length) return rec;
+  return null;
+}
+addEventListener('pointermove', (e) => {
+  const hit = pickSensor(e);
+  $('#scene').style.cursor = hit ? 'pointer' : '';
+  if (hit) {
+    stip.textContent = `View ${NAMES[hit.id]} in the catalogue →`;
+    stip.style.left = e.clientX + 'px';
+    stip.style.top = e.clientY + 'px';
+    stip.style.opacity = 1;
+  } else stip.style.opacity = 0;
+});
+addEventListener('click', (e) => {
+  if (e.target !== $('#scene')) return;
+  const hit = pickSensor(e);
+  if (hit) location.href = '/#' + hit.id;
 });
 
 /* ── chapter chips / pause ──────────────────────────────────────────────── */
@@ -934,6 +1123,7 @@ function animate() {
 }
 function tick(dt, t) {
 
+  for (const mx of mixers) mx.update(dt);
   for (const s of spins) s.obj.rotation[s.ax] += s.v * dt;
   for (let i = 0; i < pulses.length; i++) {
     const m = pulses[i];
@@ -947,8 +1137,8 @@ function tick(dt, t) {
   for (const f of floaters) f.position.y = f.userData.baseY + Math.sin(t * .8) * .12;
 
   // actors
-  if (!poach.stopped) placeOnCurve(poachers, trail, poach.u, t * 7, .035);
-  pFigs.forEach((f, i) => { f.position.y = poach.stopped ? 0 : Math.abs(Math.sin(t * 6 + i)) * .05; });
+  if (!poach.stopped) placeOnCurve(poachers, trail, poach.u, t * 7, .015);
+  pFigs.forEach(f => setGait(f, poach.stopped ? 'Idle' : 'Walk'));
   if (!herdState.turning) {
     const hc = herdState.curve === 'in' ? herdIn : herdOut;
     placeOnCurve(herd, hc, herdState.curve === 'in' ? herdState.u : 1 - herdState.u, t * 2.2, .02, true);
@@ -958,8 +1148,10 @@ function tick(dt, t) {
     e.userData.ears.forEach((ear, i) => { ear.rotation.y = Math.sin(t * 1.7 + i) * .18; });
   }
   if (guard1.visible) {
-    placeOnCurve(guard1, guardPath, guardState.u, t * 6, .04);
-    placeOnCurve(guard2, guardPath, Math.max(0, guardState.u - .2), t * 6 + 2, .04);
+    placeOnCurve(guard1, guardPath, guardState.u, t * 6, .015);
+    placeOnCurve(guard2, guardPath, Math.max(0, guardState.u - .2), t * 6 + 2, .015);
+    setGait(guard1, guardState.u < .99 ? 'Walk' : 'Idle');
+    setGait(guard2, guardState.u < .99 ? 'Walk' : 'Idle');
   }
   if (jeepState.on) {
     placeOnCurve(jeep, road, jeepState.u, 0, 0, true);
@@ -988,6 +1180,7 @@ function tick(dt, t) {
   }
 
   water.material.opacity = .86 + Math.sin(t * 1.3) * .04;
+  grade.uniforms.uTime.value = t;
 
   camera.position.set(camP.x, camP.y, camP.z);
   camera.lookAt(camL.x, camL.y, camL.z);
@@ -1013,6 +1206,12 @@ addEventListener('resize', () => {
 });
 
 /* ── boot ───────────────────────────────────────────────────────────────── */
+
+const terr = $('#terr');
+if (terr) {
+  if (REAL) { terr.textContent = '← Fictional terrain'; terr.href = './'; }
+  if (REAL && !dem) terr.textContent = 'Real terrain unavailable';
+}
 
 window.__demo = {
   tl, camera, camP, camL, CH,
