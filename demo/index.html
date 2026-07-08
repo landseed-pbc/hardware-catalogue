@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Demo — Landseed in a working landscape</title>
+<meta name="description" content="A living landscape with every Landseed sensor at work — intrusions detected, alerts relayed by radio and satellite, elephants turned before the crops, calls triangulated in the forest. Watch the whole system run." />
+<meta name="theme-color" content="#070F07" />
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./demo.css?v=1" />
+<link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
+</head>
+<body class="booting">
+
+<canvas id="scene"></canvas>
+
+<div id="loader"><img class="loader-word" src="/public/landseed-wordmark.svg" alt="Landseed" /><span>building the landscape</span></div>
+
+<!-- film chrome -->
+<div class="bar bar-t"></div>
+<div class="bar bar-b"></div>
+<div id="vignette"></div>
+
+<header class="hud">
+  <div class="brand"><img class="b-word" src="/public/landseed-wordmark.svg" alt="Landseed" /></div>
+  <div class="hud-right"><span class="hud-tag">Field Demonstration · Simulated Landscape</span></div>
+</header>
+
+<!-- opening title -->
+<div id="title">
+  <h1>One landscape.<br>Every sensor working.</h1>
+  <p>A simulated protected area — nowhere in particular, everywhere that matters.</p>
+</div>
+
+<!-- chapter caption, bottom left -->
+<div id="cap">
+  <div id="cap-k"></div>
+  <div id="cap-t"></div>
+  <p id="cap-l"></p>
+</div>
+
+<!-- live operations feed, right -->
+<aside id="feed">
+  <div class="feed-h">Operations feed<i id="feed-clock">06:41</i></div>
+  <div id="feed-list"></div>
+</aside>
+
+<!-- projected detection cards -->
+<div id="pops"></div>
+
+<!-- chapters + controls -->
+<nav id="chapters">
+  <button class="chip" data-ch="overview">Overview</button>
+  <button class="chip" data-ch="intrusion">Intrusion</button>
+  <button class="chip" data-ch="response">Response</button>
+  <button class="chip" data-ch="coexist">Coexistence</button>
+  <button class="chip" data-ch="listening">Listening</button>
+  <button class="chip" data-ch="network">The Network</button>
+  <span class="chip-div"></span>
+  <button class="chip" id="pause" aria-label="pause">⏸</button>
+  <a class="chip cta" href="/">Hardware catalogue →</a>
+</nav>
+
+<script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module" src="./demo.js?v=1"></script>
+</body>
+</html>

@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=3';
-import { BUILDERS } from './devices.js?v=4';
+import { BUILDERS } from './devices.js?v=5';
 
 const $ = (s) => document.querySelector(s);
 
@@ -16,7 +16,7 @@ const $ = (s) => document.querySelector(s);
 const DEVICES = [
   {
     id: 'serengeti', name: 'Landseed Serengeti', kicker: 'To see · Park protection',
-    hue: 0x00FF64, price: '$199–225', x: -2.7,
+    hue: 0x00FF64, price: '$199–225', x: -3.75,
     desc: 'AI alert camera for park protection',
     line: 'The smallest, lowest-power AI camera-alert system on the market — built to be everywhere. Earlier versions put 20 poachers from 13 gangs under arrest, from the Serengeti outward to six more countries.',
     stats: [['$199–225', 'per unit'], ['200 ms', 'first capture'], ['30 s', 'alert via cell'], ['>12 mo', 'battery']],
@@ -53,7 +53,7 @@ const DEVICES = [
   },
   {
     id: 'villageguard', name: 'Landseed VillageGuard', kicker: 'To see · Coexistence',
-    hue: 0xFFC800, price: '$299', x: -1.6,
+    hue: 0xFFC800, price: '$299', x: -2.25,
     desc: 'Multi-species AI camera for conflict prevention',
     line: 'When predators and mega-herbivores leave the parks for villages, VillageGuard gives rangers and village protection units the early alert that turns conflict into coexistence.',
     stats: [['$299', 'per unit'], ['8–10', 'object classes'], ['15 m', 'detection range'], ['<1 KB', 'alert image']],
@@ -88,7 +88,7 @@ const DEVICES = [
   },
   {
     id: 'gateway', name: 'Landseed Gateway', kicker: 'To connect · The hub',
-    hue: 0x32C8FF, price: '$150 target', x: -.54,
+    hue: 0x32C8FF, price: '$150 target', x: -.75,
     desc: 'Connects cameras where there is no cell signal',
     line: 'Most protected areas have no cell signal. The Gateway takes long-range radio from many cameras and hands it to whatever sky is available — one airtime bill for the whole hill.',
     stats: [['$150', 'target / unit'], ['1', 'hub, many cameras'], ['5', 'landscape scenarios'], ['>12 mo', 'battery + solar']],
@@ -119,7 +119,7 @@ const DEVICES = [
   },
   {
     id: 'junglewallah', name: 'Landseed Jungle-Wallah', kicker: 'To see & listen · Biodiversity',
-    hue: 0xFF8C42, price: 'custom', x: .54,
+    hue: 0xFF8C42, price: 'custom', x: .75,
     desc: 'Camera + acoustic unit for biodiversity surveys',
     line: 'Pick the few species that tell you the most about a landscape, then watch and listen for exactly those — VillageGuard optics carrying bespoke species models, joined to an acoustic pod.',
     stats: [['optical', '+ acoustic'], ['custom', 'species models'], ['Wi-Fi / SD', 'collection'], ['re-ID', 'for density']],
@@ -148,7 +148,7 @@ const DEVICES = [
   },
   {
     id: 'wolf', name: 'Landseed Wolf', kicker: 'To listen · Bio-acoustics',
-    hue: 0xE682E6, price: '$100 target', x: 1.6,
+    hue: 0xE682E6, price: '$100 target', x: 2.25,
     desc: 'Listens for vocalising wildlife',
     line: 'The forest is louder than it looks. Wolf hears what cameras never frame — and with three units triangulating the same call: how far away, and how many.',
     stats: [['$100', 'target / unit'], ['24/7', 'listening'], ['3+', 'units triangulate'], ['passive', 'no trigger']],
@@ -177,7 +177,7 @@ const DEVICES = [
   },
   {
     id: 'mobile', name: 'Landseed Mobile', kicker: 'To report · Human in the loop',
-    hue: 0x1482FF, price: '$50 target', x: 2.7,
+    hue: 0x1482FF, price: '$50 target', x: 3.75,
     desc: 'Handheld camera for human reports — no AI',
     line: 'The cheapest sensor is a person who knows what they’re looking at. No AI, no motion trigger, no infrared — a human sees the elephant or the poacher, frames it, and the network does the rest.',
     stats: [['$50', 'target / unit'], ['0', 'AI — by design'], ['human', 'triggered'], ['daylight', 'optics']],
@@ -244,11 +244,12 @@ const hex = (h) => '#' + h.toString(16).padStart(6, '0');
 const world = createWorld($('#scene'));
 const { camera, controls, root } = world;
 
-const arcZ = (x) => 1.55 - .185 * x * x;
+const arcZ = (x) => 1.55 - .11 * x * x;
 for (const d of DEVICES) {
   const g = BUILDERS[d.id](d.hue);
   const x = d.x, z = d.z ?? arcZ(d.x);
   g.position.set(x, 0, z);
+  if (d.id !== 'ai') g.scale.setScalar(1.15);          // keep units readable in the wider arc
   g.rotation.y = Math.atan2(-x, 8.5 - z) * .9;
   g.userData.rotY0 = g.rotation.y;
   if (g.userData.float) { g.userData.baseY = .12; g.position.y = .12; }
@@ -317,9 +318,12 @@ for (const d of DEVICES) {
   const plateName = d.id === 'ai' ? d.name : d.name.replace('Landseed ', '');
   el.innerHTML = `<span class="dn">${plateName}</span><span class="dd">${d.desc}</span><span class="dp">${d.price}</span>`;
   el.addEventListener('click', () => goView(d.id));
-  // plate anchor: the front edge of the plinth, so the plate reads BELOW the unit
+  // plate anchor: the front edge of the plinth, so the plate reads BELOW the
+  // unit — except Landseed AI, whose plate floats ABOVE the brain in clear sky
   const z = d.z ?? arcZ(d.x);
-  const p = new THREE.Vector3(d.x, 0, z + (d.id === 'ai' ? .95 : .68));
+  let p;
+  if (d.id === 'ai') { el.classList.add('up'); p = new THREE.Vector3(0, 1.8, z); }
+  else p = new THREE.Vector3(d.x, 0, z + .68);
   addLabel(el, () => p, d, 'plate');
 
   d.calloutEls = d.callouts.map(([a, n, s]) => {
@@ -443,8 +447,8 @@ function fitCatalogue() {
   const bandR = Math.max(Math.max(legB.left, bandL + 320), innerWidth * .55) - 30;
   const halfN = (bandR - bandL) / innerWidth;                       // NDC half-width of the band
   const cN = ((bandL + bandR) / 2 - innerWidth / 2) * 2 / innerWidth; // NDC centre of the band
-  const worldHalf = 3.4;                                            // arc + plinths + plate margin
-  const d = THREE.MathUtils.clamp(worldHalf / (halfN * t * a), 7.4, 11);
+  const worldHalf = 4.65;                                           // arc + plinths + plate margin
+  const d = THREE.MathUtils.clamp(worldHalf / (halfN * t * a), 7.4, 12.5);
   const shift = -cN * d * t * a;
   // short windows get a steeper pitch, lifting the bay (and its plates) clear
   // of the chip bar so the plate rows have room to stagger

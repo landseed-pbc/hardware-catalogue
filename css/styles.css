@@ -48,6 +48,9 @@ body.booting .hud,body.booting #chapters,body.booting #labels,body.booting #lead
 .dlabel .dp{font-weight:700;font-size:11.5px;color:var(--fa,#9fb8a4);text-shadow:0 1px 3px rgba(0,0,0,.9);font-variant-numeric:tabular-nums}
 .dlabel:hover{transform:translate(-50%,14px) scale(1.06)}
 .dlabel:hover .dn{color:var(--fa,#fff)}
+/* the floating product reads from above, clear of everything on the deck */
+.dlabel.up{transform:translate(-50%,-112%)}
+.dlabel.up:hover{transform:translate(-50%,-112%) scale(1.06)}
 
 /* ── part callouts (device views) — quiet cartographic annotations:
       a dot on the part, a hairline, set type. No boxes. ─────────────────── */

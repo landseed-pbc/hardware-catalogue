@@ -474,29 +474,19 @@ export function buildShaman(hue) {
   const g = new THREE.Group();
   const col = new THREE.Color(hue);
 
-  // the core IS the brand — the full Landseed AI lockup (mark with the AI
-  // wordmark anchored below), readable from both sides, colors brand-true
-  const logoTex = new THREE.TextureLoader().load('./public/landseed-ai-lockup.png');
+  // the core IS the brand — the full Landseed AI lockup on all four faces of
+  // a slowly turning cube, so the mark is never lost edge-on
+  const logoTex = new THREE.TextureLoader().load('/public/landseed-ai-lockup.png');
   logoTex.colorSpace = THREE.SRGBColorSpace;
   logoTex.anisotropy = 8;
   const core = new THREE.Group();
-  const LW = .46, LH = LW * (720 / 831);
-  const logoMat = () => new THREE.MeshBasicMaterial({ map: logoTex, transparent: true, toneMapped: false });
-  const faceA = new THREE.Mesh(new THREE.PlaneGeometry(LW, LH), logoMat());
-  const faceB = new THREE.Mesh(new THREE.PlaneGeometry(LW, LH), logoMat());
-  faceB.rotation.y = Math.PI; faceB.position.z = -.002; faceA.position.z = .002;
-  faceA.castShadow = faceB.castShadow = false;
-  // soft radial glow behind the mark so it reads against the dark bay
-  const gc = document.createElement('canvas'); gc.width = gc.height = 128;
-  const gx = gc.getContext('2d');
-  const gg = gx.createRadialGradient(64, 64, 4, 64, 64, 64);
-  gg.addColorStop(0, 'rgba(255,255,255,.55)'); gg.addColorStop(.4, 'rgba(255,255,255,.14)'); gg.addColorStop(1, 'rgba(255,255,255,0)');
-  gx.fillStyle = gg; gx.fillRect(0, 0, 128, 128);
-  const halo = new THREE.Mesh(new THREE.PlaneGeometry(LW * 2.2, LW * 2.2),
-    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(gc), color: col, transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  halo.castShadow = false;
-  halo.position.z = -.01;
-  core.add(halo, faceA, faceB);
+  const LW = .42, LH = LW * (720 / 831);
+  const logoMat = new THREE.MeshBasicMaterial({ map: logoTex, transparent: true, toneMapped: false, side: THREE.FrontSide });
+  const blank = new THREE.MeshBasicMaterial({ visible: false });
+  const cube = new THREE.Mesh(new THREE.BoxGeometry(LW, LH, LW),
+    [logoMat, logoMat, blank, blank, logoMat, logoMat]);   // ±x, ±z faces carry the mark
+  cube.castShadow = false;
+  core.add(cube);
   g.add(core);
 
   // lattice shells — nested wireframes, counter-rotating
@@ -549,7 +539,7 @@ export function buildShaman(hue) {
     { obj: s1, ax: 'y', v: .22 }, { obj: s2, ax: 'y', v: -.12 },
     { obj: rings[0], ax: 'z', v: .3 }, { obj: rings[1], ax: 'z', v: -.2 }, { obj: rings[2], ax: 'z', v: .16 },
     { obj: swarm, ax: 'y', v: .08 },
-    { obj: core, ax: 'y', v: .3 },
+    { obj: core, ax: 'y', v: .22 },
   ];
   g.userData.pulse = [];
   g.userData.float = true;

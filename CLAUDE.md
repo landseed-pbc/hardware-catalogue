@@ -49,3 +49,15 @@ Verify the live URL with a `?cb=$(date +%s)` query.
 Canonical remote is **GitHub** (`landseed-pbc/hardware-catalogue`); **Forgejo**
 (`forge.aroessner.com/Landseed-PBC/hardware-catalogue`) is the sovereign mirror. Push
 GitHub first, then forge. Conventional commits (`type(scope): why`).
+
+## /demo — the field demonstration
+
+Standalone cinematic page (`demo/index.html` + `demo.js` + `demo.css`), not yet
+linked from the catalogue. A procedural low-poly protected landscape where the
+products are shown working: chaptered GSAP timeline (`window.__demo.tl`,
+chapters in `CH`), deterministic beats (detection → LoRa → Gateway → satellite
+→ HQ → patrol), reusing the real device models from `src/devices.js` (which is
+why that file's texture path is root-relative). Verify by seeking:
+`__demo.tl.pause(); __demo.tl.time(T); __demo.tl.play()` — callbacks re-fire on
+forward seeks only. Planned to become the default page, with the current
+catalogue moving to /catalogue, once perfected.
