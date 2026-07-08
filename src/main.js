@@ -16,7 +16,7 @@ const $ = (s) => document.querySelector(s);
 const DEVICES = [
   {
     id: 'serengeti', name: 'Landseed Serengeti', kicker: 'To see · Park protection',
-    hue: 0x00FF64, price: '$199–225', x: -3.1,
+    hue: 0x00FF64, price: '$199–225', x: -2.7,
     desc: 'AI alert camera for park protection',
     line: 'The smallest, lowest-power AI camera-alert system on the market — built to be everywhere. Earlier versions put 20 poachers from 13 gangs under arrest, from the Serengeti outward to six more countries.',
     stats: [['$199–225', 'per unit'], ['200 ms', 'first capture'], ['30 s', 'alert via cell'], ['>12 mo', 'battery']],
@@ -53,7 +53,7 @@ const DEVICES = [
   },
   {
     id: 'villageguard', name: 'Landseed VillageGuard', kicker: 'To see · Coexistence',
-    hue: 0xFFC800, price: '$299', x: -1.85,
+    hue: 0xFFC800, price: '$299', x: -1.6,
     desc: 'Multi-species AI camera for conflict prevention',
     line: 'When predators and mega-herbivores leave the parks for villages, VillageGuard gives rangers and village protection units the early alert that turns conflict into coexistence.',
     stats: [['$299', 'per unit'], ['8–10', 'object classes'], ['15 m', 'detection range'], ['<1 KB', 'alert image']],
@@ -88,7 +88,7 @@ const DEVICES = [
   },
   {
     id: 'gateway', name: 'Landseed Gateway', kicker: 'To connect · The hub',
-    hue: 0x32C8FF, price: '$150 target', x: -.62,
+    hue: 0x32C8FF, price: '$150 target', x: -.54,
     desc: 'Connects cameras where there is no cell signal',
     line: 'Most protected areas have no cell signal. The Gateway takes long-range radio from many cameras and hands it to whatever sky is available — one airtime bill for the whole hill.',
     stats: [['$150', 'target / unit'], ['1', 'hub, many cameras'], ['5', 'landscape scenarios'], ['>12 mo', 'battery + solar']],
@@ -119,7 +119,7 @@ const DEVICES = [
   },
   {
     id: 'junglewallah', name: 'Landseed Jungle-Wallah', kicker: 'To see & listen · Biodiversity',
-    hue: 0xFF8C42, price: 'custom', x: .62,
+    hue: 0xFF8C42, price: 'custom', x: .54,
     desc: 'Camera + acoustic unit for biodiversity surveys',
     line: 'Pick the few species that tell you the most about a landscape, then watch and listen for exactly those — VillageGuard optics carrying bespoke species models, joined to an acoustic pod.',
     stats: [['optical', '+ acoustic'], ['custom', 'species models'], ['Wi-Fi / SD', 'collection'], ['re-ID', 'for density']],
@@ -148,7 +148,7 @@ const DEVICES = [
   },
   {
     id: 'wolf', name: 'Landseed Wolf', kicker: 'To listen · Bio-acoustics',
-    hue: 0xE682E6, price: '$100 target', x: 1.85,
+    hue: 0xE682E6, price: '$100 target', x: 1.6,
     desc: 'Listens for vocalising wildlife',
     line: 'The forest is louder than it looks. Wolf hears what cameras never frame — and with three units triangulating the same call: how far away, and how many.',
     stats: [['$100', 'target / unit'], ['24/7', 'listening'], ['3+', 'units triangulate'], ['passive', 'no trigger']],
@@ -177,7 +177,7 @@ const DEVICES = [
   },
   {
     id: 'mobile', name: 'Landseed Mobile', kicker: 'To report · Human in the loop',
-    hue: 0x1482FF, price: '$50 target', x: 3.1,
+    hue: 0x1482FF, price: '$50 target', x: 2.7,
     desc: 'Handheld camera for human reports — no AI',
     line: 'The cheapest sensor is a person who knows what they’re looking at. No AI, no motion trigger, no infrared — a human sees the elephant or the poacher, frames it, and the network does the rest.',
     stats: [['$50', 'target / unit'], ['0', 'AI — by design'], ['human', 'triggered'], ['daylight', 'optics']],
@@ -244,7 +244,7 @@ const hex = (h) => '#' + h.toString(16).padStart(6, '0');
 const world = createWorld($('#scene'));
 const { camera, controls, root } = world;
 
-const arcZ = (x) => 1.55 - .155 * x * x;
+const arcZ = (x) => 1.55 - .185 * x * x;
 for (const d of DEVICES) {
   const g = BUILDERS[d.id](d.hue);
   const x = d.x, z = d.z ?? arcZ(d.x);
@@ -338,6 +338,7 @@ for (const d of DEVICES) {
 const proj = new THREE.Vector3();
 world.onTick = () => {
   const cols = { L: [], R: [] };     // visible callouts, decluttered per side
+  const plates = [];                 // visible plates, decluttered by overlap
   for (const t of tracked) {
     const hidden = t.el.style.opacity === '0';
     if (hidden) { if (t.line) { t.line.style.opacity = '0'; t.dot.style.opacity = '0'; } continue; }
@@ -352,9 +353,32 @@ world.onTick = () => {
       const right = sx >= cx;
       (right ? cols.R : cols.L).push({ t, sx, sy, ly: sy });
     } else {
-      t.el.style.left = sx + 'px'; t.el.style.top = sy + 'px';
+      plates.push({ t, sx, sy, ly: sy, hw: t.el.offsetWidth / 2 + 8, h: t.el.offsetHeight + 6 });
     }
   }
+  // plates: if two would overlap, the later one steps below its neighbour —
+  // an organic second row that only appears when space demands it
+  plates.sort((a, b) => a.sx - b.sx);
+  const placed = [];
+  let cramped = false;
+  for (const p of plates) {
+    for (let pass = 0; pass < 8; pass++) {
+      let moved = false;
+      for (const q of placed) {
+        const xOverlap = p.sx - p.hw < q.sx + q.hw && p.sx + p.hw > q.sx - q.hw;
+        const minGap = Math.max(p.h, q.h, 58);
+        if (xOverlap && Math.abs(p.ly - q.ly) < minGap) { p.ly = q.ly + minGap; moved = true; }
+      }
+      if (!moved) break;
+    }
+    if (p.ly > innerHeight - 150) cramped = true;      // would touch the chip bar
+    p.ly = Math.min(p.ly, innerHeight - 150);
+    placed.push(p);
+    p.t.el.style.left = p.sx + 'px'; p.t.el.style.top = p.ly + 'px';
+  }
+  // not enough vertical room for stacked plates with descriptions —
+  // drop to name + price everywhere and let the rows breathe
+  if (cramped) document.body.classList.add('slim-plates');
   const off = Math.min(185, innerWidth * .135), GAP = 72;
   for (const side of ['L', 'R']) {
     const list = cols[side].sort((a, b) => a.sy - b.sy);
@@ -364,7 +388,7 @@ world.onTick = () => {
       const right = side === 'R';
       // keep plates out from under the side panels and screen edges
       const panelW = Math.min(356, innerWidth * .26) + 40;
-      const lx = Math.max(panelW + 90, Math.min(innerWidth - panelW - 90, c.sx + (right ? off : -off)));
+      const lx = Math.max(panelW + 135, Math.min(innerWidth - panelW - 135, c.sx + (right ? off : -off)));
       c.t.el.classList.toggle('kr', !right);
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = c.ly + 'px';
       if (c.t.line) {
@@ -406,6 +430,30 @@ function fadeDevice(d, show, dur = .8) {
 /* ── views: one catalogue + one per device (the virunga chip pattern) ───────── */
 
 const CAT_CAM = { pos: new THREE.Vector3(-.4, 2.7, 8.1), tgt: new THREE.Vector3(-.4, .72, 0) };
+
+// fit the whole arc — devices, plinths, name plates — into the free band
+// between the caption (left) and the product-line key (right), whatever the
+// window shape. Solves camera distance + lateral shift; no card ever covers a unit.
+function fitCatalogue() {
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const a = innerWidth / innerHeight;
+  const capB = $('#caption').getBoundingClientRect();
+  const legB = $('#plegend').getBoundingClientRect();
+  const bandL = Math.min(capB.right, innerWidth * .45) + 30;
+  const bandR = Math.max(Math.max(legB.left, bandL + 320), innerWidth * .55) - 30;
+  const halfN = (bandR - bandL) / innerWidth;                       // NDC half-width of the band
+  const cN = ((bandL + bandR) / 2 - innerWidth / 2) * 2 / innerWidth; // NDC centre of the band
+  const worldHalf = 3.4;                                            // arc + plinths + plate margin
+  const d = THREE.MathUtils.clamp(worldHalf / (halfN * t * a), 7.4, 11);
+  const shift = -cN * d * t * a;
+  // short windows get a steeper pitch, lifting the bay (and its plates) clear
+  // of the chip bar so the plate rows have room to stagger
+  const lift = Math.max(0, 780 - innerHeight) * .004;
+  return {
+    pos: new THREE.Vector3(shift, 2.7 + (d - 8.1) * .22 + lift, .8 + d),
+    tgt: new THREE.Vector3(shift, .72 - lift * .3, 0),
+  };
+}
 
 function deviceFrame(d) {
   const x = d.x, z = d.z ?? arcZ(d.x);
@@ -488,7 +536,12 @@ function fitPanels() {
   fit($('#howto'), () => cap.getBoundingClientRect().top - 14);
   fit($('#specs'), () => innerHeight - 96);
 }
-addEventListener('resize', () => { if (current !== 'catalogue') fitPanels(); });
+addEventListener('resize', () => {
+  if (current !== 'catalogue') { fitPanels(); return; }
+  document.body.classList.remove('slim-plates');       // re-earn descriptions if room returns
+  const f = fitCatalogue();
+  flyTo(f.pos, f.tgt, .8);
+});
 
 const CAT_LINE = 'Poaching, illegal logging and human-wildlife conflict drive the loss of the wild — and the tools meant to stop them have been expensive, blind, or disconnected. Landseed builds cameras that think before they transmit, a network that reaches any sky, and prices that deploy in numbers — all reporting to one brain.';
 
@@ -502,7 +555,6 @@ function goView(id) {
   document.querySelectorAll('#plegend .wl-row.dv').forEach(r => r.classList.toggle('on', r.dataset.dev === id));
 
   if (id === 'catalogue') {
-    flyTo(CAT_CAM.pos, CAT_CAM.tgt, prev === 'catalogue' ? 1.2 : 1.7);
     $('#verb').classList.remove('show');
     controls.minDistance = 2.2;
     for (const d of DEVICES) fadeDevice(d, true);
@@ -516,6 +568,10 @@ function goView(id) {
       CAT_LINE,
       [['7', 'products'], ['$50–299', 'hardware'], ['30 s', 'fastest alert'], ['>12 mo', 'battery']],
       [['Begin the tour → Serengeti', 'serengeti']], null);
+    requestAnimationFrame(() => {                       // measure cards, then frame the bay
+      const f = fitCatalogue();
+      flyTo(f.pos, f.tgt, prev === 'catalogue' ? 1.2 : 1.7);
+    });
     return;
   }
 

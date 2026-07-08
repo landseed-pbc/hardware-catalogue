@@ -153,6 +153,19 @@ body.booting .hud,body.booting #chapters,body.booting #labels,body.booting #lead
 .chip.dive:hover{color:#fff;border-color:#9B6CE0;background:rgba(155,108,224,.12)}
 .chip.dive.on{background:#9B6CE0;color:var(--deep);border-color:#9B6CE0}
 
+/* narrower desktops — plates slim down so the tighter bay stays clean */
+@media(max-width:1560px){
+  .dlabel{max-width:178px}
+  .dlabel .dn{font-size:14px}
+  .dlabel .dd{font-size:11px}
+  .dlabel .dp{font-size:10.5px}
+}
+/* cramped layouts — plates drop their descriptions; name + price stay crisp.
+   Applied by JS the moment stacked plates would touch the chip bar. */
+.slim-plates .dlabel .dd{display:none}
+@media(max-height:700px){
+  .dlabel .dd{display:none}
+}
 /* ── tablet / large phone ───────────────────────────────────────────────── */
 @media(max-width:900px){
   .hud{padding:12px 16px}
