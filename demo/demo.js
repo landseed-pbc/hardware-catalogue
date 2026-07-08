@@ -70,10 +70,10 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = .98;
+renderer.toneMappingExposure = 1.14;
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x27302b, 0.0102);
+scene.fog = new THREE.FogExp2(0x2e3833, 0.0096);
 
 // dusk sky + low sun + first stars
 {
@@ -102,8 +102,8 @@ scene.fog = new THREE.FogExp2(0x27302b, 0.0102);
 const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500);
 const camP = { x: 40, y: 22, z: 38 }, camL = { x: -4, y: 0, z: -2 };
 
-scene.add(new THREE.HemisphereLight(0xaec4d4, 0x241f14, .5));
-const sun = new THREE.DirectionalLight(0xffc98f, 2.5);
+scene.add(new THREE.HemisphereLight(0xaec4d4, 0x2a2418, .66));
+const sun = new THREE.DirectionalLight(0xffc98f, 2.75);
 sun.position.set(-40, 13, 12);                                       // low in the west — long dusk shadows
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
@@ -141,7 +141,7 @@ const grade = new ShaderPass({
       c.rgb *= mix(vec3(.93, 1.02, 1.09), vec3(1.07, 1.0, .9), smoothstep(.12, .85, l));   // teal shadows, warm highs
       c.rgb = mix(vec3(l), c.rgb, .92);                                                    // gentle desaturation
       float d = distance(vUv, vec2(.5, .46));
-      c.rgb *= 1. - .3 * smoothstep(.42, .86, d);                                          // vignette
+      c.rgb *= 1. - .22 * smoothstep(.44, .88, d);                                         // vignette
       c.rgb += (hash(vUv * vec2(1920., 1080.) + fract(uTime) * 7.) * 2. - 1.) * .025;      // grain
       gl_FragColor = c;
     }`,
@@ -462,6 +462,7 @@ function figure(color, h = .8) {
   if (soldierProto) {
     const inst = SkeletonUtils.clone(soldierProto);
     inst.scale.setScalar(.62);
+    inst.rotation.y = Math.PI;                        // rig faces -Z; our headings are +Z
     inst.traverse(o => {
       if (o.isMesh) {
         o.castShadow = true;
@@ -635,13 +636,13 @@ wolvesAnim.forEach(w => pack.add(w));
 pack.position.set(PACK_AT[0], heightAt(PACK_AT[0], PACK_AT[1]), PACK_AT[1]);
 pack.rotation.y = 1.2;
 scene.add(pack);
-function howl(w) {                                       // muzzle to the sky, rings ripple out
+function howl(w) {                                       // muzzle lifts, holds, settles — rings ripple out
   const head = w.userData.head;
-  gsap.to(head.rotation, { z: .85, duration: .5, ease: 'power2.out' });
-  gsap.to(head.rotation, { z: 0, duration: .6, delay: 1.3, ease: 'power2.inOut' });
+  gsap.to(head.rotation, { z: .52, duration: 1.0, ease: 'sine.inOut' });
+  gsap.to(head.rotation, { z: 0, duration: .9, delay: 2.1, ease: 'sine.inOut' });
   const wp = new THREE.Vector3(); w.getWorldPosition(wp);
   for (let i = 0; i < 3; i++)
-    setTimeout(() => ringAt(wp.x, wp.z, HUES.listen, 1.7 + i * .5, wp.y + .95), i * 300);
+    setTimeout(() => ringAt(wp.x, wp.z, HUES.listen, 1.5 + i * .45, wp.y + 1.15), 500 + i * 380);
 }
 // sound arriving AT a sensor — rings contract onto the unit: intake, visualised
 function intakeAt(x, z) {
@@ -951,6 +952,10 @@ function spectroCard() {
   x.strokeRect(24, 46, 132, 84);
   x.fillStyle = '#E682E6'; x.font = "700 12px 'Hanken Grotesk'";
   x.fillText('HOWL 0.97', 26, 40);
+  x.strokeStyle = '#c9a4ff';
+  x.strokeRect(252, 16, 108, 28);
+  x.fillStyle = '#c9a4ff';
+  x.fillText('CHORUS · BIRDS', 254, 58);
   x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 22, W, 22);
   x.fillStyle = '#e8efe6'; x.fillText(clockStr() + ' · 60 s window · 0–4 kHz', 9, H - 7);
   return c;
@@ -1167,7 +1172,7 @@ tl.call(() => {
   stWolfGate.play(2.4);
   feed(HUES.listen, 'Wolf array · fix', 'Wolf pack located · 3 bearings agree');
 }, null, 57.4);
-tl.call(() => feed(HUES.listen, 'Wolf array · survey', 'Bird chorus indexed overnight · 14 species logged'), null, 58.8);
+tl.call(() => feed(HUES.listen, 'Wolf array · chorus', 'Bird calls overhead indexed · 14 species tonight'), null, 56.2);
 tl.call(() => {
   popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · offloaded on patrol pass · density updated', 'reid', 4, 140);
   ringAt(-3, 14.5, 0xFF8C42, 2);
@@ -1319,8 +1324,8 @@ function tick(dt, t) {
   }
 
   for (const st of storks) {
-    const a = t * .17 + st.ph;
-    st.b.position.set(-9 + Math.cos(a) * 6.5, 7.4 + Math.sin(t * .5 + st.ph) * .5, 11.5 + Math.sin(a) * 5.5);
+    const a = t * .22 + st.ph;
+    st.b.position.set(-11 + Math.cos(a) * 4.2, 4.7 + Math.sin(t * .55 + st.ph) * .4, 12.6 + Math.sin(a) * 3.6);
     st.b.rotation.y = -a - Math.PI / 2;
   }
   sat.position.x = -2 + Math.sin(t * .05) * 5;
@@ -1359,7 +1364,7 @@ function tick(dt, t) {
     if (!off) {
       wl.el.style.left = ((proj.x * .5 + .5) * innerWidth) + 'px';
       wl.el.style.top = ((-proj.y * .5 + .5) * innerHeight) + 'px';
-      wl.el.style.opacity = Math.min(.9, Math.max(.25, (28 - camera.position.distanceTo(wl.pos)) / 18));
+      wl.el.style.opacity = Math.min(.92, Math.max(.5, (30 - camera.position.distanceTo(wl.pos)) / 18));
     }
   }
   markChapter();
