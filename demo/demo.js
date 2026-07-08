@@ -240,7 +240,7 @@ scene.add(water);
 
 /* ── vegetation & rocks (instanced, three species) ──────────────────────── */
 
-const SPOTS = [[6.8, 10.2], [-4.5, 5.6], [12.9, -8.6], [-12, 10.5], [-8.5, 15.5], [-15.5, 14.5], [-3, 14.5], [-21.5, -3.5]];
+const SPOTS = [[6.8, 10.2], [-4.5, 5.6], [12.9, -8.6], [-12, 10.5], [-8.5, 15.5], [-15.5, 14.5], [-3, 14.5], [-21.5, -3.5], [-12.8, 12.6], [-11.5, 13.5]];
 function scatterOK(x, z, h) {
   if (h < -.2 || h > 3.6) return false;
   if (Math.abs(z - riverZ(x)) < 2.4) return false;
@@ -505,9 +505,9 @@ function handLamp(fig, hue = 0xffd9a0, intensity = 14) {
 }
 
 const poachers = new THREE.Group();
-const pFigs = [figure(0x3a3229, .85), figure(0x473a2a, .8), figure(0x2e2c26, .82)];
+const pFigs = [figure(0x3a3229, .85), figure(0x473a2a, .8), figure(0x2e2c26, .82), figure(0x40342a, .84)];
 pFigs.forEach((f, i) => {
-  f.position.set(-.55 + i * .6, 0, (i % 2) * .6 - .25);
+  f.position.set(-.85 + i * .58, 0, (i % 2) * .62 - .28);
   f.scale.setScalar(1.28);
   poachers.add(f);
 });
@@ -595,6 +595,80 @@ eles.forEach((e, i) => { e.position.set(-i * 1.45 - (i % 2) * .3, 0, (i % 2) * 1
 herd.visible = false;                                          // enters with its own chapter
 scene.add(herd);
 const herdState = { u: 0, curve: 'in', turning: false };
+
+// the wolf pack — the animals the Wolf array hears
+function wolfAnimal(sc = 1) {
+  const g = new THREE.Group();
+  const fur = new THREE.MeshStandardMaterial({ color: 0x8a8274, roughness: .92 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x5e574c, roughness: .92 });
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.16, .5, 3, 8).rotateZ(Math.PI / 2), fur);
+  body.position.y = .48; body.castShadow = true;
+  const chest = new THREE.Mesh(new THREE.SphereGeometry(.19, 8, 7), fur);
+  chest.position.set(.25, .5, 0);
+  const head = new THREE.Group();
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 7), fur);
+  const snout = new THREE.Mesh(new THREE.BoxGeometry(.16, .09, .09), dark);
+  snout.position.set(.14, -.02, 0);
+  const earG = new THREE.ConeGeometry(.04, .09, 5);
+  const e1 = new THREE.Mesh(earG, dark); e1.position.set(-.03, .13, .06);
+  const e2 = e1.clone(); e2.position.z = -.06;
+  head.add(skull, snout, e1, e2);
+  head.position.set(.48, .62, 0);
+  const tail = new THREE.Mesh(new THREE.CapsuleGeometry(.045, .3, 3, 6).rotateZ(2.4), fur);
+  tail.position.set(-.42, .5, 0);
+  const legG = new THREE.CylinderGeometry(.035, .03, .42, 6);
+  for (const [lx, lz] of [[-.26, .1], [-.26, -.1], [.26, .1], [.26, -.1]]) {
+    const l = new THREE.Mesh(legG, dark); l.position.set(lx, .21, lz); g.add(l);
+  }
+  g.add(body, chest, head, tail);
+  g.scale.setScalar(sc);
+  g.userData.head = head;
+  return g;
+}
+const PACK_AT = [-12.8, 12.6];
+const pack = new THREE.Group();
+const wolvesAnim = [wolfAnimal(1.05), wolfAnimal(.9), wolfAnimal(.8)];
+wolvesAnim[0].position.set(0, 0, 0);
+wolvesAnim[1].position.set(-.9, 0, .8); wolvesAnim[1].rotation.y = .7;
+wolvesAnim[2].position.set(-.7, 0, -.9); wolvesAnim[2].rotation.y = -.5;
+wolvesAnim.forEach(w => pack.add(w));
+pack.position.set(PACK_AT[0], heightAt(PACK_AT[0], PACK_AT[1]), PACK_AT[1]);
+pack.rotation.y = 1.2;
+scene.add(pack);
+function howl(w) {                                       // muzzle to the sky, rings ripple out
+  const head = w.userData.head;
+  gsap.to(head.rotation, { z: .85, duration: .5, ease: 'power2.out' });
+  gsap.to(head.rotation, { z: 0, duration: .6, delay: 1.3, ease: 'power2.inOut' });
+  const wp = new THREE.Vector3(); w.getWorldPosition(wp);
+  for (let i = 0; i < 3; i++)
+    setTimeout(() => ringAt(wp.x, wp.z, HUES.listen, 1.7 + i * .5, wp.y + .95), i * 300);
+}
+// sound arriving AT a sensor — rings contract onto the unit: intake, visualised
+function intakeAt(x, z) {
+  const m = new THREE.Mesh(new THREE.TorusGeometry(1, .04, 8, 48).rotateX(Math.PI / 2),
+    new THREE.MeshBasicMaterial({ color: 0xf2d9f2, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  m.position.set(x, heightAt(x, z) + 1.1, z);
+  m.scale.setScalar(3.4);
+  scene.add(m);
+  gsap.to(m.scale, { x: .4, y: .4, z: .4, duration: .9, ease: 'power2.in' });
+  gsap.to(m.material, { opacity: .9, duration: .45, ease: 'power1.in' });
+  gsap.to(m.material, { opacity: 0, duration: .3, delay: .62, onComplete: () => scene.remove(m) });
+}
+
+// storks — animated birds over the forest
+const storks = [];
+new GLTFLoader().load('./assets/stork.glb', (g) => {
+  for (let i = 0; i < 2; i++) {
+    const b = SkeletonUtils.clone(g.scene);
+    b.scale.setScalar(.016);
+    b.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    const mixer = new THREE.AnimationMixer(b);
+    mixer.clipAction(g.animations[0]).play();
+    mixers.push(mixer);
+    scene.add(b);
+    storks.push({ b, ph: i * Math.PI });
+  }
+}, undefined, () => console.warn('stork asset unavailable'));
 
 // ranger jeep with headlight cone + lightbar
 const jeep = new THREE.Group();
@@ -706,6 +780,8 @@ function fireUplink() {
   if (uplink) { scene.remove(uplink.line, uplink.pts); streams.splice(streams.indexOf(uplink), 1); }
   uplink = stream(GATE_TOP.clone(), sat.position.clone(), HUES.link, 2);
   uplink.play(2.6);
+  ringAt(-21.5, -3.5, HUES.link, 2.4);                             // the Gateway visibly wakes
+  flashAt(GATE_TOP.clone(), 0xbfe9ff);
 }
 
 const sfx = { feed() {}, detect() {}, chirp() {} };
@@ -820,6 +896,65 @@ const boxFor = (obj, height, ar, col, tag) => {
   const w = new THREE.Vector3(); obj.getWorldPosition(w);
   return { top: w.clone().setY(w.y + height), bot: w.clone().setY(w.y + .02), ar, col, tag };
 };
+
+// real field captures (project archive) — the strongest possible evidence
+const FIELD = {};
+for (const k of ['people-walk', 'elephant-walk', 'multi-class']) {
+  const im = new Image();
+  im.src = `./assets/field/${k}.jpg`;
+  FIELD[k] = im;
+}
+function fieldCard(key) {
+  const im = FIELD[key];
+  const c = document.createElement('canvas');
+  const W = 392, H = Math.round(W * (im.naturalHeight || 220) / (im.naturalWidth || 400));
+  c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.drawImage(im, 0, 0, W, H);
+  x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 22, W, 22);
+  x.fillStyle = '#e8efe6'; x.font = "700 12px 'Hanken Grotesk'";
+  x.fillText(clockStr() + ' · field capture', 9, H - 7);
+  x.fillStyle = '#ff5a4d'; x.beginPath(); x.arc(W - 14, H - 12, 4, 0, 7); x.fill();
+  return c;
+}
+// the acoustic card is a spectrogram — a listening sensor shows sound, not pictures
+function spectroCard() {
+  const W = 392, H = 176;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#0a1420'); g.addColorStop(1, '#060a10');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  let sd = 9; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 2600; i++) {                                   // noise floor
+    x.fillStyle = `rgba(40,90,110,${.05 + r() * .12})`;
+    x.fillRect(r() * W, r() * (H - 24), 2, 2);
+  }
+  const band = (t0, t1, f, wob, col, w = 3) => {                     // a harmonic
+    x.strokeStyle = col; x.lineWidth = w; x.beginPath();
+    for (let t = t0; t <= t1; t += 3) {
+      const y = f + Math.sin((t - t0) * .045) * wob;
+      t === t0 ? x.moveTo(t, y) : x.lineTo(t, y);
+    }
+    x.stroke();
+  };
+  for (const [t0, t1] of [[30, 150], [205, 340]]) {                  // two howls, stacked harmonics
+    band(t0, t1, 118, 9, 'rgba(240,220,120,.95)', 4);
+    band(t0, t1, 88, 7, 'rgba(180,225,160,.7)', 3);
+    band(t0, t1, 60, 5, 'rgba(120,190,170,.5)', 2);
+  }
+  x.strokeStyle = 'rgba(230,160,255,.85)'; x.lineWidth = 2;          // bird chirps, fast sweeps
+  for (const bx of [64, 96, 168, 262, 300, 344]) {
+    x.beginPath(); x.moveTo(bx, 42); x.quadraticCurveTo(bx + 5, 22, bx + 11, 34); x.stroke();
+  }
+  x.strokeStyle = '#E682E6'; x.lineWidth = 2;
+  x.strokeRect(24, 46, 132, 84);
+  x.fillStyle = '#E682E6'; x.font = "700 12px 'Hanken Grotesk'";
+  x.fillText('HOWL 0.97', 26, 40);
+  x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 22, W, 22);
+  x.fillStyle = '#e8efe6'; x.fillText(clockStr() + ' · 60 s window · 0–4 kHz', 9, H - 7);
+  return c;
+}
 
 const pops = [];
 function popup(world, hue, title, conf, sub, kind, hold = 6.5, dx = 0) {
@@ -943,11 +1078,9 @@ tl.call(() => {                                                     // DETECTION
   const pp = trail.getPoint(poach.u);
   ringAt(pp.x, pp.z, HUES.see, 3.4);
   gsap.fromTo(fovSer1, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  const shot = sensorSnap(V3(6.8, heightAt(6.8, 10.2) + 1.5, 10.2), V3(pp.x, heightAt(pp.x, pp.z) + .9, pp.z),
-    { ir: true, boxes: pFigs.map((f, i) => boxFor(f, 1.3, .42, '#00FF64', i === 0 ? 'HUMAN 0.96' : null)) });
-  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×3', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', shot, 5.5, 160);
+  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', fieldCard('people-walk'), 5.5, 160);
 }, null, 19);
-tl.call(() => { stSer1Gate.play(2.6); feed(HUES.see, 'Serengeti-01 · alert', 'Human ×3 at the chokepoint · image → Gateway over LoRa'); }, null, 19.9);
+tl.call(() => { stSer1Gate.play(2.6); feed(HUES.see, 'Serengeti-01 · alert', 'Human ×4 at the chokepoint · image → Gateway over LoRa'); }, null, 19.9);
 tl.call(() => { fireUplink(); feed(HUES.link, 'Gateway · uplink', 'Woke from deep sleep · relayed by satellite — no cell inside the park'); }, null, 21.2);
 tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ · Landseed AI', 'Alert on rangers’ phones · 28 s after trigger'); }, null, 22.4);
 tl.to(poach, { u: .74, duration: 12, ease: 'none' }, 19.2);
@@ -972,7 +1105,7 @@ tl.call(() => {                                                     // INTERCEPT
   jeepState.arrived = true;
   const pp = trail.getPoint(poach.u);
   ringAt(pp.x, pp.z, HUES.see, 3);
-  feed(HUES.see, 'Patrol · on site', 'Three detained at the ford · rifles seized');
+  feed(HUES.see, 'Patrol · on site', 'Four detained at the ford · rifles seized');
 }, null, 32.6);
 tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Like the 20 arrests across 13 gangs that earlier versions made possible, beginning in the Serengeti.', 4.5), null, 33);
 
@@ -989,9 +1122,7 @@ tl.call(() => {                                                     // DETECTION
   flashAt(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), 0xffe9bd);
   ringAt(12.4, -6.4, HUES.guard, 3.2);
   gsap.fromTo(fovVG, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  const shot = sensorSnap(V3(12.9, heightAt(12.9, -8.6) + 1.5, -8.6), V3(12, heightAt(12.4, -6.4) + 1.1, -5.6),
-    { ir: true, boxes: eles.map((e, i) => boxFor(e, 1.9 * e.scale.x, 1.5, '#FFC800', i === 0 ? 'ELEPHANT 0.99' : null)) });
-  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · IR optics · alert < 1 KB · direct-to-cell', shot, 5, -150);
+  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · alert < 1 KB · direct-to-cell', fieldCard('elephant-walk'), 5, -150);
   stVGHQ.play(2.2);
   feed(HUES.guard, 'VillageGuard-04 · alert', 'Elephant ×3 approaching the fields');
 }, null, 44.9);
@@ -1003,6 +1134,10 @@ tl.call(() => {
   feed(HUES.guard, 'Village · early warning', 'Deterrence lights on · protection unit walking out');
 }, null, 45.7);
 tl.to(guardState, { u: 1, duration: 4.4, ease: 'none' }, 45.9);
+tl.call(() => {
+  popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGEGUARD-04 · every class on the list in a single detector', fieldCard('multi-class'), 4.5, 165);
+  feed(HUES.guard, 'VillageGuard-04 · multi-class', 'Elephant and person in the same frame · one detector');
+}, null, 47.6);
 tl.call(() => {                                                     // the herd actually turns
   herdState.turning = true;
   gsap.to(herd.rotation, { y: '+=2.9', duration: 1.7, ease: 'power1.inOut',
@@ -1011,26 +1146,34 @@ tl.call(() => {                                                     // the herd 
 tl.to(herdState, { u: 0, duration: 4.6, ease: 'sine.inOut' }, 48);
 tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, people out, and the herd drifts back to the treeline. No crops lost, no retaliation.', 4), null, 47);
 
-// ── listening 50–62 · the array triangulates, the survey counts
-cam(50, [16, 13, 2], [-6, 1, 10], 1.8, 'power1.in');                // crane over the river
-cam(51.8, [-2, 10, 20.5], [-11.5, 1, 12.5], 2.4, 'power2.out');
-tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'The forest, counted by ear', 'Three Wolf units hold the canopy. The same call on three bearings becomes a point on the map.', 6), null, 52);
-for (const [t, r] of [[53.2, 3.4], [55.2, 4.4]]) {
-  tl.call(() => {                                                   // a call: rings on the ground at the source…
-    ringAt(-12.5, 13, HUES.listen, r);
-    setTimeout(() => ringAt(-12.5, 13, 0xf5d9f2, r * .7), 260);
-    // …and each Wolf answers as it hears
-    wolves.forEach((w, i) => setTimeout(() => ringAt(w.position.x, w.position.z, HUES.listen, 1.5), 380 + i * 160));
-  }, null, t);
-}
-tl.call(() => bearings(-12.5, 13), null, 56.2);
-tl.call(() => { stWolfGate.play(2.4); feed(HUES.listen, 'Wolf array · fix', 'Primate troop · 3 bearings agree · location on the map'); }, null, 57.4);
+// ── listening 50–62 · wolves howl, birds call, the array breathes it in
+cam(50, [16, 13, 2], [-11, 1, 11], 1.8, 'power1.in');               // crane over the river
+cam(51.8, [-2.5, 8, 21], [-12.6, 1, 12.4], 2.4, 'power2.out');      // settle on the pack clearing
+tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 6), null, 52);
+tl.call(() => howl(wolvesAnim[0]), null, 52.4);                     // the lead howls…
+tl.call(() => { wolves.forEach((w, i) => setTimeout(() => intakeAt(w.position.x, w.position.z), i * 220)); }, null, 53.1);
+tl.call(() => howl(wolvesAnim[1]), null, 54);                       // …an answer…
+tl.call(() => { wolves.forEach((w, i) => setTimeout(() => intakeAt(w.position.x, w.position.z), i * 220)); }, null, 54.7);
+tl.call(() => {                                                     // …and a bird overhead
+  if (storks[0]) {
+    const wp = new THREE.Vector3(); storks[0].b.getWorldPosition(wp);
+    ringAt(wp.x, wp.z, 0xE682E6, 2.6, wp.y);
+  }
+  wolves.forEach((w, i) => setTimeout(() => intakeAt(w.position.x, w.position.z), 260 + i * 220));
+}, null, 55.6);
+tl.call(() => bearings(-12.8, 12.6), null, 56.6);
 tl.call(() => {
-  ringAt(-3, 14.5, 0xFF8C42, 2);                                      // Wi-Fi offload pulse — no airtime by design
-  popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · offloaded on patrol pass · density updated', 'reid', 4.5, 140);
+  popup(V3(-12.8, heightAt(-12.8, 12.6) + 2.3, 12.6), HUES.listen, 'Howl · wolves', '0.97', 'WOLF-02 · 3 bearings agree · pack located on the map', spectroCard(), 5.5, 150);
+  stWolfGate.play(2.4);
+  feed(HUES.listen, 'Wolf array · fix', 'Wolf pack located · 3 bearings agree');
+}, null, 57.4);
+tl.call(() => feed(HUES.listen, 'Wolf array · survey', 'Bird chorus indexed overnight · 14 species logged'), null, 58.8);
+tl.call(() => {
+  popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · offloaded on patrol pass · density updated', 'reid', 4, 140);
+  ringAt(-3, 14.5, 0xFF8C42, 2);
   feed(0xFF8C42, 'Jungle-Wallah · survey', 'Offloaded on patrol pass · two individuals re-identified');
-}, null, 58.6);
-tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Calls become bearings, detections become densities — the measurement layer for Earth Credits.', 3.6), null, 59.4);
+}, null, 59.4);
+tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 3.4), null, 60.2);
 
 // ── network 62–78 · one continuous pull to the whole board
 cam(62, [-2, 25, 29], [-2, 0, -2], 4.5);
@@ -1053,6 +1196,18 @@ tl.eventCallback('onRepeat', () => {
   gsap.set(lampMat, { emissiveIntensity: 0 }); gsap.set(villageLight, { intensity: 0 });
   $('#feed-list').innerHTML = '';
 });
+
+/* ── persistent infrastructure labels — the Gateway and HQ always read ──── */
+const wlabels = [];
+function worldLabel(text, pos, hue) {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;z-index:23;transform:translate(-50%,-100%);padding:4px 9px;border-radius:6px;background:rgba(7,15,7,.62);border:1px solid rgba(240,240,234,.14);border-left:2px solid ${hex(hue)};font:700 10.5px 'Hanken Grotesk',sans-serif;letter-spacing:.08em;color:rgba(240,240,234,.85);pointer-events:none;white-space:nowrap`;
+  el.textContent = text;
+  document.body.appendChild(el);
+  wlabels.push({ el, pos });
+}
+worldLabel('GATEWAY · RIDGE RELAY', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link);
+worldLabel('HQ · LANDSEED AI', V3(17, heightAt(17, -12.3) + 4.4, -12.3), HUES.brain);
 
 /* ── the funnel: every sensor is a doorway into the catalogue ───────────── */
 
@@ -1163,6 +1318,11 @@ function tick(dt, t) {
     jeep.userData.lights[1].emissiveIntensity = on ? 0 : 3.2;
   }
 
+  for (const st of storks) {
+    const a = t * .17 + st.ph;
+    st.b.position.set(-9 + Math.cos(a) * 6.5, 7.4 + Math.sin(t * .5 + st.ph) * .5, 11.5 + Math.sin(a) * 5.5);
+    st.b.rotation.y = -a - Math.PI / 2;
+  }
   sat.position.x = -2 + Math.sin(t * .05) * 5;
   sat.position.z = -2 + Math.cos(t * .05) * 5;
   sat.rotation.y = t * .1;
@@ -1191,6 +1351,16 @@ function tick(dt, t) {
     rec.el.style.display = '';
     rec.el.style.left = ((proj.x * .5 + .5) * innerWidth + (rec.dx || 0)) + 'px';
     rec.el.style.top = ((-proj.y * .5 + .5) * innerHeight) + 'px';
+  }
+  for (const wl of wlabels) {
+    proj.copy(wl.pos).project(camera);
+    const off = proj.z > 1;
+    wl.el.style.display = off ? 'none' : '';
+    if (!off) {
+      wl.el.style.left = ((proj.x * .5 + .5) * innerWidth) + 'px';
+      wl.el.style.top = ((-proj.y * .5 + .5) * innerHeight) + 'px';
+      wl.el.style.opacity = Math.min(.9, Math.max(.25, (28 - camera.position.distanceTo(wl.pos)) / 18));
+    }
   }
   markChapter();
   if ((frame++ & 3) === 0) { drawMap(); $('#feed-clock').textContent = clockStr(); }
