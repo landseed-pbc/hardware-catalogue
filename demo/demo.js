@@ -24,10 +24,10 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.04;
+renderer.toneMappingExposure = .98;
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x2b3630, 0.009);
+scene.fog = new THREE.FogExp2(0x27302b, 0.0102);
 
 // dusk sky + low sun + first stars
 {
@@ -56,7 +56,7 @@ scene.fog = new THREE.FogExp2(0x2b3630, 0.009);
 const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500);
 const camP = { x: 40, y: 22, z: 38 }, camL = { x: -4, y: 0, z: -2 };
 
-scene.add(new THREE.HemisphereLight(0xbdd4e0, 0x2c2517, .68));
+scene.add(new THREE.HemisphereLight(0xaec4d4, 0x241f14, .5));
 const sun = new THREE.DirectionalLight(0xffc98f, 2.5);
 sun.position.set(-40, 13, 12);                                       // low in the west — long dusk shadows
 sun.castShadow = true;
@@ -82,7 +82,7 @@ scene.add(sun);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .3, .8, .85));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .2, .7, .88));
 composer.addPass(new OutputPass());
 
 /* ── terrain ────────────────────────────────────────────────────────────── */
@@ -130,10 +130,10 @@ function nearCurve(curve, x, z, n = 60) {
   const geo = new THREE.PlaneGeometry(110, 84, 190, 146).rotateX(-Math.PI / 2);
   const pos = geo.attributes.position;
   const col = new Float32Array(pos.count * 3);
-  const cGrass1 = new THREE.Color(0x50713a), cGrass2 = new THREE.Color(0x687f41), cDry = new THREE.Color(0x8a8a4e);
-  const cForest = new THREE.Color(0x33512c), cRock = new THREE.Color(0x77685a);
+  const cGrass1 = new THREE.Color(0x44603a), cGrass2 = new THREE.Color(0x54693c), cDry = new THREE.Color(0x6e7145);
+  const cForest = new THREE.Color(0x2a4527), cRock = new THREE.Color(0x6e6156);
   const cSand = new THREE.Color(0x94805a), cDirt = new THREE.Color(0x6f5c40);
-  const cCrop = new THREE.Color(0x9c964e);
+  const cCrop = new THREE.Color(0x847e44);
   const tmp = new THREE.Color();
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), z = pos.getZ(i);
@@ -166,7 +166,7 @@ function nearCurve(curve, x, z, n = 60) {
 
 const water = new THREE.Mesh(
   new THREE.PlaneGeometry(110, 84).rotateX(-Math.PI / 2),
-  new THREE.MeshStandardMaterial({ color: 0x2e5f6e, roughness: .12, metalness: .35, transparent: true, opacity: .9 }));
+  new THREE.MeshStandardMaterial({ color: 0x23485a, roughness: .14, metalness: .3, transparent: true, opacity: .92 }));
 water.position.y = -.35;
 scene.add(water);
 
@@ -182,24 +182,27 @@ function scatterOK(x, z, h) {
   if (SPOTS.some(([sx, sz]) => (x - sx) ** 2 + (z - sz) ** 2 < 8)) return false;
   if (nearCurve(herdIn, x, z, 30) < 2.4) return false;               // keep the elephant lane open
   if (((x - 12.6) ** 2) / 9 + ((z + 7) ** 2) / 5 < 1.4) return false; // and the crops
+  if ((x - 6.6) ** 2 + (z + 9.6) ** 2 < 18) return false;            // and the close-up camera position
   return true;
 }
 {
   const inForest = (x, z) => noise(x * .11 + 40, z * .11 + 7) > .53 && z > -8 && x > -20 && x < 10;
-  const trunkG = new THREE.CylinderGeometry(.08, .13, 1, 6);
-  const trunkM = new THREE.MeshStandardMaterial({ color: 0x4a3b28, roughness: .9 });
-  const conG = new THREE.ConeGeometry(.8, 1.7, 7);
-  const blobG = new THREE.SphereGeometry(.85, 8, 6);
-  const accG = new THREE.CylinderGeometry(1.5, 1.1, .5, 8);
-  const leafM = () => new THREE.MeshStandardMaterial({ roughness: .92 });
+  const trunkG = new THREE.CylinderGeometry(.07, .12, 1, 6);
+  const trunkM = new THREE.MeshStandardMaterial({ color: 0x453723, roughness: .95 });
+  const conG = new THREE.ConeGeometry(.72, 2.3, 8);
+  const blobG = new THREE.SphereGeometry(.78, 9, 7);
+  const blobTopG = new THREE.SphereGeometry(.5, 8, 6);
+  const accG = new THREE.SphereGeometry(1, 9, 6);
+  const leafM = () => new THREE.MeshStandardMaterial({ roughness: .95 });
   const NT = 620;
   const trunks = new THREE.InstancedMesh(trunkG, trunkM, NT);
   const cons = new THREE.InstancedMesh(conG, leafM(), NT);
   const blobs = new THREE.InstancedMesh(blobG, leafM(), NT);
+  const blobTops = new THREE.InstancedMesh(blobTopG, leafM(), NT);
   const accs = new THREE.InstancedMesh(accG, leafM(), 80);
-  trunks.castShadow = cons.castShadow = blobs.castShadow = accs.castShadow = true;
+  trunks.castShadow = cons.castShadow = blobs.castShadow = blobTops.castShadow = accs.castShadow = true;
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sv = new THREE.Vector3(), pv = new THREE.Vector3();
-  const G1 = new THREE.Color(0x41682f), G2 = new THREE.Color(0x2f5527), G3 = new THREE.Color(0x557539), GA = new THREE.Color(0x74854a);
+  const G1 = new THREE.Color(0x2e4a26), G2 = new THREE.Color(0x24401f), G3 = new THREE.Color(0x3a5429), GA = new THREE.Color(0x4c6633);
   const Y = new THREE.Vector3(0, 1, 0);
   let nTr = 0, nCo = 0, nBl = 0, nAc = 0, guard = 0;
   while (nTr < NT && guard++ < 14000) {
@@ -208,22 +211,30 @@ function scatterOK(x, z, h) {
     const forest = inForest(x, z);
     const savanna = z < -9 && x < 9 && rnd() < .05;
     if (!(forest || savanna) || !scatterOK(x, z, h)) continue;
-    const sc = .75 + rnd() * .95;
-    pv.set(x, h + .5 * sc, z); q.setFromAxisAngle(Y, rnd() * 6.28); sv.set(1, sc, 1);
-    m.compose(pv, q, sv); trunks.setMatrixAt(nTr++, m);
-    if (savanna && nAc < 80) {                     // flat-top acacia
-      pv.set(x, h + sc * 1.28, z); sv.set(sc, sc, sc);
+    const sc = .75 + rnd() * .9;
+    q.setFromAxisAngle(Y, rnd() * 6.28);
+    if (savanna && nAc < 80) {                     // acacia — tall bare trunk, flat crown on top
+      pv.set(x, h + 1.05 * sc, z); sv.set(.9, 2.1 * sc, .9);
+      m.compose(pv, q, sv); trunks.setMatrixAt(nTr++, m);
+      pv.set(x, h + 2.3 * sc, z); sv.set(sc * 1.7, sc * .34, sc * 1.7);
       m.compose(pv, q, sv); accs.setMatrixAt(nAc, m); accs.setColorAt(nAc, GA); nAc++;
-    } else if (rnd() > .45 && nCo < NT) {          // conifer
-      pv.set(x, h + sc * 1.3, z); sv.set(sc, sc * (1 + rnd() * .4), sc);
+    } else if (rnd() > .45 && nCo < NT) {          // conifer — short trunk, tall cone
+      pv.set(x, h + .35 * sc, z); sv.set(.8, .7 * sc, .8);
+      m.compose(pv, q, sv); trunks.setMatrixAt(nTr++, m);
+      pv.set(x, h + (0.7 + 1.15) * sc, z); sv.set(sc, sc * (1 + rnd() * .35), sc);
       m.compose(pv, q, sv); cons.setMatrixAt(nCo, m); cons.setColorAt(nCo, rnd() > .5 ? G1 : G2); nCo++;
-    } else if (nBl < NT) {                         // broadleaf
-      pv.set(x, h + sc * 1.32, z); sv.set(sc * 1.02, sc * .8, sc * 1.02);
-      m.compose(pv, q, sv); blobs.setMatrixAt(nBl, m); blobs.setColorAt(nBl, rnd() > .5 ? G3 : G1); nBl++;
+    } else if (nBl < NT) {                         // broadleaf — trunk + two-lobed crown
+      pv.set(x, h + .6 * sc, z); sv.set(.9, 1.2 * sc, .9);
+      m.compose(pv, q, sv); trunks.setMatrixAt(nTr++, m);
+      const col = rnd() > .5 ? G3 : G1;
+      pv.set(x, h + 1.75 * sc, z); sv.set(sc, sc * .85, sc);
+      m.compose(pv, q, sv); blobs.setMatrixAt(nBl, m); blobs.setColorAt(nBl, col);
+      pv.set(x + .35 * sc, h + 2.25 * sc, z + .15 * sc); sv.set(sc * .8, sc * .7, sc * .8);
+      m.compose(pv, q, sv); blobTops.setMatrixAt(nBl, m); blobTops.setColorAt(nBl, col); nBl++;
     }
   }
-  trunks.count = nTr; cons.count = nCo; blobs.count = nBl; accs.count = nAc;
-  scene.add(trunks, cons, blobs, accs);
+  trunks.count = nTr; cons.count = nCo; blobs.count = nBl; blobTops.count = nBl; accs.count = nAc;
+  scene.add(trunks, cons, blobs, blobTops, accs);
 
   // bushes + rocks
   const bushes = new THREE.InstancedMesh(new THREE.SphereGeometry(.4, 7, 5), leafM(), 220);
@@ -371,35 +382,35 @@ const sat = new THREE.Group();
 
 function figure(color, h = .8, skin = 0x6b503c) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.19, h * .58, 3, 8), new THREE.MeshStandardMaterial({ color, roughness: .85 }));
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.145, h * .62, 3, 8), new THREE.MeshStandardMaterial({ color, roughness: .88 }));
   body.position.y = h * .66; body.castShadow = true;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(.15, 10, 10), new THREE.MeshStandardMaterial({ color: skin, roughness: .8 }));
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.115, 10, 10), new THREE.MeshStandardMaterial({ color: skin, roughness: .8 }));
   head.position.y = h * 1.22;
   g.add(body, head);
   return g;
 }
-// torch beam — a warm additive cone + a pool of light on the ground ahead
-function torch(fig, hue = 0xffd9a0) {
-  const cone = new THREE.Mesh(new THREE.ConeGeometry(.32, 2.4, 12, 1, true),
-    new THREE.MeshBasicMaterial({ color: hue, transparent: true, opacity: .16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  cone.rotation.x = Math.PI / 2 - .28;
-  cone.position.set(.12, .78, 1.35);
-  fig.add(cone);
-  const pool = new THREE.Mesh(new THREE.CircleGeometry(.42, 16).rotateX(-Math.PI / 2),
-    new THREE.MeshBasicMaterial({ color: hue, transparent: true, opacity: .22, blending: THREE.AdditiveBlending, depthWrite: false }));
-  pool.position.set(.12, -.35, 2.4);
-  fig.add(pool);
-  return cone;
+// a hand lamp: real spotlight + tiny emissive body — light on the ground, no geometry cones
+function handLamp(fig, hue = 0xffd9a0, intensity = 14) {
+  const bulb = new THREE.Mesh(new THREE.BoxGeometry(.05, .05, .1),
+    new THREE.MeshStandardMaterial({ color: 0x14120c, emissive: hue, emissiveIntensity: 2 }));
+  bulb.position.set(.14, .8, .3);
+  fig.add(bulb);
+  const sp = new THREE.SpotLight(hue, intensity, 10, .42, .7, 1.6);
+  sp.position.set(.14, .95, .25);
+  const tgt = new THREE.Object3D(); tgt.position.set(.14, -.4, 4.5);
+  fig.add(tgt); sp.target = tgt;
+  fig.add(sp);
+  return sp;
 }
 
 const poachers = new THREE.Group();
 const pFigs = [figure(0x3a3229, .85), figure(0x473a2a, .8), figure(0x2e2c26, .82)];
 pFigs.forEach((f, i) => {
   f.position.set(-.55 + i * .6, 0, (i % 2) * .6 - .25);
-  f.scale.setScalar(1.35);
+  f.scale.setScalar(1.28);
   poachers.add(f);
 });
-const torches = pFigs.map(f => torch(f));
+handLamp(pFigs[0], 0xffd9a0, 12);
 const rifle = new THREE.Mesh(new THREE.CylinderGeometry(.022, .022, .9, 5), new THREE.MeshStandardMaterial({ color: 0x241f18 }));
 rifle.rotation.z = 1.12; rifle.position.set(-.34, .95, -.15);
 pFigs[0].add(rifle);
@@ -418,24 +429,27 @@ scene.add(informant);
 // the village protection walker (appears at coexistence)
 const guard1 = figure(0x5a6b3f, .84);
 guard1.visible = false;
-torch(guard1, 0xfff0c8);
-scene.add(guard1);
+handLamp(guard1, 0xfff0c8, 24);
+const guard2 = figure(0x53643c, .8);
+guard2.visible = false;
+handLamp(guard2, 0xfff0c8, 24);
+scene.add(guard1, guard2);
 const guardState = { u: 0 };
 const guardPath = new THREE.CatmullRomCurve3([V3(16.2, 0, -12.8), V3(14.6, 0, -10.4), V3(13.4, 0, -8.2)]);
 
 // elephants — walking legs, flapping ears
 function elephant(sc = 1) {
   const g = new THREE.Group();
-  const grey = new THREE.MeshStandardMaterial({ color: 0xa19d92, roughness: .85 });
+  const grey = new THREE.MeshStandardMaterial({ color: 0x97938a, roughness: .88 });
   const body = new THREE.Mesh(new THREE.SphereGeometry(.62, 12, 10), grey);
   body.scale.set(1.4, 1.02, .95); body.position.y = .98; body.castShadow = true;
   const shoulders = new THREE.Mesh(new THREE.SphereGeometry(.5, 10, 8), grey);
   shoulders.position.set(.55, 1.18, 0);
   const head = new THREE.Mesh(new THREE.SphereGeometry(.38, 10, 9), grey);
   head.position.set(1.05, 1.18, 0);
-  const earG = new THREE.SphereGeometry(.34, 8, 6);
-  const e1 = new THREE.Mesh(earG, grey); e1.scale.set(.14, 1, .85); e1.position.set(.92, 1.28, .38);
-  const e2 = e1.clone(); e2.position.z = -.38;
+  const earG = new THREE.SphereGeometry(.4, 8, 6);
+  const e1 = new THREE.Mesh(earG, grey); e1.scale.set(.1, 1.05, .8); e1.position.set(.88, 1.3, .42); e1.rotation.x = .18;
+  const e2 = e1.clone(); e2.position.z = -.42; e2.rotation.x = -.18;
   const trunk = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(
     [V3(1.35, 1.05, 0), V3(1.58, .7, 0), V3(1.55, .35, 0), V3(1.42, .1, 0)]), 8, .1, 6), grey);
   const legs = [];
@@ -444,10 +458,10 @@ function elephant(sc = 1) {
     const l = new THREE.Mesh(legG, grey); l.position.set(lx, .43, lz); l.castShadow = true;
     legs.push(l); g.add(l);
   }
-  const tuskM = new THREE.MeshStandardMaterial({ color: 0xded5ba, roughness: .5 });
-  const t1 = new THREE.Mesh(new THREE.ConeGeometry(.05, .42, 6), tuskM);
-  t1.rotation.x = Math.PI; t1.rotation.z = -.5; t1.position.set(1.3, .8, .17);
-  const t2 = t1.clone(); t2.position.z = -.17;
+  const tuskM = new THREE.MeshStandardMaterial({ color: 0xd6cdb2, roughness: .55 });
+  const t1 = new THREE.Mesh(new THREE.ConeGeometry(.035, .3, 6), tuskM);
+  t1.rotation.z = -2.35; t1.position.set(1.32, .86, .13);       // sweeping forward-down beside the trunk
+  const t2 = t1.clone(); t2.position.z = -.13;
   const tail = new THREE.Mesh(new THREE.CylinderGeometry(.03, .015, .6, 5), grey);
   tail.rotation.z = .5; tail.position.set(-.85, .85, 0);
   g.add(body, shoulders, head, e1, e2, trunk, t1, t2, tail);
@@ -457,9 +471,9 @@ function elephant(sc = 1) {
 }
 const herd = new THREE.Group();
 const eles = [elephant(1.1), elephant(.9), elephant(.58)];
-eles.forEach((e, i) => { e.position.set(-i * 1.9 - (i % 2) * .5, 0, (i % 2) * 1.6 - .7); herd.add(e); });
+eles.forEach((e, i) => { e.position.set(-i * 1.45 - (i % 2) * .3, 0, (i % 2) * 1.05 - .45); herd.add(e); });
 scene.add(herd);
-const herdState = { u: 0, curve: 'in' };
+const herdState = { u: 0, curve: 'in', turning: false };
 
 // ranger jeep with headlight cone + lightbar
 const jeep = new THREE.Group();
@@ -474,10 +488,17 @@ const jeep = new THREE.Group();
   for (const [wx, wz] of [[-.5, .42], [-.5, -.42], [.5, .42], [.5, -.42]]) {
     const w = new THREE.Mesh(wheelG, wheelM); w.position.set(wx, .22, wz); jeep.add(w); jeep.userData.wheels.push(w);
   }
-  const hl = new THREE.Mesh(new THREE.ConeGeometry(.5, 3.4, 12, 1, true),
-    new THREE.MeshBasicMaterial({ color: 0xfff2cf, transparent: true, opacity: .13, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  hl.rotation.z = -Math.PI / 2 - .12; hl.position.set(2.2, .38, 0);
-  jeep.add(hl);
+  for (const hz of [.26, -.26]) {
+    const lamp = new THREE.Mesh(new THREE.BoxGeometry(.06, .1, .12),
+      new THREE.MeshStandardMaterial({ color: 0x14120c, emissive: 0xffedc4, emissiveIntensity: 2.4 }));
+    lamp.position.set(.76, .5, hz);
+    jeep.add(lamp);
+  }
+  const hlSp = new THREE.SpotLight(0xffedc4, 26, 14, .5, .65, 1.6);
+  hlSp.position.set(.8, .6, 0);
+  const hlTgt = new THREE.Object3D(); hlTgt.position.set(7, -.6, 0);
+  jeep.add(hlTgt); hlSp.target = hlTgt;
+  jeep.add(hlSp);
   const lb1 = new THREE.Mesh(new THREE.BoxGeometry(.1, .07, .16), new THREE.MeshStandardMaterial({ color: 0x140b0b, emissive: 0xff3333, emissiveIntensity: 0 }));
   lb1.position.set(-.2, 1.2, .14);
   const lb2 = new THREE.Mesh(new THREE.BoxGeometry(.1, .07, .16), new THREE.MeshStandardMaterial({ color: 0x0b0d14, emissive: 0x3388ff, emissiveIntensity: 0 }));
@@ -566,64 +587,7 @@ function fireUplink() {
   uplink.play(2.6);
 }
 
-/* ── audio — synthesized, muted until invited ───────────────────────────── */
-
-let AC = null, master = null, soundOn = false;
-function audioInit() {
-  if (AC) return;
-  AC = new (window.AudioContext || window.webkitAudioContext)();
-  master = AC.createGain(); master.gain.value = 0; master.connect(AC.destination);
-  // wind — filtered brown noise with a slow swell
-  const len = AC.sampleRate * 4;
-  const buf = AC.createBuffer(1, len, AC.sampleRate);
-  const d = buf.getChannelData(0);
-  let last = 0;
-  for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; last = (last + .02 * w) / 1.02; d[i] = last * 3; }
-  const src = AC.createBufferSource(); src.buffer = buf; src.loop = true;
-  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420;
-  const wg = AC.createGain(); wg.gain.value = .16;
-  const lfo = AC.createOscillator(); lfo.frequency.value = .07;
-  const lfoG = AC.createGain(); lfoG.gain.value = .07;
-  lfo.connect(lfoG); lfoG.connect(wg.gain);
-  src.connect(lp); lp.connect(wg); wg.connect(master);
-  src.start(); lfo.start();
-  // low dusk drone
-  const o1 = AC.createOscillator(); o1.frequency.value = 55;
-  const o2 = AC.createOscillator(); o2.frequency.value = 55.6;
-  const og = AC.createGain(); og.gain.value = .028;
-  o1.connect(og); o2.connect(og); og.connect(master);
-  o1.start(); o2.start();
-}
-function blip(freq = 740, dur = .12, vol = .05) {
-  if (!AC || !soundOn) return;
-  const o = AC.createOscillator(); o.frequency.value = freq;
-  const g = AC.createGain();
-  g.gain.setValueAtTime(vol, AC.currentTime);
-  g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + dur);
-  o.connect(g); g.connect(master);
-  o.start(); o.stop(AC.currentTime + dur + .02);
-}
-const sfx = {
-  feed: () => blip(660, .1, .04),
-  detect: () => { blip(1180, .22, .07); setTimeout(() => blip(880, .26, .06), 110); },
-  chirp: () => {
-    if (!AC || !soundOn) return;
-    const o = AC.createOscillator(), g = AC.createGain();
-    o.frequency.setValueAtTime(1500, AC.currentTime);
-    o.frequency.exponentialRampToValueAtTime(2600, AC.currentTime + .09);
-    g.gain.setValueAtTime(.03, AC.currentTime);
-    g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + .12);
-    o.connect(g); g.connect(master);
-    o.start(); o.stop(AC.currentTime + .15);
-  },
-};
-$('#sound').addEventListener('click', () => {
-  audioInit();
-  if (AC.state === 'suspended') AC.resume();
-  soundOn = !soundOn;
-  gsap.to(master.gain, { value: soundOn ? .6 : 0, duration: .8 });
-  $('#sound').textContent = soundOn ? '🔊 sound' : '🔇 sound';
-});
+const sfx = { feed() {}, detect() {}, chirp() {} };
 
 /* ── UI: captions, feed, popups ─────────────────────────────────────────── */
 
@@ -777,7 +741,7 @@ function drawMap() {
 /* ── timeline — 78 s, six chapters in order ─────────────────────────────── */
 
 const tl = gsap.timeline({ repeat: -1, paused: true });
-const CH = { overview: 0, intrusion: 10, response: 24, coexist: 34, listening: 48, network: 60 };
+const CH = { overview: 0, intrusion: 10, response: 24, coexist: 34, listening: 50, network: 62 };
 const cam = (t, p, l, dur, ease = 'power2.inOut') => {
   tl.to(camP, { x: p[0], y: p[1], z: p[2], duration: dur, ease }, t);
   tl.to(camL, { x: l[0], y: l[1], z: l[2], duration: dur, ease }, t);
@@ -795,7 +759,7 @@ tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station'
 // ── intrusion 10–24 · the report comes first, then the cameras confirm
 cam(10, [31, 7, 25.5], [23.5, 1.2, 14], 2.6);
 tl.call(() => {
-  popup(V3(26.5, heightAt(26.5, 16.6) + 1.9, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', 'vehicle', 5.5, 120);
+  popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', 'vehicle', 5, 140);
   stMobHQ.play(2.4);
   feed(HUES.report, 'Mobile-07 · report', 'Vehicle at the north track · photo received at HQ');
 }, null, 11.2);
@@ -807,16 +771,17 @@ tl.call(() => {                                                     // DETECTION
   const pp = trail.getPoint(poach.u);
   ringAt(pp.x, pp.z, HUES.see, 3.4);
   gsap.fromTo(fovSer1, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.6, pp.z), HUES.see, 'Human ×3', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', 'human', 6.5, 150);
+  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×3', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', 'human', 5.5, 160);
 }, null, 19);
 tl.call(() => { stSer1Gate.play(2.6); feed(HUES.see, 'Serengeti-01 · alert', 'Human ×3 at the chokepoint · image → Gateway over LoRa'); }, null, 19.9);
 tl.call(() => { fireUplink(); feed(HUES.link, 'Gateway · uplink', 'Woke from deep sleep · relayed by satellite — no cell for 40 km'); }, null, 21.2);
 tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ · Landseed AI', 'Alert on rangers’ phones · 28 s after trigger'); }, null, 22.4);
 tl.to(poach, { u: .74, duration: 12, ease: 'none' }, 19.2);
 
-// ── response 24–34 · dispatch, second camera confirms, intercept
-cam(24, [24, 8, -2], [17, 1.2, -12.3], 2.6);
-tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. A patrol is rolling in under a minute.', 5.5), null, 24.6);
+// ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
+cam(22.8, [20, 13, 8], [10, 1, -4], 1.6, 'power1.in');              // crane up out of the trail
+cam(24.4, [24, 8, -2], [17, 1.2, -12.3], 2.2, 'power2.out');        // settle on HQ
+tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. A patrol is rolling in under a minute.', 5), null, 24.6);
 tl.call(() => { jeepState.on = true; jeep.visible = true; feed(HUES.brain, 'HQ · dispatch', 'Patrol unit 2 rolling · intercept set at the ford'); }, null, 25.2);
 tl.to(jeepState, { u: 1, duration: 7.6, ease: 'power1.inOut' }, 25.6);
 cam(26.6, [6, 9, -12], [-2, .8, -2], 4.4, 'sine.inOut');            // high side-track on the jeep
@@ -824,77 +789,89 @@ tl.call(() => {                                                     // second ca
   flashAt(V3(-4.5, heightAt(-4.5, 5.6) + 1.6, 5.6), 0xd9ffe4);
   gsap.fromTo(fovSer2, { opacity: .3 }, { opacity: .1, duration: 1.4 });
   stSer2Gate.play(2);
-  feed(HUES.see, 'Serengeti-02 · confirm', 'Track confirmed heading for the ford — many low-cost cameras beat one dear one');
-}, null, 28.4);
-cam(31, [-10.5, 5, 7.5], [-6, .8, 2.3], 2.4);
+  feed(HUES.see, 'Serengeti-02 · confirm', 'Track confirmed heading for the ford');
+}, null, 28.2);
+cam(30.6, [-3, 10, 12], [-6, .8, 2.3], 1.6, 'power1.in');           // arc round toward the ford — no whip
+cam(32.2, [-1.5, 10.5, 8], [-6.2, .8, 2.2], 1.9, 'power2.out');
 tl.call(() => {                                                     // INTERCEPT
   poach.stopped = true;
   jeepState.arrived = true;
   const pp = trail.getPoint(poach.u);
   ringAt(pp.x, pp.z, HUES.see, 3);
   feed(HUES.see, 'Patrol · on site', 'Three detained at the ford · rifles seized');
-}, null, 32.4);
-tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Like the 20 arrests across 13 gangs that earlier versions made possible, beginning in the Serengeti.', 5), null, 32.8);
+}, null, 32.6);
+tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Like the 20 arrests across 13 gangs that earlier versions made possible, beginning in the Serengeti.', 4.5), null, 33);
 
-// ── coexistence 34–48 · approach, the close-up, detection, the turn
-cam(34, [20, 7.5, 1], [11, 1, -6.5], 3);
-tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 6), null, 35);
-tl.to(herdState, { u: .78, duration: 7.4, ease: 'none' }, 34.2);
-cam(38, [7.5, 3.4, -8.4], [11.2, 1.2, -4], 2.6, 'sine.inOut');      // settle low in the open crops — the herd walks into frame
-tl.to(herdState, { u: 1, duration: 3.4, ease: 'none' }, 41.6);
-cam(44.7, [16.5, 4.2, -3], [12.2, 1, -6.8], 2.2);
+// ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
+cam(34.4, [2, 13, -2], [10, 1, -5], 1.8, 'power1.in');              // crane up from the ford
+cam(36.2, [19.5, 7.5, 1], [11, 1, -6.5], 2.4, 'power2.out');        // settle over the crop edge
+tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 5.5), null, 36.4);
+tl.to(herdState, { u: .78, duration: 7.2, ease: 'none' }, 34.4);
+cam(39.2, [5.8, 4.4, -10.8], [10.8, 1.1, -3.2], 2.8, 'sine.inOut'); // low over the open crops — the herd crosses the frame
+tl.to(herdState, { u: 1, duration: 3.2, ease: 'none' }, 41.6);
 tl.call(() => {                                                     // DETECTION 2
-  herdState.curve = 'out';
   flashAt(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), 0xffe9bd);
   ringAt(12.4, -6.4, HUES.guard, 3.2);
   gsap.fromTo(fovVG, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · IR optics · alert < 1 KB · direct-to-cell', 'elephant', 6, -140);
+  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · IR optics · alert < 1 KB · direct-to-cell', 'elephant', 5, -150);
   stVGHQ.play(2.2);
   feed(HUES.guard, 'VillageGuard-04 · alert', 'Elephant ×3 approaching the fields');
-}, null, 45);
+}, null, 44.9);
+cam(45.1, [21.5, 4.6, -7.5], [13.2, 1, -7.2], 2.2, 'power2.inOut'); // the deterrent frame: lamp, guards, herd
 tl.call(() => {
   gsap.to(lampMat, { emissiveIntensity: 2.6, duration: .4 });
   gsap.to(villageLight, { intensity: 16, duration: .4 });
-  guard1.visible = true;
+  guard1.visible = guard2.visible = true;
   feed(HUES.guard, 'Village · early warning', 'Deterrence lights on · protection unit walking out');
-}, null, 45.9);
-tl.to(guardState, { u: 1, duration: 5, ease: 'none' }, 46);
-tl.to(herdState, { u: 0, duration: 5.6, ease: 'sine.inOut' }, 46.2);
-tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'The herd drifts back to the treeline. No crops lost, no retaliation — coexistence, on time.', 4.5), null, 46.6);
+}, null, 45.7);
+tl.to(guardState, { u: 1, duration: 4.4, ease: 'none' }, 45.9);
+tl.call(() => {                                                     // the herd actually turns
+  herdState.turning = true;
+  gsap.to(herd.rotation, { y: '+=2.9', duration: 1.7, ease: 'power1.inOut',
+    onComplete: () => { herdState.turning = false; herdState.curve = 'out'; } });
+}, null, 46.2);
+tl.to(herdState, { u: 0, duration: 4.6, ease: 'sine.inOut' }, 48);
+tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, people out, and the herd drifts back to the treeline. No crops lost, no retaliation.', 4), null, 47);
 
-// ── listening 48–60 · the array triangulates, the survey counts
-cam(48, [-2, 10, 20.5], [-11.5, 1, 12.5], 3);
-tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'The forest, counted by ear', 'Three Wolf units hold the canopy. The same call on three bearings becomes a point on the map.', 6.5), null, 48.8);
-for (const [t, cx, cz] of [[50.6, -12.5, 13], [53, -12.5, 13]]) {
-  tl.call(() => { ringAt(cx, cz, HUES.listen, 4.6, heightAt(cx, cz) + 2.6); sfx.chirp(); }, null, t);
+// ── listening 50–62 · the array triangulates, the survey counts
+cam(50, [16, 13, 2], [-6, 1, 10], 1.8, 'power1.in');                // crane over the river
+cam(51.8, [-2, 10, 20.5], [-11.5, 1, 12.5], 2.4, 'power2.out');
+tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'The forest, counted by ear', 'Three Wolf units hold the canopy. The same call on three bearings becomes a point on the map.', 6), null, 52);
+for (const [t, r] of [[53.2, 3.4], [55.2, 4.4]]) {
+  tl.call(() => {                                                   // a call: rings on the ground at the source…
+    ringAt(-12.5, 13, HUES.listen, r);
+    setTimeout(() => ringAt(-12.5, 13, 0xf5d9f2, r * .7), 260);
+    // …and each Wolf answers as it hears
+    wolves.forEach((w, i) => setTimeout(() => ringAt(w.position.x, w.position.z, HUES.listen, 1.5), 380 + i * 160));
+  }, null, t);
 }
-tl.call(() => bearings(-12.5, 13), null, 53.6);
-tl.call(() => { stWolfGate.play(2.4); feed(HUES.listen, 'Wolf array · fix', 'Primate troop · 3 bearings agree · location on the map'); }, null, 55);
+tl.call(() => bearings(-12.5, 13), null, 56.2);
+tl.call(() => { stWolfGate.play(2.4); feed(HUES.listen, 'Wolf array · fix', 'Primate troop · 3 bearings agree · location on the map'); }, null, 57.4);
 tl.call(() => {
-  popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · individuals IND-041 · IND-017 · density updated', 'reid', 5.5, 130);
+  popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · IND-041 · IND-017 · density updated', 'reid', 4.5, 140);
   stJWGate.play(2.4);
   feed(0xFF8C42, 'Jungle-Wallah · survey', 'Two individuals re-identified · abundance revised');
-}, null, 56.6);
-tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Calls become bearings, detections become densities — the measurement layer for Earth Credits.', 4.5), null, 57.6);
+}, null, 58.6);
+tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Calls become bearings, detections become densities — the measurement layer for Earth Credits.', 3.6), null, 59.4);
 
-// ── network 60–78 · the whole board
-cam(60, [8, 26, 30], [-2, 0, -2], 4.5);
-tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landscape, reporting', 'See, listen, connect, report — every detection lands in Landseed AI, and the record writes itself.', 9), null, 61.5);
-tl.call(() => { stSer1Gate.play(3); stSer2Gate.play(3); stMobHQ.play(3); }, null, 63.5);
-tl.call(() => { stWolfGate.play(3); stJWGate.play(3); }, null, 64.4);
-tl.call(() => { fireUplink(); stVGHQ.play(3); }, null, 65.4);
-tl.call(() => { stSatHQ.play(3); }, null, 66.6);
-tl.call(() => feed(HUES.brain, 'Landseed AI · report', 'Daily summary compiled · Earth Credits registry updated'), null, 67.6);
-cam(64.5, [-8, 23, 27], [-2, 0, -2], 13.5, 'sine.inOut');
+// ── network 62–78 · one continuous pull to the whole board
+cam(62, [8, 26, 30], [-2, 0, -2], 4.5);
+tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landscape, reporting', 'See, listen, connect, report — every detection lands in Landseed AI, and the record writes itself.', 9), null, 63.5);
+tl.call(() => { stSer1Gate.play(3); stSer2Gate.play(3); stMobHQ.play(3); }, null, 65);
+tl.call(() => { stWolfGate.play(3); stJWGate.play(3); }, null, 65.9);
+tl.call(() => { fireUplink(); stVGHQ.play(3); }, null, 66.9);
+tl.call(() => { stSatHQ.play(3); }, null, 68);
+tl.call(() => feed(HUES.brain, 'Landseed AI · report', 'Daily summary compiled · Earth Credits registry updated'), null, 69);
+cam(66.5, [-8, 23, 27], [-2, 0, -2], 11.5, 'sine.inOut');
 tl.call(() => {}, null, 78);
 
 tl.eventCallback('onRepeat', () => {
   poach.u = .02; poach.stopped = false;
-  herdState.u = 0; herdState.curve = 'in';
+  herdState.u = 0; herdState.curve = 'in'; herdState.turning = false;
   jeepState.u = 0; jeepState.on = false; jeepState.arrived = false;
   jeep.visible = false;
   jeep.userData.lights.forEach(m => m.emissiveIntensity = 0);
-  guard1.visible = false; guardState.u = 0;
+  guard1.visible = guard2.visible = false; guardState.u = 0;
   gsap.set(lampMat, { emissiveIntensity: 0 }); gsap.set(villageLight, { intensity: 0 });
   $('#feed-list').innerHTML = '';
 });
@@ -923,7 +900,11 @@ function placeOnCurve(group, curve, u, bobT, bobA = .05, faceX = false) {
   const p = curve.getPoint(u);
   const tan = curve.getTangent(Math.min(u + .002, 1)).setY(0).normalize();
   group.position.set(p.x, heightAt(p.x, p.z) + Math.sin(bobT) * bobA, p.z);
-  group.rotation.y = Math.atan2(tan.x, tan.z) + (faceX ? -Math.PI / 2 : 0);
+  const target = Math.atan2(tan.x, tan.z) + (faceX ? -Math.PI / 2 : 0);
+  let dAng = target - group.rotation.y;
+  while (dAng > Math.PI) dAng -= Math.PI * 2;
+  while (dAng < -Math.PI) dAng += Math.PI * 2;
+  group.rotation.y += dAng * .12;
 }
 
 let frame = 0;
@@ -948,14 +929,18 @@ function tick(dt, t) {
   // actors
   if (!poach.stopped) placeOnCurve(poachers, trail, poach.u, t * 7, .035);
   pFigs.forEach((f, i) => { f.position.y = poach.stopped ? 0 : Math.abs(Math.sin(t * 6 + i)) * .05; });
-  torches.forEach((c, i) => { c.rotation.y = Math.sin(t * 1.4 + i * 2) * .3; });
-  const hc = herdState.curve === 'in' ? herdIn : herdOut;
-  placeOnCurve(herd, hc, herdState.curve === 'in' ? herdState.u : 1 - herdState.u, t * 2.2, .02, true);
+  if (!herdState.turning) {
+    const hc = herdState.curve === 'in' ? herdIn : herdOut;
+    placeOnCurve(herd, hc, herdState.curve === 'in' ? herdState.u : 1 - herdState.u, t * 2.2, .02, true);
+  }
   for (const e of eles) {
     e.userData.legs.forEach((l, i) => { l.rotation.x = Math.sin(t * 3.1 + i * Math.PI) * .38; });
     e.userData.ears.forEach((ear, i) => { ear.rotation.y = Math.sin(t * 1.7 + i) * .18; });
   }
-  if (guard1.visible) placeOnCurve(guard1, guardPath, guardState.u, t * 6, .04);
+  if (guard1.visible) {
+    placeOnCurve(guard1, guardPath, guardState.u, t * 6, .04);
+    placeOnCurve(guard2, guardPath, Math.max(0, guardState.u - .2), t * 6 + 2, .04);
+  }
   if (jeepState.on) {
     placeOnCurve(jeep, road, jeepState.u, 0, 0, true);
     for (const w of jeep.userData.wheels) w.rotation.z -= dt * (jeepState.arrived ? 0 : 8);
