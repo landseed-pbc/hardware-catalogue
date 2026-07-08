@@ -5,7 +5,7 @@
 // chain (left) and the key specification (right) — sized to need no scrolling.
 
 import * as THREE from 'three';
-import { createWorld } from './world.js?v=2';
+import { createWorld } from './world.js?v=3';
 import { BUILDERS } from './devices.js?v=4';
 
 const $ = (s) => document.querySelector(s);
@@ -23,18 +23,20 @@ const DEVICES = [
     badges: ['$199–225 / unit', 'available Sept 2026', 'LoRa · 2 variants'],
     best: 'One or two detection classes — humans, vehicles, boats, logging trucks, or a single conflict species — on the most affordable computer-vision chip made. Best within ~9 m.',
     how: [
-      ['Wake', 'PIR trigger holds it at 5–10 µA; 200 ms to a usable image.'],
-      ['Think', 'The detector runs on the camera — false triggers die here.'],
-      ['Shrink', 'The area of interest is cropped and compressed on the edge.'],
-      ['Send', 'Cell in ~30 s, or LoRa to a Gateway, then satellite.'],
-      ['Respond', 'The alert reaches rangers’ phones — response before the loss.'],
+      ['Wake', 'Motion trigger; 200 ms to an image.'],
+      ['Think', 'On-camera detector; false triggers die here.'],
+      ['Shrink', 'Area of interest cropped and compressed.'],
+      ['Send', 'Cell in ~30 s, or LoRa → Gateway → satellite.'],
+      ['Respond', 'Rangers move before the loss, not after.'],
     ],
     key: [
       ['VPU', 'Himax'],
-      ['Sensor', 'Sub-megapixel · IR illuminated'],
+      ['Sensor', 'sub-megapixel · IR illuminated'],
       ['Speed', '200 ms capture · < 1 s re-trigger'],
       ['Range', 'up to 9 m'],
       ['Classes', 'humans · vehicles · 1–2 species'],
+      ['Threshold', 'tunable — miss nothing, or wake no one'],
+      ['vs trail cams', 'thinks on-board · transmits without cell'],
       ['Power', 'LiFePO4 pack · > 12 months'],
       ['Enclosure', 'IP67+ camo · −20 to +60 °C'],
       ['Links', 'LTE · LoRa · Wi-Fi · satellite'],
@@ -58,9 +60,9 @@ const DEVICES = [
     badges: ['$299 / unit', 'LTE + 2 LoRa variants', '8–10 classes'],
     best: 'Multi-species detection at the village edge — elephant, tiger, lion, bear and more in one model, plus humans and vehicles, with direct-to-cell where available.',
     how: [
-      ['Wake', 'PIR trigger · 200 ms · 2 MP low-light optics.'],
-      ['Think', '8–10 species and threats watched in a single model.'],
-      ['Shrink', 'Alert image auto-encoded below 1 KB for LoRa.'],
+      ['Wake', '200 ms wake · 2 MP low-light optics.'],
+      ['Think', '8–10 species and threats in one model.'],
+      ['Shrink', 'Alert image auto-encoded below 1 KB.'],
       ['Send', 'LTE / direct-to-cell, or LoRa to a Gateway.'],
       ['Respond', 'The village knows before the elephant arrives.'],
     ],
@@ -70,6 +72,7 @@ const DEVICES = [
       ['Speed', '200 ms capture · < 1 s re-trigger'],
       ['Range', 'up to 15 m'],
       ['Classes', '8–10 in one detector'],
+      ['Threshold', 'tunable per site'],
       ['Alert image', '< 1 KB auto-encoded'],
       ['Power', 'LiFePO4 pack · > 12 months'],
       ['Enclosure', 'IP67+ camo · −20 to +60 °C'],
@@ -102,9 +105,8 @@ const DEVICES = [
       ['Modems', 'LoRa · LTE / direct-to-cell'],
       ['Satellite', 'Starlink Mini · Viasat'],
       ['Frequency', '433 / 865–915 MHz, per country'],
+      ['LoRa reach', 'km-scale line-of-sight · ≤10 km advised'],
       ['Wake', 'deep sleep until a camera calls'],
-      ['Throughput', 'multi-KB image in 1–several min'],
-      ['Fan-in', 'many cameras per gateway'],
       ['Power', 'LiFePO4 · > 12 mo · solar indefinite'],
     ],
     callouts: [
@@ -126,8 +128,8 @@ const DEVICES = [
     how: [
       ['Choose', 'The few indicator species that say the most.'],
       ['Watch & listen', 'A bespoke detector, plus the acoustic pod.'],
-      ['Collect', 'Wi-Fi on a patrol pass, or swap the microSD card.'],
-      ['Understand', 'Density from re-identification and triangulation.'],
+      ['Collect', 'Wi-Fi on patrol, or swap the microSD card.'],
+      ['Understand', 'Density from re-ID and triangulation.'],
     ],
     key: [
       ['Platform', 'VillageGuard hardware'],
@@ -149,12 +151,12 @@ const DEVICES = [
     hue: 0xE682E6, price: '$100 target', x: 1.85,
     desc: 'Listens for vocalising wildlife',
     line: 'The forest is louder than it looks. Wolf hears what cameras never frame — and with three units triangulating the same call: how far away, and how many.',
-    stats: [['$100', 'target / unit'], ['24/7', 'listening'], ['3+', 'units triangulate'], ['in dev', 'spec sheet']],
+    stats: [['$100', 'target / unit'], ['24/7', 'listening'], ['3+', 'units triangulate'], ['passive', 'no trigger']],
     badges: ['$100 target', 'single variant', 'spec sheet in development'],
     best: 'Vocal species and vast dark forests: presence and absence from call detection, distance and density from an array.',
     how: [
-      ['Listen', 'Around the clock — no trigger, no line of sight.'],
-      ['Detect', 'Call recognition picks your species out of the noise.'],
+      ['Listen', 'Always on — no trigger, no line of sight.'],
+      ['Detect', 'Call recognition picks species from noise.'],
       ['Triangulate', '3+ units place the caller on the map.'],
       ['Count', 'Calling rates become density in Landseed AI.'],
     ],
@@ -182,10 +184,10 @@ const DEVICES = [
     badges: ['$50 target', 'no AI · no PIR', 'informant networks'],
     best: 'Community early-warning — elephants or predators near a village, or intelligence from inside — carried over the same Landseed network.',
     how: [
-      ['See', 'A person notices what a camera might miss.'],
+      ['See', 'A person notices what cameras miss.'],
       ['Frame', 'One key: point, confirm, done.'],
-      ['Send', 'The same network as every automated alert.'],
-      ['Act', 'The report corroborates the machine detections.'],
+      ['Send', 'Same network as every automated alert.'],
+      ['Act', 'Corroborates the machine detections.'],
     ],
     key: [
       ['Trigger', 'human operator'],
@@ -211,10 +213,10 @@ const DEVICES = [
     badges: ['subscription', 'standalone or bundled', 'bespoke builds'],
     best: 'Sold as a package with the hardware or standalone; annual updates, with bespoke versions built to a programme’s needs.',
     how: [
-      ['Ingest', 'Every camera, acoustic hit, report and satellite feed.'],
-      ['Fuse', 'Optical, acoustic and remote sensing, read together.'],
+      ['Ingest', 'Cameras, acoustics, reports, satellite feeds.'],
+      ['Fuse', 'All layers read together.'],
       ['Estimate', 'Presence, occupancy, density, abundance.'],
-      ['Deliver', 'Live alerts to phones and ops rooms; automated reports.'],
+      ['Deliver', 'Live alerts + automated reports.'],
     ],
     key: [
       ['Inputs', 'cameras · acoustics · reports · satellite'],
@@ -297,12 +299,15 @@ const _v = new THREE.Vector3();
 
 function addLabel(el, getPos, dev, kind, withLine = false) {
   labelsEl.appendChild(el);
-  let line = null;
+  let line = null, dot = null;
   if (withLine) {
     line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('r', '2.6');
     leadersEl.appendChild(line);
+    leadersEl.appendChild(dot);
   }
-  tracked.push({ el, line, getPos, dev, kind });
+  tracked.push({ el, line, dot, getPos, dev, kind });
 }
 
 for (const d of DEVICES) {
@@ -335,11 +340,11 @@ world.onTick = () => {
   const cols = { L: [], R: [] };     // visible callouts, decluttered per side
   for (const t of tracked) {
     const hidden = t.el.style.opacity === '0';
-    if (hidden) { if (t.line) t.line.style.opacity = '0'; continue; }
+    if (hidden) { if (t.line) { t.line.style.opacity = '0'; t.dot.style.opacity = '0'; } continue; }
     proj.copy(t.getPos()).project(camera);
     const behind = proj.z > 1;
     t.el.style.display = behind ? 'none' : '';
-    if (behind) { if (t.line) t.line.style.opacity = '0'; continue; }
+    if (behind) { if (t.line) { t.line.style.opacity = '0'; t.dot.style.opacity = '0'; } continue; }
     const sx = (proj.x * .5 + .5) * innerWidth, sy = (-proj.y * .5 + .5) * innerHeight;
     if (t.kind === 'callout') {
       proj.copy(t.dev.group.position).setY(t.dev.group.position.y + .5).project(camera);
@@ -365,8 +370,10 @@ world.onTick = () => {
       if (c.t.line) {
         const w = c.t.el.offsetWidth;
         c.t.line.setAttribute('x1', c.sx); c.t.line.setAttribute('y1', c.sy);
-        c.t.line.setAttribute('x2', lx + (right ? -w / 2 - 4 : w / 2 + 4)); c.t.line.setAttribute('y2', c.ly);
+        c.t.line.setAttribute('x2', lx + (right ? -w / 2 - 6 : w / 2 + 6)); c.t.line.setAttribute('y2', c.ly);
         c.t.line.style.opacity = c.t.el.style.opacity;
+        c.t.dot.setAttribute('cx', c.sx); c.t.dot.setAttribute('cy', c.sy);
+        c.t.dot.style.opacity = c.t.el.style.opacity;
       }
     }
   }
@@ -416,21 +423,7 @@ function deviceFrame(d) {
   return { pos, tgt: new THREE.Vector3(x, ty, z) };
 }
 
-let current = 'catalogue', busy = false, turntable = null;
-
-function startTurntable(d) {
-  stopTurntable();
-  const g = d.group;
-  turntable = gsap.to(g.rotation, { y: '+=6.28318', duration: 52, repeat: -1, ease: 'none', delay: 2.2 });
-  turntable.dev = d;
-}
-function stopTurntable() {
-  if (!turntable) return;
-  const g = turntable.dev.group;
-  turntable.kill();
-  gsap.to(g.rotation, { y: g.userData.rotY0, duration: 1.2, ease: 'power2.inOut', overwrite: true });
-  turntable = null;
-}
+let current = 'catalogue', busy = false;
 
 function flyTo(pos, tgt, dur = 1.6, ease = 'power3.inOut') {
   busy = true;
@@ -469,9 +462,10 @@ function fillPanels(d) {
   if (d.scenarios) {
     // the scenarios are the marquee — they take the tall right panel;
     // the key record moves left, above the caption
+    const consult = `<div class="sp-note">Every deployment starts with a connectivity consultation — the right mix is chosen before systems ship.</div>`;
     $('#specs-scroll').innerHTML = badges + best +
       `<div class="sp-h">A solution for every landscape</div>` +
-      d.scenarios.map((c, i) => `<div class="sp-scen"><b>${i + 1} · ${c.n}<em>${c.t}</em></b><p>${c.d}</p></div>`).join('') + note;
+      d.scenarios.map((c, i) => `<div class="sp-scen"><b>${i + 1} · ${c.n}<em>${c.t}</em></b><p>${c.d}</p></div>`).join('') + consult + note;
     $('#howto-body').innerHTML = `<div class="pan-h">Key specification</div>` +
       `<div id="howto-rows">${keyRows}</div>`;
   } else {
@@ -481,6 +475,20 @@ function fillPanels(d) {
       `<div class="sp-step"><i>${i + 1}</i><div><b>${t}</b><span>${x}</span></div></div>`).join('');
   }
 }
+
+// panels must never overlap the caption (left) or run past the chips (right):
+// step through density tiers until everything fits the viewport
+function fitPanels() {
+  const cap = $('#caption');
+  const fit = (el, limit) => {
+    el.classList.remove('tight', 'mini');
+    if (el.getBoundingClientRect().bottom > limit()) el.classList.add('tight');
+    if (el.getBoundingClientRect().bottom > limit()) el.classList.add('mini');
+  };
+  fit($('#howto'), () => cap.getBoundingClientRect().top - 14);
+  fit($('#specs'), () => innerHeight - 96);
+}
+addEventListener('resize', () => { if (current !== 'catalogue') fitPanels(); });
 
 const CAT_LINE = 'Poaching, illegal logging and human-wildlife conflict drive the loss of the wild — and the tools meant to stop them have been expensive, blind, or disconnected. Landseed builds cameras that think before they transmit, a network that reaches any sky, and prices that deploy in numbers — all reporting to one brain.';
 
@@ -494,8 +502,8 @@ function goView(id) {
   document.querySelectorAll('#plegend .wl-row.dv').forEach(r => r.classList.toggle('on', r.dataset.dev === id));
 
   if (id === 'catalogue') {
-    stopTurntable();
     flyTo(CAT_CAM.pos, CAT_CAM.tgt, prev === 'catalogue' ? 1.2 : 1.7);
+    $('#verb').classList.remove('show');
     controls.minDistance = 2.2;
     for (const d of DEVICES) fadeDevice(d, true);
     world.setStreamsVisible(true);
@@ -513,14 +521,15 @@ function goView(id) {
 
   const d = byId[id];
   $('#hint').classList.add('gone');
-  stopTurntable();
   const f = deviceFrame(d);
   flyTo(f.pos, f.tgt, 1.7);
   controls.minDistance = .9;
   for (const x of DEVICES) fadeDevice(x, x === d);
   world.setStreamsVisible(false);
   world.setGridDim(true);
-  if (id !== 'ai' && id !== 'gateway') startTurntable(d);   // large assemblies stay put
+  const verb = $('#verb');
+  verb.textContent = d.kicker.split('·')[0].trim();
+  verb.classList.add('show');
   for (const t of tracked) {
     if (t.kind === 'plate') t.el.style.opacity = '0';
     else t.el.style.opacity = (t.dev === d) ? '' : '0';
@@ -531,8 +540,10 @@ function goView(id) {
   fillPanels(d);
 
   const i = DEVICES.indexOf(d), next = DEVICES[(i + 1) % DEVICES.length];
-  const links = [[`Next · ${next.name.replace('Landseed ', '')} →`, next.id], ['← Catalogue', 'catalogue']];
+  const nextName = next.id === 'ai' ? next.name : next.name.replace('Landseed ', '');
+  const links = [[`Next · ${nextName} →`, next.id], ['← Catalogue', 'catalogue']];
   setCaption(d.kicker, d.name, d.line, d.stats, links, d.hue);
+  requestAnimationFrame(fitPanels);
 }
 
 /* ── input: chips, legend rows, raycast hover/click, keys, hash ─────────────── */

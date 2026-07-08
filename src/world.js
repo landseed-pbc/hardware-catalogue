@@ -101,11 +101,12 @@ export function createWorld(canvas) {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(p, 3));
     dust = new THREE.Points(g, new THREE.PointsMaterial({
-      color: 0x9fd8c0, size: .02, transparent: true, opacity: .38,
+      color: 0x9fd8c0, size: .028, transparent: true, opacity: .32,
       blending: THREE.AdditiveBlending, depthWrite: false,
     }));
     scene.add(dust);
   }
+  // soft round sprites, not hard squares (texture assigned once created below)
 
   // ── controls ──────────────────────────────────────────────────────────────
   const controls = new OrbitControls(camera, canvas);
@@ -133,6 +134,8 @@ export function createWorld(canvas) {
     _glowTex = new THREE.CanvasTexture(c);
     return _glowTex;
   }
+  dust.material.map = glowTexture();     // soft round dust sprites
+  dust.material.needsUpdate = true;
 
   function makePlinth(hue, r = .74) {
     const p = new THREE.Group();

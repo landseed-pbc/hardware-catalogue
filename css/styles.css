@@ -11,11 +11,10 @@ body{background:var(--deep);color:var(--text);font-family:var(--sans);-webkit-fo
 #scene.pointing{cursor:pointer}
 
 /* loader */
-#loader{position:fixed;inset:0;z-index:50;background:var(--deep);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
-#loader span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:8px}
-.loader-mark{width:96px;height:auto;border-radius:3px;animation:breathe 2.6s ease-in-out infinite}
-.loader-word{width:150px;height:auto;opacity:.95}
-@keyframes breathe{0%,100%{opacity:.55;transform:scale(.985)}50%{opacity:1;transform:scale(1)}}
+#loader{position:fixed;inset:0;z-index:50;background:var(--deep);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+#loader span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.loader-word{width:168px;height:auto;animation:breathe 2.6s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.5}50%{opacity:1}}
 
 /* boot choreography — chrome fades in after the opening flight */
 .hud,#chapters,#labels,#leaders,#plegend,#specs{transition:opacity 1s ease}
@@ -24,9 +23,11 @@ body.booting .hud,body.booting #chapters,body.booting #labels,body.booting #lead
 /* HUD */
 .hud{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:18px 24px;pointer-events:none}
 .hud>*{pointer-events:auto}
-.brand{display:flex;align-items:center;gap:11px}
-.brand .b-mark{height:24px;width:auto;display:block;border-radius:2px}
-.brand .b-word{height:21px;width:auto;display:block;opacity:.95}
+.brand .b-word{height:22px;width:auto;display:block;opacity:.95}
+
+/* editorial verb watermark behind the staged device */
+#verb{position:fixed;top:84px;left:50%;transform:translateX(-50%);z-index:5;font-size:clamp(56px,7.5vw,104px);font-weight:300;letter-spacing:.28em;text-transform:uppercase;color:rgba(240,240,234,.055);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .8s ease}
+#verb.show{opacity:1}
 .hud-right{display:flex;align-items:center;gap:14px}
 .hud-tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
@@ -38,7 +39,7 @@ body.booting .hud,body.booting #chapters,body.booting #labels,body.booting #lead
 /* ── device labels (catalogue view) — name plate pinned above each unit ──── */
 #labels{position:fixed;inset:0;z-index:8;pointer-events:none}
 #leaders{position:fixed;inset:0;z-index:7;pointer-events:none;width:100%;height:100%}
-#leaders line{stroke:rgba(232,238,235,.38);stroke-width:1;transition:opacity .25s}
+#leaders line{stroke:rgba(232,238,235,.32);stroke-width:1;transition:opacity .25s}
 /* name plates sit BELOW each unit, on the deck: name · what it is · price */
 .dlabel{position:absolute;transform:translate(-50%,14px);display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;line-height:1.3;transition:opacity .3s,transform .15s;pointer-events:auto;cursor:pointer;padding:5px 8px;max-width:200px}
 .dlabel .dn{display:flex;align-items:center;gap:7px;font-weight:800;font-size:15.5px;letter-spacing:.005em;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95),0 0 14px rgba(0,0,0,.8);white-space:nowrap}
@@ -48,12 +49,13 @@ body.booting .hud,body.booting #chapters,body.booting #labels,body.booting #lead
 .dlabel:hover{transform:translate(-50%,14px) scale(1.06)}
 .dlabel:hover .dn{color:var(--fa,#fff)}
 
-/* ── part callouts (device views) — annotation plates on leader lines ────── */
-.klabel{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;gap:2px;line-height:1.35;transition:opacity .3s;pointer-events:none;max-width:240px;
-  padding:8px 12px;border-radius:9px;background:linear-gradient(180deg,rgba(7,15,7,.72),rgba(7,15,7,.82));border:1px solid rgba(240,240,234,.1);border-left:2px solid var(--fa,var(--accent));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.klabel .kn{font-weight:800;font-size:13px;letter-spacing:.005em;color:#fff}
-.klabel .ks{font-size:12px;font-weight:400;color:var(--dim);white-space:normal}
-.klabel.kr{text-align:right;align-items:flex-end;border-left:1px solid rgba(240,240,234,.1);border-right:2px solid var(--fa,var(--accent))}
+/* ── part callouts (device views) — quiet cartographic annotations:
+      a dot on the part, a hairline, set type. No boxes. ─────────────────── */
+.klabel{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;gap:2px;line-height:1.4;transition:opacity .3s;pointer-events:none;max-width:230px;padding:2px 0}
+.klabel .kn{font-weight:700;font-size:13.5px;letter-spacing:.02em;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95),0 0 16px rgba(0,0,0,.85)}
+.klabel .ks{font-size:12px;font-weight:400;color:rgba(240,240,234,.78);white-space:normal;text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 12px rgba(0,0,0,.85)}
+.klabel.kr{text-align:right;align-items:flex-end}
+#leaders circle{fill:rgba(240,240,234,.85);transition:opacity .25s}
 
 /* ── product-line key (catalogue) — right rail ───────────────────────────── */
 #plegend{position:fixed;right:24px;top:78px;z-index:24;padding:14px 15px 12px;border-radius:11px;background:linear-gradient(180deg,rgba(7,15,7,.5),rgba(7,15,7,.66));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.1);opacity:0;transform:translateY(-6px);transition:opacity .4s,transform .4s;pointer-events:none;width:268px}
@@ -73,10 +75,24 @@ body.booting .hud,body.booting #chapters,body.booting #labels,body.booting #lead
 
 /* ── device-view panels — everything visible at once, no scrolling ────────
    left: #howto (the chain / the scenarios) · right: #specs (the record) */
-#howto,#specs{position:fixed;top:78px;z-index:24;width:min(356px,26vw);opacity:0;transition:opacity .4s,transform .4s;pointer-events:none}
+#howto,#specs{position:fixed;top:78px;z-index:24;width:min(356px,26vw);opacity:0;transition:opacity .45s ease,transform .45s ease;transition-delay:0s;pointer-events:none}
 #specs{right:24px;transform:translateX(14px)}
 #howto{left:28px;transform:translateX(-14px)}
 #specs.show,#howto.show{opacity:1;transform:none;pointer-events:auto}
+#howto.show{transition-delay:.25s}
+#specs.show{transition-delay:.45s}
+/* auto-fit tiers — applied by JS when a panel would collide with the caption
+   or run past the chip bar; density rises, nothing overlaps */
+.tight .sp-step{padding:3px 0}
+.tight .sp-step span,.tight .sp-scen p{font-size:11.5px}
+.tight .sp-row{padding:2px 0;font-size:12px}
+.tight .sp-scen{padding:5px 0 6px}
+.tight .sp-best{font-size:12px}
+.tight .sp-h,.tight .pan-h{margin-top:9px;margin-bottom:5px}
+.tight .sp-h:first-child,.tight .pan-h:first-child{margin-top:0}
+.mini .sp-step span{display:none}
+.mini .sp-scen p{display:none}
+.mini .sp-note{display:none}
 #specs-scroll,#howto-body{border-radius:12px;background:linear-gradient(180deg,rgba(7,15,7,.6),rgba(7,15,7,.74));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(240,240,234,.1);padding:17px 18px 15px}
 .pan-h{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,240,234,.7);margin:0 0 10px;display:flex;align-items:center;gap:9px}
 .pan-h::after{content:"";flex:1;height:1px;background:rgba(240,240,234,.12)}
@@ -84,40 +100,42 @@ body.booting .hud,body.booting #chapters,body.booting #labels,body.booting #lead
 .sp-h{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,240,234,.7);margin:14px 0 8px;display:flex;align-items:center;gap:9px}
 .sp-h::after{content:"";flex:1;height:1px;background:rgba(240,240,234,.12)}
 .sp-h:first-child{margin-top:0}
-.sp-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;font-size:13px;line-height:1.5;padding:3.5px 0;border-bottom:1px solid rgba(240,240,234,.05)}
+.sp-row{display:grid;grid-template-columns:96px 1fr;gap:0 14px;font-size:12.5px;line-height:1.5;padding:3px 0;border-bottom:1px solid rgba(240,240,234,.05);align-items:baseline}
 .sp-row:last-child{border-bottom:0}
-.sp-row span{color:var(--muted);flex:none;font-weight:500}
-.sp-row b{font-weight:600;color:var(--text);text-align:right}
+.sp-row span{color:var(--muted);font-weight:500}
+.sp-row b{font-weight:600;color:var(--text);text-align:left}
 .sp-note{font-size:10.5px;line-height:1.5;color:var(--muted);margin-top:11px}
 .sp-badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--fa,var(--alive));border:1px solid color-mix(in srgb,var(--fa,var(--alive)) 34%,transparent);background:color-mix(in srgb,var(--fa,var(--alive)) 8%,transparent);border-radius:6px;padding:4px 8px;margin:0 6px 8px 0}
 .sp-best{font-size:13px;line-height:1.55;color:var(--dim);margin-bottom:2px}
 /* numbered chain — how it works */
-.sp-step{display:flex;gap:11px;padding:5px 0;font-size:13px;line-height:1.45}
+.sp-step{display:flex;gap:12px;padding:6px 0;font-size:12.5px;line-height:1.45;border-bottom:1px solid rgba(240,240,234,.05)}
+.sp-step:last-child{border-bottom:0}
 .sp-step i{flex:none;font-style:normal;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--deep);background:var(--fa,var(--accent));margin-top:1px}
 .sp-step div{flex:1}
-.sp-step b{font-weight:800;color:var(--text);font-size:13px;margin-right:6px}
+.sp-step b{display:block;font-weight:700;color:var(--text);font-size:13px;margin-bottom:1px}
 .sp-step span{color:var(--dim)}
-/* connectivity scenario cards */
-.sp-scen{border-bottom:1px solid rgba(240,240,234,.07);padding:8px 0 9px}
+/* connectivity scenarios */
+.sp-scen{border-bottom:1px solid rgba(240,240,234,.05);padding:8px 0 9px}
 .sp-scen:last-of-type{border-bottom:0;padding-bottom:2px}
-.sp-scen b{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px}
-.sp-scen b em{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--fa,var(--alive));white-space:nowrap}
+.sp-scen b{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.sp-scen b em{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .sp-scen p{font-size:12px;line-height:1.45;color:var(--dim);margin:0}
 
 /* caption — the field-note card, bottom left */
-#caption{position:fixed;left:28px;bottom:92px;z-index:25;max-width:400px;padding:18px 22px 16px;border-radius:6px;background:linear-gradient(180deg,rgba(6,11,9,.6),rgba(6,11,9,.72));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(240,240,234,.09);border-left:2px solid var(--fa,rgba(0,190,90,.6));opacity:0;transition:opacity .5s ease,border-color .5s ease}
+#caption{position:fixed;left:28px;bottom:92px;z-index:25;max-width:400px;padding:19px 22px 17px;border-radius:14px;background:linear-gradient(180deg,rgba(6,11,9,.66),rgba(6,11,9,.78));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.09);opacity:0;transition:opacity .5s ease}
 #caption.in{opacity:1;animation:capin .6s cubic-bezier(.2,.7,.2,1)}
 @keyframes capin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-#cap-kicker{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--fa,var(--accent));margin-bottom:7px}
+#cap-kicker{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--fa,var(--accent));margin-bottom:8px}
+#cap-kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--fa,var(--accent));box-shadow:0 0 8px var(--fa,var(--accent));flex:none}
 #cap-kicker:empty{display:none}
 #cap-title{font-size:clamp(24px,2.7vw,31px);font-weight:800;letter-spacing:-.015em;line-height:1.06;margin-bottom:9px;color:#f4f3ee}
 #cap-line{font-size:14px;line-height:1.55;color:rgba(240,240,234,.82);max-width:46ch}
-#cap-stats{display:flex;flex-wrap:wrap;margin-top:14px;border-top:1px solid rgba(240,240,234,.13);padding-top:12px}
+#cap-stats{display:flex;flex-wrap:nowrap;margin-top:13px;border-top:1px solid rgba(240,240,234,.13);padding-top:11px}
 #cap-stats:empty{display:none}
-#cap-stats div{display:flex;flex-direction:column;gap:2px;padding:0 15px;border-left:1px solid rgba(240,240,234,.1)}
+#cap-stats div{display:flex;flex-direction:column;gap:2px;padding:0 11px;border-left:1px solid rgba(240,240,234,.1);min-width:0}
 #cap-stats div:first-child{padding-left:0;border-left:0}
-#cap-stats b{font-size:18px;font-weight:800;letter-spacing:-.01em;color:#eef0ea;font-variant-numeric:tabular-nums}
-#cap-stats span{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+#cap-stats b{font-size:16px;font-weight:800;letter-spacing:-.01em;color:#eef0ea;font-variant-numeric:tabular-nums;white-space:nowrap}
+#cap-stats span{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:2px}
 
 /* caption action links */
 #cap-links{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
