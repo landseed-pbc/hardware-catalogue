@@ -24,16 +24,16 @@ const qs = new URLSearchParams(location.search);
 const REAL = qs.get('terrain') === 'real';
 let dem = null;   // {grid: Float32Array, n, base}
 async function loadDEM() {
-  const lat = parseFloat(qs.get('lat') || '-2.34');
-  const lon = parseFloat(qs.get('lon') || '34.82');
-  const z = 11;
+  const lat = parseFloat(qs.get('lat') || '-1.32');
+  const lon = parseFloat(qs.get('lon') || '35.12');
+  const z = 12;
   const n = Math.pow(2, z);
   const xt = Math.floor((lon + 180) / 360 * n);
   const yt = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n);
-  const cv = document.createElement('canvas'); cv.width = cv.height = 512;
+  const cv = document.createElement('canvas'); cv.width = cv.height = 768;
   const cx = cv.getContext('2d');
   const jobs = [];
-  for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+  for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) {
     jobs.push(new Promise((res, rej) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -43,17 +43,17 @@ async function loadDEM() {
     }));
   }
   await Promise.all(jobs);
-  const px = cx.getImageData(0, 0, 512, 512).data;
-  const grid = new Float32Array(512 * 512);
-  for (let i = 0; i < 512 * 512; i++)
+  const px = cx.getImageData(0, 0, 768, 768).data;
+  const grid = new Float32Array(768 * 768);
+  for (let i = 0; i < 768 * 768; i++)
     grid[i] = px[i * 4] * 256 + px[i * 4 + 1] + px[i * 4 + 2] / 256 - 32768;
   const sorted = Float32Array.from(grid).sort();
-  dem = { grid, n: 512, base: sorted[Math.floor(sorted.length * .12)] };
+  dem = { grid, n: 768, base: sorted[Math.floor(sorted.length * .12)] };
 }
 if (REAL) { try { await Promise.race([loadDEM(), new Promise((_, r) => setTimeout(r, 8000))]); } catch (e) { dem = null; console.warn('DEM unavailable — procedural terrain', e); } }
 function demAt(x, z) {
   // world 76×56 → central window of the 512² DEM
-  const u = (x + 38) / 76 * 430 + 41, v = (z + 28) / 56 * 316 + 98;
+  const u = (x + 38) / 76 * 645 + 61, v = (z + 28) / 56 * 474 + 147;
   const i0 = Math.floor(u), j0 = Math.floor(v), fu = u - i0, fv = v - j0;
   const g = dem.grid, n = dem.n;
   const a = g[j0 * n + i0], b = g[j0 * n + i0 + 1], c = g[(j0 + 1) * n + i0], d2 = g[(j0 + 1) * n + i0 + 1];
@@ -70,7 +70,7 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.14;
+renderer.toneMappingExposure = 1.3;
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x2e3833, 0.0096);
@@ -102,7 +102,8 @@ scene.fog = new THREE.FogExp2(0x2e3833, 0.0096);
 const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500);
 const camP = { x: 40, y: 22, z: 38 }, camL = { x: -4, y: 0, z: -2 };
 
-scene.add(new THREE.HemisphereLight(0xaec4d4, 0x2a2418, .66));
+scene.add(new THREE.HemisphereLight(0xaec4d4, 0x2f2a1c, .8));
+scene.add(new THREE.AmbientLight(0x2c3a30, .5));
 const sun = new THREE.DirectionalLight(0xffc98f, 2.75);
 sun.position.set(-40, 13, 12);                                       // low in the west — long dusk shadows
 sun.castShadow = true;
@@ -141,7 +142,7 @@ const grade = new ShaderPass({
       c.rgb *= mix(vec3(.93, 1.02, 1.09), vec3(1.07, 1.0, .9), smoothstep(.12, .85, l));   // teal shadows, warm highs
       c.rgb = mix(vec3(l), c.rgb, .92);                                                    // gentle desaturation
       float d = distance(vUv, vec2(.5, .46));
-      c.rgb *= 1. - .22 * smoothstep(.44, .88, d);                                         // vignette
+      c.rgb *= 1. - .16 * smoothstep(.46, .9, d);                                          // vignette
       c.rgb += (hash(vUv * vec2(1920., 1080.) + fract(uTime) * 7.) * 2. - 1.) * .025;      // grain
       gl_FragColor = c;
     }`,
@@ -175,6 +176,7 @@ function heightAt(x, z) {
   const wx = x + 6 * noise(x * .045 + 31, z * .045 + 17) - 3;
   const wz = z + 6 * noise(x * .045 + 5, z * .045 + 47) - 3;
   let h = 1.35 * fbm(wx * .06, wz * .06) + .3 * noise(x * .5, z * .5) - 1.05;
+  h -= .16 * Math.abs(noise(wx * .3 + 9, wz * .3) - .5) * 2 * Math.min(1, Math.max(0, h));   // erosion grooves bite the slopes
   h += 5.6 * Math.exp(-((x + 24) ** 2) / 52) * (0.72 + 0.28 * noise(z * .1, 3)); // western ridge
   const dr = z - riverZ(x);
   h -= 2.3 * Math.exp(-(dr * dr) / 3.4);                                          // wider, softer valley
@@ -778,7 +780,7 @@ new GLTFLoader().load('./assets/wolf.glb', (g) => {
       if (o.isMesh) {
         o.castShadow = true; o.frustumCulled = false;
         o.material = o.material.clone();
-        o.material.color.multiplyScalar(1.22);
+        o.material.color.multiplyScalar(1.5);
         o.material.roughness = .82;
       }
     });
@@ -793,6 +795,10 @@ new GLTFLoader().load('./assets/wolf.glb', (g) => {
     wolvesAnim.push(w);
   }
 }, undefined, () => console.warn('wolf asset unavailable'));
+
+const packLight = new THREE.PointLight(0xcfe0ff, 0, 14);
+packLight.position.set(PACK_AT[0], heightAt(PACK_AT[0], PACK_AT[1]) + 5, PACK_AT[1]);
+scene.add(packLight);
 
 function howl(w) {                                       // muzzle lifts on the actual neck bone
   if (!w) return;
@@ -1273,6 +1279,8 @@ tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, peo
 // ── listening 50–62 · wolves howl, birds call, the array breathes it in
 cam(50, [16, 13, 2], [-11, 1, 11], 1.8, 'power1.in');               // crane over the river
 cam(51.8, [-5.5, 5.6, 18.6], [-12.8, 1, 12.5], 2.4, 'power2.out');  // settle close on the pack
+tl.call(() => gsap.to(packLight, { intensity: 20, duration: 2 }), null, 50.5);
+tl.call(() => gsap.to(packLight, { intensity: 0, duration: 2.5 }), null, 60.5);
 tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 6), null, 52);
 tl.call(() => howl(wolvesAnim[0]), null, 52.4);                     // the lead howls…
 tl.call(() => {
@@ -1315,7 +1323,7 @@ tl.call(() => { stWolfGate.play(3); }, null, 65.9);
 tl.call(() => { fireUplink(); stVGHQ.play(3); }, null, 66.9);
 tl.call(() => { stSatHQ.play(3); }, null, 68);
 tl.call(() => feed(HUES.brain, 'Landseed AI · report', 'Daily summary compiled · Earth Credits registry updated'), null, 69);
-cam(66.5, [-10, 22, 31], [-2, 0, -2], 11.5, 'sine.inOut');
+cam(66.5, [40, 22, 38], [-4, 0, -2], 11.5, 'sine.inOut');           // land exactly on the opening frame — the loop is invisible
 tl.call(() => {}, null, 78);
 
 tl.eventCallback('onRepeat', () => {
@@ -1509,8 +1517,10 @@ function tick(dt, t) {
     proj.copy(rec.world).project(camera);
     if (proj.z > 1) { rec.el.style.display = 'none'; continue; }
     rec.el.style.display = '';
-    rec.el.style.left = ((proj.x * .5 + .5) * innerWidth + (rec.dx || 0)) + 'px';
-    rec.el.style.top = ((-proj.y * .5 + .5) * innerHeight) + 'px';
+    const px2 = Math.max(260, Math.min(innerWidth - 300, (proj.x * .5 + .5) * innerWidth + (rec.dx || 0)));
+    const py2 = Math.max(230, Math.min(innerHeight - 130, (-proj.y * .5 + .5) * innerHeight));
+    rec.el.style.left = px2 + 'px';
+    rec.el.style.top = py2 + 'px';
   }
   for (const wl of wlabels) {
     proj.copy(wl.pos).project(camera);
