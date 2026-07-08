@@ -474,13 +474,13 @@ export function buildShaman(hue) {
   const g = new THREE.Group();
   const col = new THREE.Color(hue);
 
-  // the core IS the brand — the Landseed AI mark floating at the heart,
-  // readable from both sides, colors kept brand-true (no tone mapping)
-  const logoTex = new THREE.TextureLoader().load('./public/landseed-ai-mark.png');
+  // the core IS the brand — the full Landseed AI lockup (mark with the AI
+  // wordmark anchored below), readable from both sides, colors brand-true
+  const logoTex = new THREE.TextureLoader().load('./public/landseed-ai-lockup.png');
   logoTex.colorSpace = THREE.SRGBColorSpace;
   logoTex.anisotropy = 8;
   const core = new THREE.Group();
-  const LW = .5, LH = LW * (384 / 760);
+  const LW = .46, LH = LW * (720 / 831);
   const logoMat = () => new THREE.MeshBasicMaterial({ map: logoTex, transparent: true, toneMapped: false });
   const faceA = new THREE.Mesh(new THREE.PlaneGeometry(LW, LH), logoMat());
   const faceB = new THREE.Mesh(new THREE.PlaneGeometry(LW, LH), logoMat());
@@ -506,7 +506,7 @@ export function buildShaman(hue) {
     m.castShadow = false;
     return m;
   };
-  const s1 = wire(.3, .5), s2 = wire(.44, .22);
+  const s1 = wire(.37, .5), s2 = wire(.5, .22);
   g.add(s1, s2);
 
   // instrument rings — gyroscope planes
@@ -517,9 +517,9 @@ export function buildShaman(hue) {
     t.rotation.set(rx, 0, rz); t.castShadow = false;
     rings.push(t); g.add(t);
   };
-  mkRing(.52, Math.PI / 2, 0);
-  mkRing(.6, Math.PI / 2.6, .5);
-  mkRing(.68, Math.PI / 1.8, -.4);
+  mkRing(.56, Math.PI / 2, 0);
+  mkRing(.64, Math.PI / 2.6, .5);
+  mkRing(.72, Math.PI / 1.8, -.4);
 
   // node swarm — signals resident in the brain
   const N = 90, pos = new Float32Array(N * 3);
@@ -564,5 +564,5 @@ export const BUILDERS = {
   junglewallah: buildJungleWallah,
   wolf: buildWolf,
   mobile: buildMobile,
-  shaman: buildShaman,
+  ai: buildShaman,
 };

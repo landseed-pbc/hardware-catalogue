@@ -1,145 +1,116 @@
-// ── main.js — the catalogue: product data, views, chips, callouts, spec rail ──
-// Layout & pagination follow the Virunga viz: bottom chapter chips, caption card
-// bottom-left, one right-rail card, labels pinned to the scene. Clicking a device
-// clears the bay — every other unit vanishes and the chosen one takes the stage.
+// ── main.js — the catalogue: product data, views, chips, callouts, panels ──
+// Layout & pagination follow the Virunga viz: bottom chapter chips, caption
+// card bottom-left, labels pinned to the scene. Clicking a device clears the
+// bay and stages it alone; its record splits across two fixed panels — the
+// chain (left) and the key specification (right) — sized to need no scrolling.
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=2';
-import { BUILDERS } from './devices.js?v=3';
+import { BUILDERS } from './devices.js?v=4';
 
 const $ = (s) => document.querySelector(s);
 
 /* ── the product line — facts from the Landseed product-line introduction &
-      July 2026 price sheet (canonical). Narrative structure follows the field
-      literature: how it works, deployment craft, a connectivity answer for
-      every landscape. "target" = pre-launch pricing. ─────────────────────── */
+      July 2026 price sheet (canonical). "target" = pre-launch pricing. ────── */
 
 const DEVICES = [
   {
     id: 'serengeti', name: 'Landseed Serengeti', kicker: 'To see · Park protection',
     hue: 0x00FF64, price: '$199–225', x: -3.1,
-    line: 'The smallest, lowest-power AI camera-alert system on the market — built to be everywhere. In large parks, many low-cost sensors beat a few expensive ones: detections by earlier versions led to the arrest of 20 individuals from 13 poaching gangs, beginning in the Serengeti in 2017, then in six more countries.',
+    desc: 'AI alert camera for park protection',
+    line: 'The smallest, lowest-power AI camera-alert system on the market — built to be everywhere. Earlier versions put 20 poachers from 13 gangs under arrest, from the Serengeti outward to six more countries.',
     stats: [['$199–225', 'per unit'], ['200 ms', 'first capture'], ['30 s', 'alert via cell'], ['>12 mo', 'battery']],
     badges: ['$199–225 / unit', 'available Sept 2026', 'LoRa · 2 variants'],
-    best: 'One or two detection classes on the most affordable computer-vision chip made: humans, vehicles, boats, logging trucks — or a single conflict species. Best within ~9 m of the subject. For multi-species models, see VillageGuard or Jungle-Wallah.',
+    best: 'One or two detection classes — humans, vehicles, boats, logging trucks, or a single conflict species — on the most affordable computer-vision chip made. Best within ~9 m.',
     how: [
-      ['Wake', 'A passive-infrared trigger holds the camera at 5–10 µA until something moves — then 200 ms to a usable image.'],
-      ['Think', 'The detector runs on the camera itself. Empty frames and false triggers die here, never spending airtime or battery.'],
-      ['Shrink', 'The area of interest is cropped and compressed on the edge, so every transmitted image is as small as possible.'],
-      ['Send', 'Direct to a cell tower where coverage exists — image in ~30 seconds — or by long-range radio to a Landseed Gateway, then satellite.'],
-      ['Respond', 'The alert lands in Shaman and on rangers’ phones. Response teams move before the loss, not after it.'],
+      ['Wake', 'PIR trigger holds it at 5–10 µA; 200 ms to a usable image.'],
+      ['Think', 'The detector runs on the camera — false triggers die here.'],
+      ['Shrink', 'The area of interest is cropped and compressed on the edge.'],
+      ['Send', 'Cell in ~30 s, or LoRa to a Gateway, then satellite.'],
+      ['Respond', 'The alert reaches rangers’ phones — response before the loss.'],
     ],
-    field: [
-      'Place at chokepoints on actively used trails, with cover on both sides',
-      'Avoid pointing into low east–west sun — direct glare breeds false triggers',
-      'Small enough to hide above eye level; camouflage the head and cables with local detritus',
-      'Practice makes a deployment a ten-minute stop: test in setup mode, arm, erase your footprints',
-      'Alert threshold is tunable — favour zero missed intruders, or fewer false alarms',
-    ],
-    features: [
-      'Lowest-cost AI-embedded camera on the market — priced beside trail cams that can’t think or transmit',
-      'Very fast capture and reset — 200 ms to first image, re-trigger < 1 s',
-      'Good low-light performance, IR illumination without a visible flash',
-      'Battery life > 12 months on the external pack',
-      'Real-time alerts where there is no cell network at all',
-      'Every detection lands in Landseed Shaman',
-    ],
-    specs: [
-      ['System hardware', [['VPU', 'Himax'], ['Power', 'LiFePO4 3.3 V + expandable pack'], ['Image sensor', 'Sub-megapixel'], ['Illuminator', 'IR'], ['Storage', 'microSD']]],
-      ['Operation', [['First capture', '200 ms'], ['Re-trigger', '< 1 s, programmable'], ['Detection range', 'up to 9 m'], ['Quiescent draw', '5–10 µA']]],
-      ['Environment', [['Enclosure', 'IP67+ · camouflaged'], ['Temperature', '−20 to +60 °C'], ['Humidity', '0–90 % RH'], ['Durability', '14 days underwater, transmitting']]],
-      ['Connectivity', [['Cellular', 'LTE'], ['Radio', 'LoRa 433 / 865–915 MHz'], ['Wi-Fi', 'Long-range'], ['Satellite', 'Starlink · Viasat · direct-to-cell']]],
-      ['AI model', [['Classes', 'Humans, vehicles, 1–2 species']]],
+    key: [
+      ['VPU', 'Himax'],
+      ['Sensor', 'Sub-megapixel · IR illuminated'],
+      ['Speed', '200 ms capture · < 1 s re-trigger'],
+      ['Range', 'up to 9 m'],
+      ['Classes', 'humans · vehicles · 1–2 species'],
+      ['Power', 'LiFePO4 pack · > 12 months'],
+      ['Enclosure', 'IP67+ camo · −20 to +60 °C'],
+      ['Links', 'LTE · LoRa · Wi-Fi · satellite'],
+      ['Proven', '14 days underwater, transmitting'],
     ],
     callouts: [
-      ['lens', 'Optics', 'Sub-megapixel low-light sensor · 200 ms to first image'],
+      ['lens', 'Optics', 'Low-light sensor · 200 ms to first image'],
       ['ir', 'IR illuminator', 'Sees at night, shows nothing'],
       ['antenna', 'Long-range radio', 'LoRa · LTE · satellite backhaul'],
       ['pir', 'PIR trigger', '5–10 µA asleep · re-trigger < 1 s'],
-      ['battery', 'LiFePO4 pack', 'External, expandable · > 12 months'],
-      ['shell', 'Camo shell', 'IP67+ · 14 days underwater in testing'],
+      ['battery', 'Battery pack', 'External, expandable · > 12 months'],
+      ['shell', 'Camo shell', 'IP67+ · tested underwater'],
     ],
   },
   {
     id: 'villageguard', name: 'Landseed VillageGuard', kicker: 'To see · Coexistence',
     hue: 0xFFC800, price: '$299', x: -1.85,
-    line: 'Turning conflict into coexistence. When predators and mega-herbivores leave the parks for villages, VillageGuard gives rangers, forest guards and village protection units the early alert that prevents the loss — of crops, livestock, lives, and the animal that would be killed in retaliation.',
+    desc: 'Multi-species AI camera for conflict prevention',
+    line: 'When predators and mega-herbivores leave the parks for villages, VillageGuard gives rangers and village protection units the early alert that turns conflict into coexistence.',
     stats: [['$299', 'per unit'], ['8–10', 'object classes'], ['15 m', 'detection range'], ['<1 KB', 'alert image']],
     badges: ['$299 / unit', 'LTE + 2 LoRa variants', '8–10 classes'],
-    best: 'Multi-species detection at the village edge — elephant, tiger, lion, bear and more in a single model, plus humans and vehicles, with direct-to-cell where available.',
+    best: 'Multi-species detection at the village edge — elephant, tiger, lion, bear and more in one model, plus humans and vehicles, with direct-to-cell where available.',
     how: [
-      ['Wake', 'PIR trigger, 200 ms to first image, 2-megapixel low-light optics.'],
-      ['Think', 'The STM32N6 runs a detector with 8–10 object classes at once — one camera watches for every species on your conflict list.'],
-      ['Shrink', 'On-edge auto-encoding can compress an alert image below 1 KB — small enough to ride LoRa anywhere.'],
-      ['Send', 'LTE or direct-to-cell where the sky allows; long-range radio to a Gateway everywhere else.'],
-      ['Respond', 'The village protection unit gets the elephant’s name before it reaches the field.'],
+      ['Wake', 'PIR trigger · 200 ms · 2 MP low-light optics.'],
+      ['Think', '8–10 species and threats watched in a single model.'],
+      ['Shrink', 'Alert image auto-encoded below 1 KB for LoRa.'],
+      ['Send', 'LTE / direct-to-cell, or LoRa to a Gateway.'],
+      ['Respond', 'The village knows before the elephant arrives.'],
     ],
-    field: [
-      'Ring the village approaches and crop-raiding corridors, not just the park boundary',
-      'One unit per corridor: a single multi-class model replaces a rack of single-species cameras',
-      'Pair alerts with response drills — early warning only works when someone moves on it',
-      'Alert threshold is tunable per site — miss nothing, or wake no one without cause',
-    ],
-    features: [
-      'Runs more powerful detectors than Serengeti — up to 8–10 object classes in one model',
-      '2-megapixel sensor with strong low-light performance',
-      '200 ms first capture · < 1 s re-trigger · 5–10 µA quiescent',
-      'Edge auto-encoding shrinks an alert image below 1 KB for LoRa',
-      'Compact IP67 build · battery > 12 months',
-      'Every detection lands in Landseed Shaman',
-    ],
-    specs: [
-      ['System hardware', [['VPU', 'STM32N6'], ['Power', 'LiFePO4 3.3 V + expandable pack'], ['Image sensor', '2 MP'], ['Illuminator', 'IR'], ['Storage', 'microSD']]],
-      ['Operation', [['First capture', '200 ms'], ['Re-trigger', '< 1 s, programmable'], ['Detection range', 'up to 15 m']]],
-      ['Environment', [['Enclosure', 'IP67+ · camouflaged'], ['Temperature', '−20 to +60 °C'], ['Humidity', '0–90 % RH'], ['Durability', '14 days underwater, transmitting']]],
-      ['Connectivity', [['Cellular', 'LTE / direct-to-cell'], ['Radio', 'LoRa 433 / 865–915 MHz'], ['Wi-Fi', 'Long-range'], ['Satellite', 'Starlink · Viasat']]],
-      ['AI model', [['Classes', 'Up to 8–10 in a single detector']]],
+    key: [
+      ['VPU', 'STM32N6'],
+      ['Sensor', '2 MP · IR illuminated'],
+      ['Speed', '200 ms capture · < 1 s re-trigger'],
+      ['Range', 'up to 15 m'],
+      ['Classes', '8–10 in one detector'],
+      ['Alert image', '< 1 KB auto-encoded'],
+      ['Power', 'LiFePO4 pack · > 12 months'],
+      ['Enclosure', 'IP67+ camo · −20 to +60 °C'],
+      ['Links', 'LTE / direct-to-cell · LoRa · satellite'],
     ],
     callouts: [
-      ['lens', 'Optics', '2 MP sensor · 15 m detection range'],
+      ['lens', 'Optics', '2 MP sensor · 15 m range'],
       ['ir', 'Dual IR array', 'Night work at the village edge'],
-      ['vpu', 'STM32N6 VPU', '8–10 object classes on the edge'],
+      ['vpu', 'STM32N6 VPU', '8–10 classes on the edge'],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
-      ['battery', 'LiFePO4 pack', 'External, expandable · > 12 months'],
+      ['battery', 'Battery pack', 'External, expandable · > 12 months'],
     ],
   },
   {
     id: 'gateway', name: 'Landseed Gateway', kicker: 'To connect · The hub',
     hue: 0x32C8FF, price: '$150 target', x: -.62,
-    line: 'Most of the world’s protected areas have no cell signal — so there is a connectivity answer for every park. The Gateway takes long-range radio from a constellation of cameras and hands it to whatever sky is available, so one airtime bill serves every sensor on the hill.',
+    desc: 'Connects cameras where there is no cell signal',
+    line: 'Most protected areas have no cell signal. The Gateway takes long-range radio from many cameras and hands it to whatever sky is available — one airtime bill for the whole hill.',
     stats: [['$150', 'target / unit'], ['1', 'hub, many cameras'], ['5', 'landscape scenarios'], ['>12 mo', 'battery + solar']],
-    badges: ['$150 target', 'LoRa · LTE · Starlink · Viasat'],
-    best: 'Anywhere beyond the towers. Cameras in cell range transmit direct and need no Gateway; everywhere else, this is the bridge — placed in a village, on a ridge, on a tower, or under open sky.',
+    badges: ['$150 target', 'IP67+ field case', 'any sky'],
+    best: 'Anywhere beyond the towers. Cameras in cell range transmit direct and need no Gateway; everywhere else this is the bridge — in a village, on a ridge, on a tower, or under open sky.',
     scenarios: [
-      { n: 'Reliable cell at the camera', d: 'No gateway needed — the camera’s own LTE unit transmits straight to the tower.', t: 'image in ~30 s' },
-      { n: 'Cell nearby, not at the camera', d: 'Cameras reach the Gateway by LoRa; the Gateway sits in a village or on a ridge within tower range and relays by cell.', t: 'image in minutes' },
-      { n: 'A powered tower in the park', d: 'On LoRaWAN or radio towers with mains power and internet, the Gateway joins by Wi-Fi or ethernet — no satellite modem at all.', t: 'image in minutes' },
-      { n: 'No cell, open terrain', d: 'The Gateway uplinks by satellite — Starlink Mini, Viasat, or direct-to-cell where available.', t: 'image in minutes' },
-      { n: 'No cell, closed canopy', d: 'Cameras under the forest hop by LoRa to a Gateway placed kilometres away under open sky; many cameras share one uplink.', t: 'image in minutes' },
+      { n: 'Reliable cell at the camera', d: 'Cameras transmit direct — no Gateway needed.', t: '~30 s' },
+      { n: 'Cell nearby, not at the camera', d: 'LoRa to a Gateway in a village or on a ridge; out by cell.', t: 'minutes' },
+      { n: 'A powered tower in the park', d: 'The Gateway joins the tower’s internet by Wi-Fi or ethernet.', t: 'minutes' },
+      { n: 'No cell, open terrain', d: 'Satellite uplink — Starlink Mini, Viasat, or direct-to-cell.', t: 'minutes' },
+      { n: 'No cell, closed canopy', d: 'LoRa hop to a Gateway placed under open sky; many cameras share it.', t: 'minutes' },
     ],
-    how: [
-      ['Sleep', 'The Gateway rests in deep sleep, listening in micro-amp sips, until the first camera signal arrives.'],
-      ['Receive', 'LoRa packets come in from every camera on the hill — a free protocol, at your country’s legal frequency (433 or 865–915 MHz).'],
-      ['Reassemble', 'Image packets are stored and forwarded — rebuilt and handed to the strongest available uplink.'],
-      ['Relay', 'Cell, Starlink Mini, Viasat, direct-to-cell, or a tower’s own internet. One bill, amortised across every camera.'],
-    ],
-    features: [
-      'Low-cost multipurpose communications unit',
-      'Deep-sleep radio wakes on the first signal from a camera',
-      'One gateway amortises airtime across many dispersed cameras',
-      'Drops onto a LoRaWAN tower over Wi-Fi or ethernet',
-      'Battery > 12 months — indefinitely with the solar array',
-      'Fits in a small IP67 case',
-    ],
-    specs: [
-      ['System hardware', [['Modems', 'LoRa · LTE / direct-to-cell · Starlink Mini · Viasat'], ['Power', 'LiFePO4 + expandable pack · solar']]],
-      ['Operation', [['Wake', 'Deep sleep until first camera signal'], ['Throughput', 'Multi-KB image in 1–several min'], ['Fan-in', 'Many cameras per gateway']]],
-      ['Environment', [['Enclosure', 'IP67+ · camouflaged'], ['Temperature', '−20 to +60 °C'], ['Humidity', '0–90 % RH'], ['Durability', 'Conformal-coated boards']]],
+    key: [
+      ['Modems', 'LoRa · LTE / direct-to-cell'],
+      ['Satellite', 'Starlink Mini · Viasat'],
+      ['Frequency', '433 / 865–915 MHz, per country'],
+      ['Wake', 'deep sleep until a camera calls'],
+      ['Throughput', 'multi-KB image in 1–several min'],
+      ['Fan-in', 'many cameras per gateway'],
+      ['Power', 'LiFePO4 · > 12 mo · solar indefinite'],
     ],
     callouts: [
-      ['lora', 'LoRa mast', 'Free-protocol long-range radio, per-country frequency'],
+      ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency'],
       ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist'],
-      ['solar', 'Solar endurance', '> 12 months, indefinitely with sun'],
+      ['solar', 'Solar endurance', 'Indefinite with sun'],
       ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet'],
       ['case', 'Field case', 'IP67 · fits in a daypack'],
     ],
@@ -147,31 +118,24 @@ const DEVICES = [
   {
     id: 'junglewallah', name: 'Landseed Jungle-Wallah', kicker: 'To see & listen · Biodiversity',
     hue: 0xFF8C42, price: 'custom', x: .62,
-    line: 'Biodiversity monitoring without the paralysis: pick the few species that tell you the most about a landscape for the least cost, then watch and listen for exactly those. VillageGuard optics carrying bespoke species models, joined to an acoustic pod.',
-    stats: [['optical', '+ acoustic'], ['custom', 'species models'], ['Wi-Fi / SD', 'collection'], ['Shaman', 'analytics']],
+    desc: 'Camera + acoustic unit for biodiversity surveys',
+    line: 'Pick the few species that tell you the most about a landscape, then watch and listen for exactly those — VillageGuard optics carrying bespoke species models, joined to an acoustic pod.',
+    stats: [['optical', '+ acoustic'], ['custom', 'species models'], ['Wi-Fi / SD', 'collection'], ['re-ID', 'for density']],
     badges: ['custom builds', 'per-landscape AI', 'spec sheet in development'],
-    best: 'Long-term biodiversity plots where real-time isn’t required — data comes home over Wi-Fi or on the microSD card, and density falls out of re-identification and triangulation in Shaman.',
+    best: 'Long-term biodiversity plots where real-time isn’t required — data comes home over Wi-Fi or on the microSD card, and density falls out of re-identification and triangulation.',
     how: [
-      ['Choose', 'Landseed helps identify the indicator species of your landscape — the few that say the most.'],
-      ['Watch & listen', 'A bespoke multi-species detector on VillageGuard optics, with the acoustic pod catching what never crosses the frame.'],
-      ['Collect', 'No airtime needed: harvest over Wi-Fi on a patrol pass, or swap the microSD card.'],
-      ['Understand', 'Shaman turns detections into presence, occupancy, density and abundance — by re-identifying individuals and triangulating calls.'],
+      ['Choose', 'The few indicator species that say the most.'],
+      ['Watch & listen', 'A bespoke detector, plus the acoustic pod.'],
+      ['Collect', 'Wi-Fi on a patrol pass, or swap the microSD card.'],
+      ['Understand', 'Density from re-identification and triangulation.'],
     ],
-    field: [
-      'Grid the plot to your species’ home ranges, not to round numbers',
-      'Pair with Landseed Wolf arrays where the canopy hides more than it shows',
-      'No real-time pressure means no gateway required — batteries go further',
-    ],
-    features: [
-      'VillageGuard camera platform with landscape-specific species detectors',
-      'Individual re-identification server-side for density and abundance',
-      'Stereo-vision and acoustic triangulation options through Shaman',
-      'No-airtime operation: collect over Wi-Fi or from the microSD card',
-      'Pairs with Landseed Wolf for the full see-and-listen array',
-    ],
-    specs: [
-      ['Configuration', [['Platform', 'VillageGuard hardware'], ['AI', 'Custom species models per landscape'], ['Acoustics', 'Companion pod / Landseed Wolf'], ['Collection', 'Wi-Fi · microSD · optional radio']]],
-      ['Status', [['Spec sheet', 'In development'], ['Analytics', 'Re-ID · stereo triangulation via Shaman']]],
+    key: [
+      ['Platform', 'VillageGuard hardware'],
+      ['AI', 'custom species models per landscape'],
+      ['Acoustics', 'companion pod / Landseed Wolf'],
+      ['Collection', 'Wi-Fi · microSD · optional radio'],
+      ['Analytics', 're-ID + triangulation in Landseed AI'],
+      ['Spec sheet', 'in development'],
     ],
     callouts: [
       ['lens', 'Optics', 'VillageGuard 2 MP platform'],
@@ -183,25 +147,24 @@ const DEVICES = [
   {
     id: 'wolf', name: 'Landseed Wolf', kicker: 'To listen · Bio-acoustics',
     hue: 0xE682E6, price: '$100 target', x: 1.85,
-    line: 'The forest is louder than it looks. Wolf hears what cameras never frame — presence and absence from vocalisations, and with three units triangulating, the distance and density of the animals doing the calling.',
-    stats: [['$100', 'target / unit'], ['24/7', 'listening'], ['3+', 'units triangulate'], ['Shaman', 'analytics']],
+    desc: 'Listens for vocalising wildlife',
+    line: 'The forest is louder than it looks. Wolf hears what cameras never frame — and with three units triangulating the same call: how far away, and how many.',
+    stats: [['$100', 'target / unit'], ['24/7', 'listening'], ['3+', 'units triangulate'], ['in dev', 'spec sheet']],
     badges: ['$100 target', 'single variant', 'spec sheet in development'],
-    best: 'Vocal species and vast dark forests: presence/absence surveys, and distance-to-call via triangulation across an array.',
+    best: 'Vocal species and vast dark forests: presence and absence from call detection, distance and density from an array.',
     how: [
-      ['Listen', 'A passive acoustic monitor holds watch around the clock — no trigger needed, no line of sight.'],
-      ['Detect', 'Call recognition picks your species’ voices out of the forest’s noise.'],
-      ['Triangulate', 'Three or more units turn the same call into a bearing, a distance, a place on the map.'],
-      ['Count', 'Shaman converts calling rates and positions into density and abundance.'],
+      ['Listen', 'Around the clock — no trigger, no line of sight.'],
+      ['Detect', 'Call recognition picks your species out of the noise.'],
+      ['Triangulate', '3+ units place the caller on the map.'],
+      ['Count', 'Calling rates become density in Landseed AI.'],
     ],
-    features: [
-      'Passive acoustic monitor for vocalising wildlife',
-      'Presence / absence from call detection',
-      'Distance and density via multi-unit triangulation in Shaman',
-      'Deploys beside Jungle-Wallah for combined optical-acoustic surveys',
-    ],
-    specs: [
-      ['Configuration', [['Function', 'Acoustic detection'], ['Array', '3+ units for triangulation'], ['Analytics', 'Landseed Shaman']]],
-      ['Status', [['Spec sheet', 'In development']]],
+    key: [
+      ['Function', 'passive acoustic detection'],
+      ['Output', 'presence / absence per species'],
+      ['Array', '3+ units triangulate distance'],
+      ['Pairs with', 'Jungle-Wallah surveys'],
+      ['Analytics', 'Landseed AI'],
+      ['Spec sheet', 'in development'],
     ],
     callouts: [
       ['grille', 'Open grille', 'Weatherproof acoustic window'],
@@ -213,24 +176,24 @@ const DEVICES = [
   {
     id: 'mobile', name: 'Landseed Mobile', kicker: 'To report · Human in the loop',
     hue: 0x1482FF, price: '$50 target', x: 3.1,
-    line: 'The cheapest sensor is a person who knows what they’re looking at. Mobile is the early-warning camera for informants and undercover guards — no AI, no motion trigger, no infrared. A human sees the elephant, or the poacher, frames it, and the network does the rest.',
+    desc: 'Handheld camera for human reports — no AI',
+    line: 'The cheapest sensor is a person who knows what they’re looking at. No AI, no motion trigger, no infrared — a human sees the elephant or the poacher, frames it, and the network does the rest.',
     stats: [['$50', 'target / unit'], ['0', 'AI — by design'], ['human', 'triggered'], ['daylight', 'optics']],
     badges: ['$50 target', 'no AI · no PIR', 'informant networks'],
-    best: 'Community early-warning: elephants or predators approaching a village, or intelligence from inside — transmitted over the same Landseed network into Shaman.',
+    best: 'Community early-warning — elephants or predators near a village, or intelligence from inside — carried over the same Landseed network.',
     how: [
-      ['See', 'A person who knows the trail, the herd, or the gang notices what a camera might not.'],
-      ['Frame', 'One key: point, confirm, done. Usable under pressure, unremarkable in a pocket.'],
-      ['Send', 'The report rides the same network as every automated alert — cell or Gateway.'],
-      ['Act', 'In Shaman, a human report sits beside the machine detections it corroborates.'],
+      ['See', 'A person notices what a camera might miss.'],
+      ['Frame', 'One key: point, confirm, done.'],
+      ['Send', 'The same network as every automated alert.'],
+      ['Act', 'The report corroborates the machine detections.'],
     ],
-    features: [
-      'Handheld capture-and-transmit camera for the human sensor network',
-      'No AI and no PIR needed — the operator is the detector',
-      'Daylight use: no light meter, no IR illuminator, so the cost stays at $50',
-      'Reports land in Shaman beside every automated detection',
-    ],
-    specs: [
-      ['Configuration', [['Trigger', 'Human operator'], ['AI', 'None — by design'], ['Optics', 'Daylight, no IR'], ['Role', 'Informants · undercover guards · village early warning']]],
+    key: [
+      ['Trigger', 'human operator'],
+      ['AI', 'none — by design'],
+      ['Optics', 'daylight · no IR · no light meter'],
+      ['Network', 'cell or Landseed Gateway'],
+      ['Role', 'informants · guards · village early warning'],
+      ['Why $50', 'nothing on board that a person replaces'],
     ],
     callouts: [
       ['screen', 'Report screen', 'Frame, confirm, transmit'],
@@ -240,34 +203,28 @@ const DEVICES = [
     ],
   },
   {
-    id: 'shaman', name: 'Landseed Shaman', kicker: 'To understand · The platform brain',
+    id: 'ai', name: 'Landseed AI', kicker: 'To understand · The platform brain',
     hue: 0x9B6CE0, price: 'subscription', x: 0, z: -1.9,
-    line: 'Every sensor you just met reports here. Shaman — the CTDAMS, Landseed’s analytics brain — fuses optical, acoustic and remotely-sensed data into presence, occupancy, density and abundance, and writes the measurement layer for Earth Credits.',
+    desc: 'The analytics platform behind every sensor',
+    line: 'Every sensor reports here. Landseed AI — the platform brain, the CTDAMS — fuses optical, acoustic and remotely-sensed data into population metrics, and writes the measurement layer for Earth Credits.',
     stats: [['1', 'brain, all sensors'], ['4', 'population metrics'], ['auto', 'reporting'], ['Earth', 'Credits layer']],
     badges: ['subscription', 'standalone or bundled', 'bespoke builds'],
     best: 'Sold as a package with the hardware or standalone; annual updates, with bespoke versions built to a programme’s needs.',
     how: [
-      ['Ingest', 'Camera detections, acoustic hits, human reports and satellite feeds arrive in one aggregator.'],
-      ['Fuse', 'Optical, acoustic and remotely-sensed layers are read together — a full picture of current conditions.'],
-      ['Estimate', 'Presence, occupancy, density and abundance of target species, from re-identification and triangulation.'],
-      ['Deliver', 'Alerts go to phones and operations rooms as they happen; automated reports go to the programme and the registry.'],
+      ['Ingest', 'Every camera, acoustic hit, report and satellite feed.'],
+      ['Fuse', 'Optical, acoustic and remote sensing, read together.'],
+      ['Estimate', 'Presence, occupancy, density, abundance.'],
+      ['Deliver', 'Live alerts to phones and ops rooms; automated reports.'],
     ],
-    field: [
-      'Alerts reach designated staff wherever they are — phone, email, or an operations-room display',
-      'Roadmap: monocular distance estimation to turn detections into densities',
-      'Roadmap: acoustic triangulation, and a stereo camera for distance sampling without reference videos',
-    ],
-    features: [
-      'Single aggregator for camera, acoustic, human-report and satellite data',
-      'Estimates presence, occupancy, density and abundance of target species',
-      'Automated reporting and insight — signal, not noise',
-      'The measurement layer for Landseed’s Earth Credits programme',
-      'Bespoke versions built to a programme’s needs',
-    ],
-    specs: [
-      ['Inputs', [['Optical', 'Serengeti · VillageGuard · Jungle-Wallah · Mobile'], ['Acoustic', 'Wolf arrays'], ['Remote sensing', 'Satellite feeds']]],
-      ['Outputs', [['Metrics', 'Presence · occupancy · density · abundance'], ['Reporting', 'Automated'], ['Programme', 'Earth Credits measurement layer']]],
-      ['Delivery', [['Model', 'Subscription, annual updates'], ['Form', 'Package or standalone · bespoke builds']]],
+    key: [
+      ['Inputs', 'cameras · acoustics · reports · satellite'],
+      ['Metrics', 'presence · occupancy · density · abundance'],
+      ['Alerts', 'phones · email · operations rooms'],
+      ['Reporting', 'automated'],
+      ['Programme', 'Earth Credits measurement layer'],
+      ['Delivery', 'subscription · annual updates'],
+      ['Form', 'bundled or standalone · bespoke builds'],
+      ['Roadmap', 'monocular distance · acoustic triangulation'],
     ],
     callouts: [
       ['core', 'The brain', 'CTDAMS — every sensor, one aggregator'],
@@ -297,7 +254,7 @@ for (const d of DEVICES) {
   world.registerDevice(g);
   d.group = g;
 
-  const plinth = world.makePlinth(d.hue, d.id === 'shaman' ? .95 : .68);
+  const plinth = world.makePlinth(d.hue, d.id === 'ai' ? .95 : .68);
   plinth.position.set(x, 0, z);
   root.add(plinth);
   d.plinth = plinth;
@@ -324,15 +281,15 @@ for (const d of DEVICES) {
   d.dim = { v: 0 };
 }
 
-// data streams: each hardware unit → the Shaman core (catalogue view only)
-const shamanPos = new THREE.Vector3(byId.shaman.x, 1.05, byId.shaman.z ?? arcZ(0));
+// data streams: each hardware unit → the Landseed AI core (catalogue view only)
+const aiPos = new THREE.Vector3(byId.ai.x, 1.05, byId.ai.z ?? arcZ(0));
 for (const d of DEVICES) {
-  if (d.id === 'shaman') continue;
+  if (d.id === 'ai') continue;
   const from = new THREE.Vector3(d.x, .55, d.z ?? arcZ(d.x));
-  world.makeStream(from, shamanPos, d.hue);
+  world.makeStream(from, aiPos, d.hue);
 }
 
-/* ── labels: catalogue name plates + focused-device callouts ────────────────── */
+/* ── labels: name plates under each unit + focused-device callouts ──────────── */
 
 const labelsEl = $('#labels'), leadersEl = $('#leaders');
 const tracked = [];   // {el, line, getPos(→Vector3), dev, kind}
@@ -352,9 +309,12 @@ for (const d of DEVICES) {
   const el = document.createElement('div');
   el.className = 'dlabel';
   el.style.setProperty('--fa', hex(d.hue));
-  el.innerHTML = `<span class="dn">${d.name.replace('Landseed ', '')}</span><span class="dp">${d.price}</span><span class="ddot"></span>`;
+  const plateName = d.id === 'ai' ? d.name : d.name.replace('Landseed ', '');
+  el.innerHTML = `<span class="dn">${plateName}</span><span class="dd">${d.desc}</span><span class="dp">${d.price}</span>`;
   el.addEventListener('click', () => goView(d.id));
-  const p = new THREE.Vector3(d.x, d.group.userData.labelY + .28, d.z ?? arcZ(d.x));
+  // plate anchor: the front edge of the plinth, so the plate reads BELOW the unit
+  const z = d.z ?? arcZ(d.x);
+  const p = new THREE.Vector3(d.x, 0, z + (d.id === 'ai' ? .95 : .68));
   addLabel(el, () => p, d, 'plate');
 
   d.calloutEls = d.callouts.map(([a, n, s]) => {
@@ -390,20 +350,22 @@ world.onTick = () => {
       t.el.style.left = sx + 'px'; t.el.style.top = sy + 'px';
     }
   }
-  const off = Math.min(170, innerWidth * .13), GAP = 50;
+  const off = Math.min(185, innerWidth * .135), GAP = 72;
   for (const side of ['L', 'R']) {
     const list = cols[side].sort((a, b) => a.sy - b.sy);
     for (let i = 1; i < list.length; i++)
       if (list[i].ly - list[i - 1].ly < GAP) list[i].ly = list[i - 1].ly + GAP;
     for (const c of list) {
       const right = side === 'R';
-      const lx = c.sx + (right ? off : -off);
+      // keep plates out from under the side panels and screen edges
+      const panelW = Math.min(356, innerWidth * .26) + 40;
+      const lx = Math.max(panelW + 90, Math.min(innerWidth - panelW - 90, c.sx + (right ? off : -off)));
       c.t.el.classList.toggle('kr', !right);
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = c.ly + 'px';
       if (c.t.line) {
         const w = c.t.el.offsetWidth;
         c.t.line.setAttribute('x1', c.sx); c.t.line.setAttribute('y1', c.sy);
-        c.t.line.setAttribute('x2', lx + (right ? -w / 2 - 8 : w / 2 + 8)); c.t.line.setAttribute('y2', c.ly);
+        c.t.line.setAttribute('x2', lx + (right ? -w / 2 - 4 : w / 2 + 4)); c.t.line.setAttribute('y2', c.ly);
         c.t.line.style.opacity = c.t.el.style.opacity;
       }
     }
@@ -436,7 +398,7 @@ function fadeDevice(d, show, dur = .8) {
 
 /* ── views: one catalogue + one per device (the virunga chip pattern) ───────── */
 
-const CAT_CAM = { pos: new THREE.Vector3(0, 2.7, 8.1), tgt: new THREE.Vector3(0, .72, 0) };
+const CAT_CAM = { pos: new THREE.Vector3(-.4, 2.7, 8.1), tgt: new THREE.Vector3(-.4, .72, 0) };
 
 function deviceFrame(d) {
   const x = d.x, z = d.z ?? arcZ(d.x);
@@ -445,8 +407,8 @@ function deviceFrame(d) {
   const front = new THREE.Vector3(Math.sin(rotY), 0, Math.cos(rotY));
   const side = new THREE.Vector3(front.z, 0, -front.x);
   if (Math.sign(side.x || 1) !== Math.sign(x || 1)) side.multiplyScalar(-1);
-  const big = d.id === 'shaman' || d.id === 'gateway';
-  const ty = d.id === 'shaman' ? 1.0 : .44;
+  const big = d.id === 'ai' || d.id === 'gateway';
+  const ty = d.id === 'ai' ? 1.0 : .44;
   const dist = big ? 2.5 : 1.8;
   const pos = new THREE.Vector3(x, ty + .38, z)
     .addScaledVector(front, dist)
@@ -496,31 +458,31 @@ function setCaption(kicker, title, line, stats, links, hue) {
   cap.classList.remove('in'); void cap.offsetWidth; cap.classList.add('in');
 }
 
-function fillSpecs(d) {
-  const s = $('#specs-scroll');
-  $('#specs').style.setProperty('--fa', hex(d.hue));
-  let h = d.badges.map(b => `<span class="sp-badge">${b}</span>`).join('');
-  h += `<div class="sp-h">Best use</div><div class="sp-best">${d.best}</div>`;
+function fillPanels(d) {
+  const fa = hex(d.hue);
+  $('#specs').style.setProperty('--fa', fa);
+  $('#howto').style.setProperty('--fa', fa);
+  const badges = d.badges.map(b => `<span class="sp-badge">${b}</span>`).join('');
+  const best = `<div class="sp-h">Best use</div><div class="sp-best">${d.best}</div>`;
+  const keyRows = d.key.map(([k, v]) => `<div class="sp-row"><span>${k}</span><b>${v}</b></div>`).join('');
+  const note = `<div class="sp-note">Landseed product-line introduction · July 2026 price sheet. Target prices are pre-launch.</div>`;
   if (d.scenarios) {
-    h += `<div class="sp-h">A solution for every landscape</div>` + d.scenarios.map((c, i) =>
-      `<div class="sp-scen"><b>${i + 1} · ${c.n}</b><p>${c.d}</p><em>${c.t}</em></div>`).join('');
-  }
-  if (d.how) {
-    h += `<div class="sp-h">How it works</div>` + d.how.map(([t, x], i) =>
+    // the scenarios are the marquee — they take the tall right panel;
+    // the key record moves left, above the caption
+    $('#specs-scroll').innerHTML = badges + best +
+      `<div class="sp-h">A solution for every landscape</div>` +
+      d.scenarios.map((c, i) => `<div class="sp-scen"><b>${i + 1} · ${c.n}<em>${c.t}</em></b><p>${c.d}</p></div>`).join('') + note;
+    $('#howto-body').innerHTML = `<div class="pan-h">Key specification</div>` +
+      `<div id="howto-rows">${keyRows}</div>`;
+  } else {
+    $('#specs-scroll').innerHTML = badges + best +
+      `<div class="sp-h">Key specification</div>` + keyRows + note;
+    $('#howto-body').innerHTML = `<div class="pan-h">How it works</div>` + d.how.map(([t, x], i) =>
       `<div class="sp-step"><i>${i + 1}</i><div><b>${t}</b><span>${x}</span></div></div>`).join('');
   }
-  h += `<div class="sp-h">Key features</div>` + d.features.map(f => `<div class="sp-feat">${f}</div>`).join('');
-  for (const [head, rows] of d.specs)
-    h += `<div class="sp-h">${head}</div>` + rows.map(([k, v]) => `<div class="sp-row"><span>${k}</span><b>${v}</b></div>`).join('');
-  if (d.field) {
-    h += `<div class="sp-h">In the field</div>` + d.field.map(f => `<div class="sp-feat">${f}</div>`).join('');
-  }
-  h += `<div class="sp-note">From the Landseed product-line introduction and July 2026 price sheet. Target prices are pre-launch and subject to change.</div>`;
-  s.innerHTML = h;
-  s.scrollTop = 0;
 }
 
-const CAT_LINE = 'Poaching, illegal logging and human-wildlife conflict drive the loss of the wild — and the sensors meant to stop them have been expensive, blind, or disconnected. Landseed’s answer: cameras that think before they transmit, a network that reaches any sky, and prices that let a field programme deploy in numbers — all reporting to one brain.';
+const CAT_LINE = 'Poaching, illegal logging and human-wildlife conflict drive the loss of the wild — and the tools meant to stop them have been expensive, blind, or disconnected. Landseed builds cameras that think before they transmit, a network that reaches any sky, and prices that deploy in numbers — all reporting to one brain.';
 
 function goView(id) {
   if (busy && current !== id) return;
@@ -541,6 +503,7 @@ function goView(id) {
     for (const t of tracked) t.el.style.opacity = t.kind === 'plate' ? '' : '0';
     $('#plegend').classList.add('show');
     $('#specs').classList.remove('show');
+    $('#howto').classList.remove('show');
     setCaption('The product line', 'Landseed Hardware',
       CAT_LINE,
       [['7', 'products'], ['$50–299', 'hardware'], ['30 s', 'fastest alert'], ['>12 mo', 'battery']],
@@ -557,14 +520,15 @@ function goView(id) {
   for (const x of DEVICES) fadeDevice(x, x === d);
   world.setStreamsVisible(false);
   world.setGridDim(true);
-  if (id !== 'shaman' && id !== 'gateway') startTurntable(d);   // large assemblies stay put
+  if (id !== 'ai' && id !== 'gateway') startTurntable(d);   // large assemblies stay put
   for (const t of tracked) {
     if (t.kind === 'plate') t.el.style.opacity = '0';
     else t.el.style.opacity = (t.dev === d) ? '' : '0';
   }
   $('#plegend').classList.remove('show');
   $('#specs').classList.add('show');
-  fillSpecs(d);
+  $('#howto').classList.add('show');
+  fillPanels(d);
 
   const i = DEVICES.indexOf(d), next = DEVICES[(i + 1) % DEVICES.length];
   const links = [[`Next · ${next.name.replace('Landseed ', '')} →`, next.id], ['← Catalogue', 'catalogue']];
@@ -629,7 +593,8 @@ window.__hw = { world, camera, controls, goView, DEVICES, get current() { return
 world.start();
 
 const startId = (() => {
-  const h = location.hash.slice(1);
+  let h = location.hash.slice(1);
+  if (h === 'shaman') h = 'ai';                        // legacy deep-links
   return byId[h] ? h : 'catalogue';
 })();
 

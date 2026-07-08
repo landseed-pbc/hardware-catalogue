@@ -4,19 +4,19 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Hardware — Landseed AI Technology Ecosystem</title>
-<meta name="description" content="The Landseed AI Technology Ecosystem in 3D — seven products for conservation: AI camera-alert systems, acoustic monitors, long-range gateways and the Shaman analytics brain. Drag to orbit, click a device to inspect." />
+<meta name="description" content="The Landseed AI Technology Ecosystem in 3D — seven products for conservation: AI camera-alert systems, acoustic monitors, long-range gateways and the Landseed AI analytics platform. Drag to orbit, click a device to inspect." />
 <meta name="theme-color" content="#070F07" />
 <link rel="canonical" href="https://hardware-catalogue.pages.dev/" />
 <!-- Open Graph / Twitter share card -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Landseed" />
 <meta property="og:title" content="Landseed Hardware — the AI Technology Ecosystem in 3D" />
-<meta property="og:description" content="Seven products for conservation — AI camera-alert systems, acoustic monitors, long-range gateways and the Shaman analytics brain — rendered live in 3D." />
+<meta property="og:description" content="Seven products for conservation — AI camera-alert systems, acoustic monitors, long-range gateways and the Landseed AI analytics platform — rendered live in 3D." />
 <meta property="og:url" content="https://hardware-catalogue.pages.dev/" />
 <meta property="og:image" content="https://hardware-catalogue.pages.dev/public/og.jpg?v=1" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="The Landseed hardware bay — seven conservation devices rendered in 3D around the Shaman analytics core." />
+<meta property="og:image:alt" content="The Landseed hardware bay — seven conservation devices rendered in 3D around the Landseed AI core." />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Landseed Hardware — the AI Technology Ecosystem in 3D" />
 <meta name="twitter:description" content="Seven products for conservation, rendered live in 3D. Drag to orbit, click a device to inspect." />
@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./css/styles.css?v=2" />
+<link rel="stylesheet" href="./css/styles.css?v=3" />
 <!-- discover the big three.js module early so it downloads in parallel with the app code -->
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 </head>
@@ -34,13 +34,12 @@
 <svg id="leaders"></svg>
 <div id="labels"></div>
 
-<div id="loader"><img class="loader-mark" src="./public/landseed-ai-lockup.png" alt="Landseed AI" /><span>assembling the hardware bay</span></div>
+<div id="loader"><img class="loader-mark" src="./public/landseed-ai-mark.png" alt="" /><img class="loader-word" src="./public/landseed-wordmark.svg" alt="Landseed" /><span>assembling the hardware bay</span></div>
 
 <header class="hud">
   <div class="brand">
     <img class="b-mark" src="./public/landseed-ai-mark.png" alt="" />
     <img class="b-word" src="./public/landseed-wordmark.svg" alt="Landseed" />
-    <span class="b-ai">AI</span>
   </div>
   <div class="hud-right"><span class="hud-tag">Technology Ecosystem · Product Line</span></div>
 </header>
@@ -62,12 +61,13 @@
   <div class="pl-group">To report</div>
   <div class="wl-row dv" data-dev="mobile"><i></i><b>Mobile</b><em>$50 tgt</em></div>
   <div class="pl-group">To understand</div>
-  <div class="wl-row dv" data-dev="shaman"><i></i><b>Shaman</b><em>subscription</em></div>
+  <div class="wl-row dv" data-dev="ai"><i></i><b>Landseed AI</b><em>subscription</em></div>
   <div class="wl-sep"></div>
-  <div class="pl-foot">Every sensor feeds Shaman — the measurement layer for Earth Credits.</div>
+  <div class="pl-foot">Every sensor feeds Landseed AI — the measurement layer for Earth Credits.</div>
 </div>
 
-<!-- spec rail (device views) — filled by main.js from the device record -->
+<!-- device views: how-it-works panel (left) + key specification panel (right) -->
+<aside id="howto" aria-label="how it works"><div id="howto-body"></div></aside>
 <aside id="specs" aria-label="specifications">
   <div id="specs-scroll"></div>
 </aside>
@@ -91,7 +91,7 @@
   <button class="chip" data-go="wolf">Wolf</button>
   <button class="chip" data-go="mobile">Mobile</button>
   <span class="chip-div" aria-hidden="true"></span>
-  <button class="chip dive" data-go="shaman">Shaman ↗</button>
+  <button class="chip dive" data-go="ai">Landseed AI ↗</button>
 </nav>
 
 <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -101,6 +101,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./src/main.js?v=3"></script>
+<script type="module" src="./src/main.js?v=4"></script>
 </body>
 </html>
