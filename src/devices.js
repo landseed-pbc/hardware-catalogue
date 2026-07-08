@@ -469,14 +469,34 @@ export function buildMobile(hue) {
 }
 
 // 7 · Shaman — not hardware: the analytics brain, rendered as a hologram
+// around the Landseed AI mark itself
 export function buildShaman(hue) {
   const g = new THREE.Group();
   const col = new THREE.Color(hue);
 
-  // inner core — hot, breathing
-  const coreMat = M.led(hue, 1.9);
-  const core = mesh(new THREE.IcosahedronGeometry(.14, 1), coreMat);
-  core.castShadow = false;
+  // the core IS the brand — the Landseed AI mark floating at the heart,
+  // readable from both sides, colors kept brand-true (no tone mapping)
+  const logoTex = new THREE.TextureLoader().load('./public/landseed-ai-mark.png');
+  logoTex.colorSpace = THREE.SRGBColorSpace;
+  logoTex.anisotropy = 8;
+  const core = new THREE.Group();
+  const LW = .5, LH = LW * (384 / 760);
+  const logoMat = () => new THREE.MeshBasicMaterial({ map: logoTex, transparent: true, toneMapped: false });
+  const faceA = new THREE.Mesh(new THREE.PlaneGeometry(LW, LH), logoMat());
+  const faceB = new THREE.Mesh(new THREE.PlaneGeometry(LW, LH), logoMat());
+  faceB.rotation.y = Math.PI; faceB.position.z = -.002; faceA.position.z = .002;
+  faceA.castShadow = faceB.castShadow = false;
+  // soft radial glow behind the mark so it reads against the dark bay
+  const gc = document.createElement('canvas'); gc.width = gc.height = 128;
+  const gx = gc.getContext('2d');
+  const gg = gx.createRadialGradient(64, 64, 4, 64, 64, 64);
+  gg.addColorStop(0, 'rgba(255,255,255,.55)'); gg.addColorStop(.4, 'rgba(255,255,255,.14)'); gg.addColorStop(1, 'rgba(255,255,255,0)');
+  gx.fillStyle = gg; gx.fillRect(0, 0, 128, 128);
+  const halo = new THREE.Mesh(new THREE.PlaneGeometry(LW * 2.2, LW * 2.2),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(gc), color: col, transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  halo.castShadow = false;
+  halo.position.z = -.01;
+  core.add(halo, faceA, faceB);
   g.add(core);
 
   // lattice shells — nested wireframes, counter-rotating
@@ -520,7 +540,7 @@ export function buildShaman(hue) {
   g.children.forEach(c => c.position.y += .78);
 
   g.userData.anchors = {
-    core:   V3(0, .78, .2),
+    core:   V3(0, .55, .28),
     shells: V3(.46, 1.1, 0),
     rings:  V3(-.62, .62, 0),
     swarm:  V3(.5, .5, 0),
@@ -529,8 +549,9 @@ export function buildShaman(hue) {
     { obj: s1, ax: 'y', v: .22 }, { obj: s2, ax: 'y', v: -.12 },
     { obj: rings[0], ax: 'z', v: .3 }, { obj: rings[1], ax: 'z', v: -.2 }, { obj: rings[2], ax: 'z', v: .16 },
     { obj: swarm, ax: 'y', v: .08 },
+    { obj: core, ax: 'y', v: .3 },
   ];
-  g.userData.pulse = [coreMat];
+  g.userData.pulse = [];
   g.userData.float = true;
   g.userData.labelY = 1.42;
   return g;

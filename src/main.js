@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=2';
-import { BUILDERS } from './devices.js?v=2';
+import { BUILDERS } from './devices.js?v=3';
 
 const $ = (s) => document.querySelector(s);
 
