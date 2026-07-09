@@ -77,6 +77,11 @@ catalogue moving to /catalogue, once perfected.
   next) — they are deliberately NOT world-projected. Big beats also land in the
   Telegram phone as photo bubbles (`feedPhoto`). The film pauses on its final
   frame; the overlay's Watch again restarts via `resetWorld()`.
+- TWIN (default): real DEM (z13) + ESRI imagery (z15, z14 on LOW) with ALL
+  story anchors in the `AN` table, hand-picked from the imagery/DEM (grid
+  overlay script in the session scratchpad). Fictional keeps its own AN set.
+  Sim clock runs 17:35→19:23 (dusk truth). fovSer/fovVG are MATERIALS, not
+  meshes — hide via opacity, not scene.remove.
 - Verification gotcha: backgrounded tabs freeze rAF AND gsap real-time holds —
   ghost cards / stale clocks in screenshots are artifacts, not bugs. Foreground
   the window before judging timing.
