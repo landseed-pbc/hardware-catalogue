@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./demo.css?v=21" />
+<link rel="stylesheet" href="./demo.css?v=22" />
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 <link rel="preload" as="fetch" href="./assets/soldier.glb" crossorigin />
 <link rel="preload" as="fetch" href="./assets/wolf.glb" crossorigin />
@@ -28,13 +28,13 @@
 
 <header class="hud">
   <div class="brand"><img class="b-word" src="/public/landseed-wordmark.svg" alt="Landseed" /></div>
-  <div class="hud-right"><a class="hud-tag hud-link" id="terr" href="./?terrain=real">Real terrain ↗</a><span class="hud-tag">Field Demonstration · Simulated Landscape</span></div>
+  <div class="hud-right"><a class="hud-tag hud-link" id="terr" href="./?terrain=real">Real terrain ↗</a><span class="hud-tag" id="hud-mode">Field Demonstration · Digital Twin</span></div>
 </header>
 
 <!-- opening title -->
 <div id="title">
   <h1>One landscape.<br>Every sensor working.</h1>
-  <p>A field demonstration in a simulated landscape.<br>78 seconds · seven products · one connected system.</p>
+  <p>A digital twin of a working landscape — real terrain, real imagery.<br>78 seconds · seven products · one connected system.</p>
 </div>
 
 <!-- chapter caption, bottom left -->
@@ -78,6 +78,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./demo.js?v=57"></script>
+<script type="module" src="./demo.js?v=59"></script>
 </body>
 </html>

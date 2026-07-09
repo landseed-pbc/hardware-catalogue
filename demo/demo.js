@@ -21,7 +21,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 /* ── optional real terrain (AWS Terrain Tiles, public domain data) ─────────
    /demo/?terrain=real&lat=..&lon=..  — same simulation, real topography. */
 const qs = new URLSearchParams(location.search);
-const TWIN = qs.get('terrain') === 'virunga';
+const TWIN = qs.get('terrain') !== 'fictional' && qs.get('terrain') !== 'real';
 const REAL = TWIN || qs.get('terrain') === 'real';
 const LOW = innerWidth < 760 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
 let satTex = null;
@@ -138,7 +138,25 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // One continuous 78 s flight. Duplicate keys are holds; Catmull-Rom through
 // neighbours keeps velocity continuous, so arrivals decelerate and departures
 // build — no per-move starts.
-const CAMKEYS = [
+const CAMKEYS = TWIN ? [
+  [0,    58, 44, 62,    0, 3, 0],
+  [9,    42, 34, 46,    3, 2, 5],
+  [10.8, 31, 24, 33,   25.5, 1, 18],
+  [13.4, 31, 24, 33,   25.5, 1, 18],
+  [16.6, 19, 22, 25,    5.5, 1, 8.5],
+  [21.4, 19, 22, 25,    5.5, 1, 8.5],
+  [24.4, 27, 21, 6,    16.5, 1, -11.5],
+  [26.2, 27, 21, 6,    16.5, 1, -11.5],
+  [29.4, 15, 22, -4,    3, 1, 1],
+  [32.2, 7, 22, 15,    -3, 1, 4.6],
+  [36.6, 7, 22, 15,    -3, 1, 4.6],
+  [40.4, 25, 27, 9,     9.5, 0, -6.5],
+  [45.8, 25, 27, 9,     9.5, 0, -6.5],
+  [49.4, 21, 24, 5,    10.5, 0, -6.5],
+  [53.2, -2, 25, 30,  -13.5, 1, 14.5],
+  [61.9, -2, 25, 30,  -13.5, 1, 14.5],
+  [78,   58, 44, 62,    0, 3, 0],
+] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
   [10.8, 30, 13, 26,    27.4, .7, 19.4],  // the stakeout: watcher, cover, men at the truck
@@ -548,6 +566,8 @@ function scatterOK(x, z, h) {
 
 const lampMat = new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0xffc36b, emissiveIntensity: 0 });
 const villageLight = new THREE.PointLight(0xffc36b, 0, 10);
+const villageGrp = new THREE.Group();
+scene.add(villageGrp);
 {
   const hutW = new THREE.MeshStandardMaterial({ color: 0xb09062, roughness: .9 });
   const hutR = new THREE.MeshStandardMaterial({ color: 0x6b4f30, roughness: .95 });
@@ -557,7 +577,7 @@ const villageLight = new THREE.PointLight(0xffc36b, 0, 10);
     w.position.set(x, h + .55, z); w.castShadow = true;
     const r = new THREE.Mesh(new THREE.ConeGeometry(1.25, .95, 8), hutR);
     r.position.set(x, h + 1.55, z); r.castShadow = true;
-    scene.add(w, r);
+    villageGrp.add(w, r);
   }
   const hx = 17, hz = -12.3, hh = heightAt(hx, hz);
   const hq = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.5, 2), new THREE.MeshStandardMaterial({ color: 0x555c50, roughness: .8 }));
@@ -577,7 +597,7 @@ const villageLight = new THREE.PointLight(0xffc36b, 0, 10);
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(.14, 10, 10), lampMat);
   bulb.position.set(17.5, lh + 2.45, -13.8);
   villageLight.position.set(17.5, lh + 2.4, -13.8);
-  scene.add(pole, bulb, villageLight);
+  villageGrp.add(pole, bulb, villageLight);
 }
 const HQ_TOP = V3(17, heightAt(17, -12.3) + 2.2, -12.3);
 
@@ -783,7 +803,7 @@ scene.add(stakeLight);
     b.position.set(bx, heightAt(bx, bz) + bs * .55, bz);
     b.scale.y = .72;
     b.castShadow = true;
-    scene.add(b);
+    if (!TWIN) scene.add(b);
   }
 }
 const phone = new THREE.Mesh(new THREE.PlaneGeometry(.16, .24), new THREE.MeshStandardMaterial({ color: 0x0a0f0a, emissive: 0x9fd4ff, emissiveIntensity: 1.4 }));
@@ -1016,7 +1036,7 @@ new GLTFLoader().load('./assets/stork.glb', (g) => {
     const mixer = new THREE.AnimationMixer(b);
     mixer.clipAction(g.animations[0]).play();
     mixers.push(mixer);
-    scene.add(b);
+    if (!TWIN) scene.add(b);
     storks.push({ b, ph: i * Math.PI });
   }
 }, undefined, () => console.warn('stork asset unavailable'));
@@ -1391,8 +1411,8 @@ tl.call(() => $('#phone').classList.add('on'), null, 10.3);         // the phone
 tl.call(() => {
   flashAt(V3(25.2, heightAt(25.2, 19.8) + 1.1, 19.8), 0xcfe8ff);      // the phone takes its photo
   ringAt(25.2, 19.8, HUES.report, 1.4);
-  const shot = sensorSnap(V3(25.5, heightAt(25.2, 19.8) + 1.2, 19.8), V3(29.2, heightAt(29.6, 19.1) + .9, 18.9),
-    { boxes: [...pFigs.map((f, i) => boxFor(f, 1.3, .42, '#4da3ff', i === 0 ? 'HUMAN' : null)), boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] });
+  const shot = TWIN ? fieldCard('people-walk', 236, 1.15) : sensorSnap(V3(25.5, heightAt(25.2, 19.8) + 1.2, 19.8), V3(29.2, heightAt(29.6, 19.1) + .9, 18.9),
+    { boxes: [...pFigs.map((f, i) => boxFor(f, 1.3, .42, '#4da3ff', i === 0 ? 'HUMAN' : null)), boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] } );
   popup(V3(0, 0, 0), HUES.report, 'Report filed', 'Mobile-07', 'Four men and a vehicle at the north track — shot from cover on a $50 Landseed Mobile', shot, 3.4);
   window.__mobShot = shot;
 }, null, 11.2);
@@ -1407,6 +1427,7 @@ tl.to(poach, { u: .4, duration: 6.4, ease: 'none' }, 13.2);
 tl.call(() => {                                                     // DETECTION 1 — at the wedge edge, seven units out
   const pp = trail.getPoint(poach.u);
   triggerBeam(pp.x, pp.z, 6.8, 10.2, HUES.see);
+  if (mPoach) markerPulse(mPoach, true);
   ringAt(pp.x, pp.z, HUES.see, 2.6);
   gsap.fromTo(fovSer1, { opacity: .4 }, { opacity: .1, duration: 1.8 });
   popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · detected at 40 m · 200 ms to image', fieldCard('people-walk'), 3.2);
@@ -1472,6 +1493,7 @@ tl.to(herdState, { u: 1, duration: 2.2, ease: 'none' }, 42.7);
 tl.call(() => {                                                     // DETECTION 2 — the herd crosses into the wedge
   const hp = herdIn.getPoint(herdState.u);
   triggerBeam(hp.x, hp.z, 12.9, -8.6, HUES.guard);
+  if (mHerd) markerPulse(mHerd, true);
   ringAt(hp.x, hp.z, HUES.guard, 2.6);
   gsap.fromTo(fovVG, { opacity: .4 }, { opacity: .1, duration: 1.8 });
   popup(V3(0, 0, 0), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · detected at 60 m · alert < 1 KB', fieldCard('elephant-walk'), 2.4);
@@ -1482,6 +1504,7 @@ tl.call(() => {
   gsap.to(lampMat, { emissiveIntensity: 2.6, duration: .4 });
   gsap.to(villageLight, { intensity: 16, duration: .4 });
   guard1.visible = guard2.visible = true;
+  if (mVillage) markerPulse(mVillage, true);
 }, null, 43.8);
 tl.to(guardState, { u: 1, duration: 5.2, ease: 'none' }, 44.1);
 tl.call(() => {
@@ -1500,21 +1523,21 @@ tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, peo
 tl.call(() => gsap.to(packLight, { intensity: 20, duration: 2 }), null, 50.5);
 tl.call(() => gsap.to(packLight, { intensity: 0, duration: 2.5 }), null, 60.5);
 tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 5.5), null, 53.4);
-tl.call(() => howl(wolvesAnim[0]), null, 53.8);                     // the lead howls…
+tl.call(() => { howl(wolvesAnim[0]); if (mPack) markerPulse(mPack, true); }, null, 53.8);                     // the lead howls…
 tl.call(() => {
   const wp = new THREE.Vector3();
-  (wolvesAnim[0] || pack).getWorldPosition(wp); wp.y += 1;
+  wp.set(pack.position.x, pack.position.y + 1, pack.position.z);
   wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
 }, null, 54.5);
-tl.call(() => howl(wolvesAnim[1] || wolvesAnim[0]), null, 55.4);                       // …an answer…
+tl.call(() => { howl(wolvesAnim[1] || wolvesAnim[0]); if (mPack) markerPulse(mPack); }, null, 55.4);                       // …an answer…
 tl.call(() => {
   const wp = new THREE.Vector3();
-  (wolvesAnim[1] || wolvesAnim[0] || pack).getWorldPosition(wp); wp.y += 1;
+  wp.set(pack.position.x - .8, pack.position.y + 1, pack.position.z + .6);
   wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
 }, null, 56.1);
 tl.call(() => {                                                     // …and a bird overhead — rapid chirp waveform
   if (storks[0]) {
-    const wp = new THREE.Vector3(); storks[0].b.getWorldPosition(wp);
+    const wp = storks[0].b.position.clone();
     wolves.forEach((w, i) => setTimeout(() => soundWave(wp.clone(), w, { freq: 16, amp: .26, hue: 0xc9a4ff, dur: 1.1 }), i * 220));
   }
 }, null, 59.2);
@@ -1583,6 +1606,86 @@ function resetWorld() {
 }
 tl.eventCallback('onRepeat', resetWorld);
 
+/* ── the twin stands the physical cast down and tracks markers instead ──── */
+let mPoach, mTruck, mInformant, mJeep, mHerd, mPack, mGuards, mVillage;
+if (TWIN) {
+  scene.remove(poachers, herd, jeep, pack, informant, guard1, guard2, villageGrp, fovSer1, fovSer2, fovVG);
+  rangers.forEach(r => scene.remove(r));
+  if (window.__pickup) scene.remove(window.__pickup);
+  if (fireflies) scene.remove(fireflies);
+  for (const cs of cloudShadows) scene.remove(cs.m);
+  for (const rec of SENSORS) scene.remove(rec.g);
+}
+
+/* ── icon entities: the twin's actors are tracked markers, not models ────── */
+const ICONS = [];
+const GLYPHS = {
+  human: 'M12 5a2.4 2.4 0 110 4.8A2.4 2.4 0 0112 5zm-4 14v-4.5a4 4 0 018 0V19h-2.4v-4.2a1.6 1.6 0 00-3.2 0V19H8z',
+  elephant: 'M5 16v-5a5 5 0 019.5-2H17a3 3 0 013 3v4h-2.5v-3.2a1.5 1.5 0 00-1.6-1.5h-.9V16h-2.6v-3.4a2.5 2.5 0 00-4.9.6V16H5z',
+  wolf: 'M6 8l3 2 3-4 3 4 3-2-1 5a5 5 0 01-10 0L6 8zm4.4 6.2h3.2L12 17l-1.6-2.8z',
+  vehicle: 'M5 13l1.4-4.2A2 2 0 018.3 7.4h7.4a2 2 0 011.9 1.4L19 13v4.2h-2.2v-1.4H7.2v1.4H5V13zm2.6-1h8.8l-.9-2.8H8.5L7.6 12zM8 15.4a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4zm8 0a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4z',
+  phone: 'M9 4h6a1.6 1.6 0 011.6 1.6v12.8A1.6 1.6 0 0115 20H9a1.6 1.6 0 01-1.6-1.6V5.6A1.6 1.6 0 019 4zm.4 2v10.6h5.2V6H9.4zM12 18.6a.9.9 0 100-1.8.9.9 0 000 1.8z',
+  bird: 'M4 12c3-.5 5-2.5 6-5 1 2 3 3 5.5 3L20 8.5 17.5 12c-1.5 2.5-4 4-7.5 4l-2 3-1-.5 1.4-2.9C6.5 15 5 13.8 4 12z',
+  sensor: 'M12 4l7 4v8l-7 4-7-4V8l7-4zm0 2.4L7.4 9v6l4.6 2.6L16.6 15V9L12 6.4zm0 3a2.6 2.6 0 110 5.2 2.6 2.6 0 010-5.2z',
+};
+function iconEl(kind, hue, label) {
+  const el = document.createElement('div');
+  el.className = 'twin-icon' + (kind === 'sensor' ? ' twin-sensor' : '');
+  el.style.setProperty('--ic', hex(hue));
+  el.innerHTML = `<svg viewBox="0 0 24 24"><path d="${GLYPHS[kind] || GLYPHS.sensor}"/></svg>${label ? `<b>${label}</b>` : ''}`;
+  document.body.appendChild(el);
+  return el;
+}
+// a tracked entity: world position (optionally a moving group to follow)
+function marker(kind, hue, label, follow) {
+  const el = iconEl(kind, hue, label);
+  const rec = { el, kind, follow, pos: new THREE.Vector3(), on: true };
+  ICONS.push(rec);
+  return rec;
+}
+function markerPulse(rec, big = false) {
+  rec.el.classList.remove('pulse', 'pulse-big');
+  void rec.el.offsetWidth;
+  rec.el.classList.add(big ? 'pulse-big' : 'pulse');
+}
+if (TWIN) {
+  const SHORT = { serengeti: 'SER', villageguard: 'VG', gateway: 'GW', junglewallah: 'JW', wolf: 'W', ai: 'AI' };
+  const HUE_BY = { serengeti: HUES.see, villageguard: HUES.guard, gateway: HUES.link, junglewallah: 0xFF8C42, wolf: HUES.listen, ai: HUES.brain };
+  const RANGE = { serengeti: 6.5, villageguard: 6, gateway: 9, junglewallah: 4.5, wolf: 5.5 };
+  let wolfN = 0;
+  for (const rec of SENSORS) {
+    const label = rec.id === 'wolf' ? ('W' + (++wolfN)) : SHORT[rec.id];
+    const m = marker('sensor', HUE_BY[rec.id], label, rec.g);
+    m.el.addEventListener('click', () => { location.href = '/#' + rec.id; });
+    m.el.title = 'View in the catalogue';
+    if (RANGE[rec.id]) rangeRing(rec.g.position.x, rec.g.position.z, HUE_BY[rec.id], RANGE[rec.id]);
+  }
+  mPoach = marker('human', 0xff5a4d, null, poachers);
+  mTruck = marker('vehicle', 0xd98a6a, null, window.__pickup);
+  mInformant = marker('phone', HUES.report, null, informant);
+  mJeep = marker('vehicle', 0x59F5A0, 'PATROL', jeep);
+  mHerd = marker('elephant', HUES.guard, null, herd);
+  mPack = marker('wolf', 0xE682E6, null, pack);
+  mGuards = marker('human', 0x9fdc8f, null, guard1);
+  mVillage = marker('sensor', 0xffc36b, 'VILLAGE', villageGrp);
+  mVillage.pos.set(17.5, heightAt(17.5, -12.8) + 1, -12.8);
+  mVillage.fixed = true;
+}
+
+// terrain-hugging range ring for a sensor icon
+function rangeRing(x, z, hue, r) {
+  const seg = 72, pts = [];
+  for (let i = 0; i <= seg; i++) {
+    const a = i / seg * Math.PI * 2;
+    const px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r;
+    pts.push(V3(px, heightAt(px, pz) + .25, pz));
+  }
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color: hue, transparent: true, opacity: .4 }));
+  scene.add(line);
+  return line;
+}
+
 /* ── persistent infrastructure labels — the Gateway and HQ always read ──── */
 const wlabels = [];
 function worldLabel(text, pos, hue, show) {
@@ -1592,8 +1695,8 @@ function worldLabel(text, pos, hue, show) {
   document.body.appendChild(el);
   wlabels.push({ el, pos, show });
 }
-worldLabel('GATEWAY · RIDGE RELAY', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link, (T) => (T > 18.5 && T < 25) || T > 62);
-worldLabel('HQ · LANDSEED AI', V3(17, heightAt(17, -12.3) + 4.4, -12.3), HUES.brain, (T) => (T > 21.5 && T < 34) || T > 62 || T < 9.5);
+if (!TWIN) worldLabel('GATEWAY · RIDGE RELAY', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link, (T) => (T > 18.5 && T < 25) || T > 62);
+if (!TWIN) worldLabel('HQ · LANDSEED AI', V3(17, heightAt(17, -12.3) + 4.4, -12.3), HUES.brain, (T) => (T > 21.5 && T < 34) || T > 62 || T < 9.5);
 
 /* ── the funnel: every sensor is a doorway into the catalogue ───────────── */
 
@@ -1817,6 +1920,16 @@ function tick(dt, t) {
   camera.lookAt(camL.x, camL.y, camL.z);
 
   const TT = tl.time();
+  for (const ic of ICONS) {
+    if (!ic.fixed && ic.follow) ic.pos.set(ic.follow.position.x, ic.follow.position.y + 1.2, ic.follow.position.z);
+    proj.copy(ic.pos).project(camera);
+    const hidden = proj.z > 1 || (ic.follow && ic.follow.visible === false);
+    ic.el.style.display = hidden ? 'none' : '';
+    if (!hidden) {
+      ic.el.style.left = ((proj.x * .5 + .5) * innerWidth) + 'px';
+      ic.el.style.top = ((-proj.y * .5 + .5) * innerHeight) + 'px';
+    }
+  }
   for (const wl of wlabels) {
     proj.copy(wl.pos).project(camera);
     const off = proj.z > 1 || (wl.show && !wl.show(TT));
@@ -1843,9 +1956,12 @@ addEventListener('resize', () => {
 /* ── boot ───────────────────────────────────────────────────────────────── */
 
 const terr = $('#terr');
+const hudMode = $('#hud-mode');
+if (hudMode && !TWIN) hudMode.textContent = 'Field Demonstration · Concept Landscape';
 if (terr) {
-  if (REAL) { terr.textContent = '← Fictional terrain'; terr.href = './'; }
-  if (REAL && !dem) terr.textContent = 'Real terrain unavailable';
+  if (TWIN) { terr.textContent = 'Concept mode ↗'; terr.href = './?terrain=fictional'; }
+  else { terr.textContent = 'Digital twin ↗'; terr.href = './'; }
+  if (TWIN && !dem) terr.textContent = 'Twin data unavailable';
 }
 
 window.__demo = {
