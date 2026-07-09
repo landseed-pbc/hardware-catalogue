@@ -29,7 +29,7 @@ let satTex = null;
 // the east farm/forest boundary, real fields, a real crater rim for the
 // Gateway (3,340 m — 700 m over the farm belt), real canopy clearings.
 const AN = TWIN ? {
-  ser1: [15, 7], ser2: [7, 3.5], vg: [38.5, 14.5],
+  ser1: [27, 4.5], ser2: [8.5, 4.9], vg: [40, 15.2],
   w1: [16, -1.5], w2: [23.5, -.5], w3: [19, -7], jw: [26, -6],
   gate: [13.5, 16.2], ai: [46.5, 12.5], village: [43.5, 16],
   informant: [42.8, 6.8], truck: [45.3, 4.6],
@@ -117,7 +117,7 @@ function demAt(x, z) {
   const g = dem.grid, n = dem.n;
   const a = g[j0 * n + i0], b = g[j0 * n + i0 + 1], c = g[(j0 + 1) * n + i0], d2 = g[(j0 + 1) * n + i0 + 1];
   const e = (a * (1 - fu) + b * fu) * (1 - fv) + (c * (1 - fu) + d2 * fu) * fv;
-  return Math.min(TWIN ? 9 : 6.4, Math.max(-1.6, (e - dem.base) / (TWIN ? 165 : 240)));
+  return Math.min(TWIN ? 12 : 6.4, Math.max(-1.6, (e - dem.base) / (TWIN ? 115 : 240)));
 }
 const HUES = { see: 0x00FF64, guard: 0xFFC800, link: 0x32C8FF, listen: 0xE682E6, brain: 0x9B6CE0, report: 0x1482FF };
 
@@ -679,8 +679,8 @@ function fovWedge(x, z, ang, hue, R = 8, spread = .5) {
 // aim each wedge from the sensor toward its approach (twin uses real anchors)
 const aimAt = (from, to) => Math.atan2(to[0] - from[0], to[1] - from[1]);
 const fovSer1 = fovWedge(AN.ser1[0], AN.ser1[1], TWIN ? aimAt(AN.ser1, [26, 4.6]) : 1.39, HUES.see, TWIN ? 6.5 : 8.5, .42);
-const fovSer2 = fovWedge(AN.ser2[0], AN.ser2[1], TWIN ? aimAt(AN.ser2, [15, 7]) : 1.23, HUES.see, TWIN ? 5.5 : 7.5, .42);
-const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [31.5, 11.5]) : -.38, HUES.guard, TWIN ? 6 : 8, .52);
+const fovSer2 = fovWedge(AN.ser2[0], AN.ser2[1], TWIN ? aimAt(AN.ser2, [14, 6.8]) : 1.23, HUES.see, TWIN ? 5.5 : 7.5, .42);
+const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [31.5, 11.5]) : -.38, HUES.guard, TWIN ? 5.5 : 8, .52);
 
 /* ── satellite ──────────────────────────────────────────────────────────── */
 
@@ -798,6 +798,7 @@ rifle.rotation.z = 1.12; rifle.position.set(-.2, .85, -.12);
 pFigs[0].add(rifle);
 scene.add(poachers);
 const poach = { u: 0.02, lastU: 0.02, stopped: false };
+if (TWIN) poachers.visible = false;
 
 // the poachers' pickup, left at the north track — the thing the informant photographs
 {
@@ -823,6 +824,7 @@ const poach = { u: 0.02, lastU: 0.02, stopped: false };
 const informant = figure(0x4e5a66, .82);
 informant.position.set(AN.informant[0], heightAt(AN.informant[0], AN.informant[1]), AN.informant[1]);
 informant.lookAt(AN.truck[0], informant.position.y, AN.truck[1]);
+if (TWIN) informant.visible = false;
 const stakeLight = new THREE.PointLight(0xbfd9ff, 0, 7);
 stakeLight.position.set(AN.informant[0], heightAt(AN.informant[0], AN.informant[1]) + 2.4, AN.informant[1]);
 scene.add(stakeLight);
@@ -973,6 +975,7 @@ const PACK_AT = AN.pack;
 const pack = new THREE.Group();
 pack.position.set(PACK_AT[0], heightAt(PACK_AT[0], PACK_AT[1]), PACK_AT[1]);
 pack.rotation.y = 1.2;
+if (TWIN) pack.visible = false;
 scene.add(pack);
 const wolvesAnim = [];
 new GLTFLoader().load('./assets/wolf.glb', (g) => {
@@ -1450,8 +1453,10 @@ tl.call(() => {                                                       // …and 
   stMobHQ.play(3.2);
   if (window.__mobShot) feedPhoto(HUES.report, 'Mobile-07 \u00b7 report', 'Four men + vehicle at the north track \u00b7 direct-to-cell \u00b7 pin attached', window.__mobShot);
 }, null, 12.2);
+tl.call(() => { informant.visible = true; poachers.visible = true; }, null, 9.8);
 tl.call(() => gsap.to(stakeLight, { intensity: 7, duration: 1.2 }), null, 10.6);
 tl.call(() => gsap.to(stakeLight, { intensity: 0, duration: 1.6 }), null, 13.6);
+tl.call(() => { if (TWIN) informant.visible = false; }, null, 16.8);
 tl.call(() => caption(HUES.report, 'To report · Human in the loop', 'The first sensor is a person', 'An informant’s photo reaches HQ before the men are inside. The cameras are already waiting.', 6.2), null, 11.6);
 tl.to(poach, { u: .4, duration: 6.4, ease: 'none' }, 13.2);
 tl.call(() => {                                                     // DETECTION 1 — at the wedge edge, seven units out
@@ -1465,7 +1470,7 @@ tl.call(() => {                                                     // DETECTION
 tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Serengeti-01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 18.8);
 tl.call(() => fireUplink(), null, 20);
 tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 21.2);
-tl.to(poach, { u: .74, duration: 12.6, ease: 'none' }, 19.8);
+tl.to(poach, { u: .95, duration: 12.6, ease: 'none' }, 19.8);
 
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
 tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. A patrol is rolling in under a minute.', 5), null, 24.6);
@@ -1550,6 +1555,7 @@ tl.to(herdState, { u: 0, duration: 4.6, ease: 'sine.inOut' }, 49.2);
 tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, people out, and the herd drifts back to the treeline. No crops lost, no retaliation.', 5), null, 47);
 
 // ── listening 50–62 · wolves howl, birds call, the array breathes it in
+tl.call(() => { pack.visible = true; }, null, 51.4);
 tl.call(() => gsap.to(packLight, { intensity: 20, duration: 2 }), null, 50.5);
 tl.call(() => gsap.to(packLight, { intensity: 0, duration: 2.5 }), null, 60.5);
 tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 5.5), null, 53.4);
@@ -1624,6 +1630,7 @@ tl.call(() => tl.pause(), null, 77.9);                              // hold on t
 function resetWorld() {
   poach.u = .02; poach.stopped = false;
   herdState.u = 0; herdState.curve = 'in'; herdState.turning = false; herd.visible = false;
+  if (TWIN) { poachers.visible = false; informant.visible = false; pack.visible = false; }
   jeepState.u = 0; jeepState.on = false; jeepState.arrived = false;
   jeep.visible = false;
   jeep.userData.lights.forEach(m => m.emissiveIntensity = 0);
@@ -1698,7 +1705,7 @@ function markerPulse(rec, big = false) {
 if (TWIN) {
   const SHORT = { serengeti: 'Serengeti', villageguard: 'VillageGuard', gateway: 'Gateway', junglewallah: 'Jungle-Wallah', wolf: 'Wolf', ai: 'Landseed AI' };
   const HUE_BY = { serengeti: HUES.see, villageguard: HUES.guard, gateway: HUES.link, junglewallah: 0xFF8C42, wolf: HUES.listen, ai: HUES.brain };
-  const RANGE = { serengeti: 6.5, villageguard: 6, gateway: 9, junglewallah: 4.5, wolf: 5.5 };
+  const RANGE = { serengeti: 6.5, villageguard: 5.5, gateway: 9, junglewallah: 4.5, wolf: 5.5 };
   let wolfN = 0, serN = 0;
   for (const rec of SENSORS) {
     const label = rec.id === 'wolf' ? ('Wolf ' + (++wolfN)) : rec.id === 'serengeti' ? ('Serengeti ' + (++serN)) : SHORT[rec.id];
@@ -1795,12 +1802,14 @@ function normalizeUI(T) {
   $('#feed-list').innerHTML = '<div class="tg-day"><span>Today</span></div>';
 }
 const setupResponse = () => {
+  poachers.visible = true;
   poach.u = .58; poach.lastU = .58;
   jeepState.on = true; jeep.visible = true; jeepState.u = .1;
 };
 const setupSettled = () => {
-  poach.u = .74; poach.lastU = .74; poach.stopped = true;
-  placeOnCurve(poachers, trail, .74, 0, .05);
+  poachers.visible = true;
+  poach.u = .95; poach.lastU = .95; poach.stopped = true;
+  placeOnCurve(poachers, trail, .95, 0, .05);
   jeepState.on = true; jeepState.arrived = true; jeep.visible = true;
   placeOnCurve(jeep, road, .96, 0, .05, true);
 };
@@ -1809,8 +1818,8 @@ const CHSETUP = {
   intrusion() {},
   response: setupResponse,
   coexist: setupSettled,
-  listening() { setupSettled(); },
-  network() { setupSettled(); },
+  listening() { setupSettled(); pack.visible = true; },
+  network() { setupSettled(); pack.visible = true; },
 };
 chips.forEach(b => b.addEventListener('click', () => {
   const T = CH[b.dataset.ch] + .02;
@@ -1952,12 +1961,12 @@ function tick(dt, t) {
   sampleCam(tl.time());
   if (TWIN) {                                            // the drone is alive: slow yaw sway + gentle bob, loop-safe
     const T2 = tl.time();
-    const a = Math.sin(T2 * .16) * .09;
+    const a = Math.sin(T2 * .16) * .035;
     const dx = camP.x - camL.x, dz = camP.z - camL.z;
     const ca = Math.cos(a), sa = Math.sin(a);
     camP.x = camL.x + dx * ca - dz * sa;
     camP.z = camL.z + dx * sa + dz * ca;
-    camP.y += Math.sin(T2 * .23) * .35;
+    camP.y += Math.sin(T2 * .23) * .14;
   }
   {
     const T = tl.time();
