@@ -29,16 +29,19 @@ let satTex = null;
 // the east farm/forest boundary, real fields, a real crater rim for the
 // Gateway (3,340 m — 700 m over the farm belt), real canopy clearings.
 const AN = TWIN ? {
-  ser1: [27, 4.5], ser2: [8.5, 4.9], vg: [40, 15.2],
-  w1: [16, -1.5], w2: [23.5, -.5], w3: [19, -7], jw: [26, -6],
-  gate: [13.5, 16.2], ai: [46.5, 12.5], village: [43.5, 16],
-  informant: [42.8, 6.8], truck: [45.3, 4.6],
-  trail: [[46.5, 5.5], [40, 4.4], [33, 3.8], [26, 4.6], [19.5, 6.2], [15, 7], [9.5, 5.2], [2, 4.2]],
-  road: [[46.5, 12.5], [45.5, 8], [45.8, 3.4], [40, 2.6], [31, 2.8], [22, 3.4], [12, 3.8], [4.5, 4]],
+  // west act: the intrusion CLIMBS from the NW boundary farmland (2,120 m)
+  // into the massif's forest — HQ below at 2,000 m, crossing at 2,600 m,
+  // the listening meadow at 2,730 m under the 4,170 m peak.
+  ser1: [-20.5, -12.5], ser2: [-10.8, 1], vg: [40, 15.2],
+  w1: [-18, 9], w2: [-26, 14], w3: [-21, 17], jw: [-13, 10],
+  gate: [13.5, 16.2], ai: [-38, -30], village: [43.5, 16],
+  informant: [-33.5, -22.5], truck: [-31, -24],
+  trail: [[-31, -24], [-27, -19], [-22.5, -13.5], [-18, -8], [-14, -3], [-11.2, .2], [-9, 3]],
+  road: [[-38, -30], [-33, -26.5], [-28.5, -22], [-24, -17], [-18, -10], [-13, -4], [-10.5, 1], [-9.2, 2.6]],
   herdIn: [[28, 10], [31.5, 11.5], [34.5, 12.8], [36.8, 13.8], [37.8, 14.2]],
   herdOut: [[37.8, 14.2], [34, 12], [30, 10.5], [26, 9], [22, 8]],
   guard: [[43.5, 16], [41.5, 15.2], [39.6, 14.7]],
-  pack: [20, -3],
+  pack: [-22, 12],
 } : {
   ser1: [6.8, 10.2], ser2: [-4.5, 5.6], vg: [12.9, -8.6],
   w1: [-10.5, 14.2], w2: [-15, 16.5], w3: [-17.5, 13.2], jw: [-3, 14.5],
@@ -164,20 +167,20 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // neighbours keeps velocity continuous, so arrivals decelerate and departures
 // build — no per-move starts.
 const CAMKEYS = TWIN ? [
-  [0,    74, 40, 50,   16, 2, 8],          // the sector, wide (loop frame)
-  [10.2, 58.6, 9.5, 21, 44.8, 1, 5.6],     // the boundary track — street-drone low
-  [14.2, 58.6, 9.5, 21, 44.8, 1, 5.6],
-  [17.6, 35.1, 9.5, 23.3, 15.5, 1, 6.8],   // the chokepoint canopy
-  [21.8, 35.1, 9.5, 23.3, 15.5, 1, 6.8],
-  [24.6, 59.5, 9, 22.6, 46, 1.5, 12.6],    // headquarters on the farm belt
-  [26.6, 59.5, 9, 22.6, 46, 1.5, 12.6],
-  [32.4, 16.6, 9, 18.7, 2.6, 1, 4.5],      // the crossing
-  [36.8, 16.6, 9, 18.7, 2.6, 1, 4.5],
-  [40.6, 52.9, 10, 28.9, 38, 1, 13.8],     // the fields
+  [0,    70, 42, 55,    0, 3, 2],          // the sector, wide (loop frame)
+  [10.2, -17, 9.5, -10.5, -31.5, 1, -23.5],// the NW boundary: farmland, the watcher, the men
+  [14.2, -17, 9.5, -10.5, -31.5, 1, -23.5],
+  [17.6, -34, 10, -23,  -20.5, 2, -11.5],  // the climb — massif rising ahead of the men
+  [21.8, -34, 10, -23,  -20.5, 2, -11.5],
+  [24.6, -27.5, 8, -19.5, -38.5, .5, -29.8],// headquarters below on the farm flat
+  [26.6, -27.5, 8, -19.5, -38.5, .5, -29.8],
+  [32.4, -1, 9.5, -8.5,  -9.5, 2.2, 3],    // the crossing, ravine country
+  [36.8, -1, 9.5, -8.5,  -9.5, 2.2, 3],
+  [40.6, 52.9, 10, 28.9, 38, 1, 13.8],     // across the park: the eastern fields
   [46.2, 52.9, 10, 28.9, 38, 1, 13.8],
-  [53.4, 34.9, 10, 10.6, 20, 1, -3.2],     // the meadow
-  [62,   34.9, 10, 10.6, 20, 1, -3.2],
-  [78,   74, 40, 50,   16, 2, 8],          // one pull home
+  [53.4, 3, 14.5, -7,   -21, 3, 12],       // the meadow — the peak face carries the frame
+  [62,   3, 14.5, -7,   -21, 3, 12],
+  [78,   70, 42, 55,    0, 3, 2],          // one pull home
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
@@ -571,9 +574,9 @@ function scatterOK(x, z, h) {
 {
   const pts = [];
   const loop = TWIN
-    ? [[37.6, -14], [37.6, -2], [37.8, 6], [38.2, 12], [38.6, 20], [39.2, 30], [40, 40], [54, 40], [54, -14]]
+    ? [[-24, -42], [-28, -35], [-32.5, -28], [-37, -21], [-41.5, -14], [-46, -7], [-50, -1]]
     : [[-28, -18], [10, -18], [10, 22], [-28, 22]];
-  for (let s2 = 0; s2 < loop.length; s2++) {
+  for (let s2 = 0; s2 < loop.length - (TWIN ? 1 : 0); s2++) {
     const [ax, az] = loop[s2], [bx, bz] = loop[(s2 + 1) % 4];
     for (let i = 0; i < 40; i++) {
       const u = i / 40, x = ax + (bx - ax) * u, z = az + (bz - az) * u;
@@ -678,8 +681,8 @@ function fovWedge(x, z, ang, hue, R = 8, spread = .5) {
 }
 // aim each wedge from the sensor toward its approach (twin uses real anchors)
 const aimAt = (from, to) => Math.atan2(to[0] - from[0], to[1] - from[1]);
-const fovSer1 = fovWedge(AN.ser1[0], AN.ser1[1], TWIN ? aimAt(AN.ser1, [26, 4.6]) : 1.39, HUES.see, TWIN ? 6.5 : 8.5, .42);
-const fovSer2 = fovWedge(AN.ser2[0], AN.ser2[1], TWIN ? aimAt(AN.ser2, [14, 6.8]) : 1.23, HUES.see, TWIN ? 5.5 : 7.5, .42);
+const fovSer1 = fovWedge(AN.ser1[0], AN.ser1[1], TWIN ? aimAt(AN.ser1, [-27, -19]) : 1.39, HUES.see, TWIN ? 6.5 : 8.5, .42);
+const fovSer2 = fovWedge(AN.ser2[0], AN.ser2[1], TWIN ? aimAt(AN.ser2, [-15, -4]) : 1.23, HUES.see, TWIN ? 5.5 : 7.5, .42);
 const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [31.5, 11.5]) : -.38, HUES.guard, TWIN ? 5.5 : 8, .52);
 
 /* ── satellite ──────────────────────────────────────────────────────────── */
