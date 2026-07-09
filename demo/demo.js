@@ -103,7 +103,7 @@ async function loadSat() {
   }
   await Promise.all(jobs);
   cx.globalCompositeOperation = 'multiply';                          // a whisper of our palette, nothing more
-  cx.fillStyle = '#cdd8c8'; cx.fillRect(0, 0, cv.width, cv.height);
+  cx.fillStyle = '#e2e8dc'; cx.fillRect(0, 0, cv.width, cv.height);
   cx.globalCompositeOperation = 'source-over';
   satTex = new THREE.CanvasTexture(cv);
   satTex.colorSpace = THREE.SRGBColorSpace;
@@ -117,7 +117,7 @@ function demAt(x, z) {
   const g = dem.grid, n = dem.n;
   const a = g[j0 * n + i0], b = g[j0 * n + i0 + 1], c = g[(j0 + 1) * n + i0], d2 = g[(j0 + 1) * n + i0 + 1];
   const e = (a * (1 - fu) + b * fu) * (1 - fv) + (c * (1 - fu) + d2 * fu) * fv;
-  return Math.min(6.4, Math.max(-1.6, (e - dem.base) / 240));
+  return Math.min(TWIN ? 9 : 6.4, Math.max(-1.6, (e - dem.base) / (TWIN ? 165 : 240)));
 }
 const HUES = { see: 0x00FF64, guard: 0xFFC800, link: 0x32C8FF, listen: 0xE682E6, brain: 0x9B6CE0, report: 0x1482FF };
 
@@ -164,25 +164,19 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // neighbours keeps velocity continuous, so arrivals decelerate and departures
 // build — no per-move starts.
 const CAMKEYS = TWIN ? [
-  [0,    72, 46, 52,    8, 1, 6],         // the whole sector: crater to farm belt (loop frame)
-  [9,    58, 32, 34,   32, 1, 8],         // sliding toward the boundary
-  [10.8, 52, 19, 15,   44.6, 1, 5.8],     // the stakeout: real boundary track
-  [13.4, 52, 19, 15,   44.6, 1, 5.8],
-  [16.6, 27, 19, 15,   15.5, 1, 6.5],     // the chokepoint in real canopy
-  [21.4, 27, 19, 15,   15.5, 1, 6.5],
-  [24.4, 54, 17, 21,   46, 1, 12.8],      // HQ on the farm belt
-  [26.2, 54, 17, 21,   46, 1, 12.8],
-  [29.4, 47, 19, 1,    42, 1, 4],         // riding the boundary track
-  [32.2, 10, 19, 13,    2.5, 1, 4.4],     // the crossing
-  [36.6, 10, 19, 13,    2.5, 1, 4.4],
-  [38.4, 25, 26, 19,   20, 0, 9],         // over the canopy
-  [40.4, 46, 22, 23,   37, 0, 13.5],      // the fields board view
-  [45.8, 46, 22, 23,   37, 0, 13.5],
-  [49.4, 43, 19, 20,   37.5, .3, 13.8],   // one slow push as the deterrent plays
-  [50.9, 36, 23, 8,    28, 1, 2],
-  [53.2, 30, 20, 8,    20, .5, -3.5],     // the meadow clearings
-  [61.9, 30, 20, 8,    20, .5, -3.5],
-  [78,   72, 46, 52,    8, 1, 6],         // one pull home
+  [0.0, 1.0, 33, 54.1,   23, 1, 7],
+  [6.5, 27.5, 33, 58.8,   23, 1, 7],
+  [13.0, 52.8, 33, 49.6,   23, 1, 7],
+  [19.5, 70.1, 33, 29.0,   23, 1, 7],
+  [26.0, 74.8, 33, 2.5,   23, 1, 7],
+  [32.5, 65.6, 33, -22.8,   23, 1, 7],
+  [39.0, 45.0, 33, -40.1,   23, 1, 7],
+  [45.5, 18.5, 33, -44.8,   23, 1, 7],
+  [52.0, -6.8, 33, -35.6,   23, 1, 7],
+  [58.5, -24.1, 33, -15.0,   23, 1, 7],
+  [65.0, -28.8, 33, 11.5,   23, 1, 7],
+  [71.5, -19.6, 33, 36.8,   23, 1, 7],
+  [78.0, 1.0, 33, 54.1,   23, 1, 7],
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
@@ -397,7 +391,7 @@ function nearCurve(curve, x, z, n = 60) {
     col[i * 3] *= s; col[i * 3 + 1] *= s; col[i * 3 + 2] *= s;
   }
   const ground = new THREE.Mesh(geo, (TWIN && satTex)
-    ? new THREE.MeshStandardMaterial({ map: satTex, emissive: 0xffffff, emissiveMap: satTex, emissiveIntensity: .38, roughness: .96, metalness: 0 })
+    ? new THREE.MeshStandardMaterial({ map: satTex, emissive: 0xffffff, emissiveMap: satTex, emissiveIntensity: .52, roughness: .96, metalness: 0 })
     : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .95, metalness: 0 }));
   ground.receiveShadow = true;
   scene.add(ground);
@@ -620,7 +614,10 @@ scene.add(villageGrp);
   const win = new THREE.Mesh(new THREE.PlaneGeometry(.5, .34), new THREE.MeshStandardMaterial({ color: 0x0c0c0a, emissive: 0xffb45e, emissiveIntensity: 1.6 }));
   win.position.set(hx - .4, hh + .8, hz + 1.01);
   const win2 = win.clone(); win2.position.x = hx + .5;
-  scene.add(hq, roof, mast, win, win2);
+  const hqGrp = new THREE.Group();
+  hqGrp.add(hq, roof, mast, win, win2);
+  scene.add(hqGrp);
+  window.__hqGrp = hqGrp;
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(.05, .06, 2.4, 6), new THREE.MeshStandardMaterial({ color: 0x5a5148 }));
   const lh = heightAt(17.5, -13.8);
   pole.position.set(17.5, lh + 1.2, -13.8);
@@ -1641,7 +1638,8 @@ tl.eventCallback('onRepeat', resetWorld);
 /* ── the twin stands the physical cast down and tracks markers instead ──── */
 let mPoach, mTruck, mInformant, mJeep, mHerd, mPack, mGuards, mVillage;
 if (TWIN) {
-  scene.remove(poachers, herd, jeep, pack, informant, guard1, guard2, villageGrp, fovSer1, fovSer2, fovVG);
+  scene.remove(poachers, herd, jeep, pack, informant, guard1, guard2, villageGrp);
+  if (window.__hqGrp) scene.remove(window.__hqGrp);
   rangers.forEach(r => scene.remove(r));
   if (window.__pickup) scene.remove(window.__pickup);
   if (fireflies) scene.remove(fireflies);
@@ -1672,7 +1670,7 @@ function iconEl(kind, hue, label, count) {
 // a tracked entity: world position (optionally a moving group to follow)
 function marker(kind, hue, label, follow, count) {
   const el = iconEl(kind, hue, label, count);
-  const rec = { el, kind, follow, pos: new THREE.Vector3(), on: true };
+  const rec = { el, kind, follow, pos: new THREE.Vector3(), on: true, pri: 2 };
   ICONS.push(rec);
   return rec;
 }
@@ -1698,6 +1696,7 @@ if (TWIN) {
   for (const rec of SENSORS) {
     const label = rec.id === 'wolf' ? ('Wolf ' + (++wolfN)) : rec.id === 'serengeti' ? ('Serengeti ' + (++serN)) : SHORT[rec.id];
     const m = marker('sensor', HUE_BY[rec.id], label, rec.g);
+    m.pri = 1;
     m.el.addEventListener('click', () => { location.href = '/#' + rec.id; });
     m.el.title = 'View in the catalogue';
     if (RANGE[rec.id]) rangeRing(rec.g.position.x, rec.g.position.z, HUE_BY[rec.id], RANGE[rec.id]);
@@ -1705,6 +1704,7 @@ if (TWIN) {
   mPoach = marker('human', 0xff5a4d, 'Intruders', poachers, 4);
   trailFrom(mPoach, 0xff5a4d);
   mTruck = marker('vehicle', 0xd98a6a, 'Pickup', window.__pickup);
+  mTruck.pri = 1;
   mInformant = marker('phone', HUES.report, 'Informant', informant);
   mJeep = marker('vehicle', 0x59F5A0, 'Patrol', jeep, 2);
   trailFrom(mJeep, 0x59F5A0);
@@ -1713,6 +1713,7 @@ if (TWIN) {
   mPack = marker('wolf', 0xE682E6, 'Wolf pack', pack, 5);
   mGuards = marker('human', 0x9fdc8f, 'Rangers', guard1, 2);
   mVillage = marker('sensor', 0xffc36b, 'Village', villageGrp);
+  mVillage.pri = 1;
   mVillage.pos.set(AN.village[0], heightAt(AN.village[0], AN.village[1]) + 1, AN.village[1]);
   mVillage.fixed = true;
 }
@@ -1975,15 +1976,22 @@ function tick(dt, t) {
       }
     }
   }
-  for (const ic of ICONS) {
+  const shownPills = [];
+  const byPri = [...ICONS].sort((a, b) => b.pri - a.pri);
+  for (const ic of byPri) {
     if (!ic.fixed && ic.follow) ic.pos.set(ic.follow.position.x, ic.follow.position.y + 1.2, ic.follow.position.z);
     proj.copy(ic.pos).project(camera);
     const hidden = proj.z > 1 || (ic.follow && ic.follow.visible === false);
     ic.el.style.display = hidden ? 'none' : '';
-    if (!hidden) {
-      ic.el.style.left = ((proj.x * .5 + .5) * innerWidth) + 'px';
-      ic.el.style.top = ((-proj.y * .5 + .5) * innerHeight) + 'px';
-    }
+    if (hidden) continue;
+    const sx = (proj.x * .5 + .5) * innerWidth, sy = (-proj.y * .5 + .5) * innerHeight;
+    ic.el.style.left = sx + 'px';
+    ic.el.style.top = sy + 'px';
+    const w = ic.el.offsetWidth || 120;
+    const box = { x0: sx - 20, x1: sx + w, y0: sy - 20, y1: sy + 22 };
+    const clash = shownPills.some(b => box.x0 < b.x1 && box.x1 > b.x0 && box.y0 < b.y1 && box.y1 > b.y0);
+    if (clash && ic.pri < 2) ic.el.classList.add('nolabel');
+    else { ic.el.classList.remove('nolabel'); shownPills.push(box); }
   }
   for (const wl of wlabels) {
     proj.copy(wl.pos).project(camera);
