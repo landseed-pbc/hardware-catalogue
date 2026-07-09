@@ -32,15 +32,15 @@ const AN = TWIN ? {
   // west act: the intrusion CLIMBS from the NW boundary farmland (2,120 m)
   // into the massif's forest — HQ below at 2,000 m, crossing at 2,600 m,
   // the listening meadow at 2,730 m under the 4,170 m peak.
-  ser1: [-20.5, -12.5], ser2: [-10.8, 1], vg: [40, 15.2],
+  ser1: [-20.5, -12.5], ser2: [-10.8, 1], vg: [35, 12.2],
   w1: [0, -13], w2: [9, -19], w3: [2, -21], jw: [10, -12],
   gate: [13.5, 16.2], ai: [12, -2], village: [43.5, 16], villages: [[43.5, 16]],
   informant: [-33.5, -22.5], truck: [-31, -24],
   trail: [[-31, -24], [-27, -19], [-22.5, -13.5], [-18, -8], [-14, -3], [-11.2, .2], [-9, 3]],
   road: [[12, -2], [6.5, -1.2], [1, -.2], [-3.5, .8], [-6.8, 1.8], [-9.2, 2.6]],
-  herdIn: [[28, 10], [31.5, 11.5], [34.5, 12.8], [36.8, 13.8], [37.8, 14.2]],
-  herdOut: [[37.8, 14.2], [34, 12], [30, 10.5], [26, 9], [22, 8]],
-  guard: [[43.5, 16], [41.5, 15.2], [39.6, 14.7]],
+  herdIn: [[24, 8.5], [27.5, 9.8], [30.2, 10.8], [32, 11.4], [33, 11.8]],
+  herdOut: [[33, 11.8], [30, 10.5], [27, 9.2], [24, 8], [21, 7]],
+  guard: [[43.5, 16], [40, 14.4], [36.8, 12.9]],
   pack: [4, -16],
 } : {
   ser1: [6.8, 10.2], ser2: [-4.5, 5.6], vg: [12.9, -8.6],
@@ -170,8 +170,8 @@ const CAMKEYS = TWIN ? [
   // Mission control: ONE fixed command view of the whole board for all 78 s.
   // The only motion is a near-imperceptible push-in plus the drone sway.
   // Every scene plays as events lighting up across a stationary map.
-  [0,  -54, 37, 29,   10, 3, 4],
-  [78, -44, 31.5, 23.5, 8.5, 3, 4.5],
+  [0,  -45, 32, 24,   8.5, 3, 4.5],
+  [78, -57, 38.5, 30.5, 10, 3, 4],
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
@@ -674,7 +674,7 @@ function fovWedge(x, z, ang, hue, R = 8, spread = .5) {
 const aimAt = (from, to) => Math.atan2(to[0] - from[0], to[1] - from[1]);
 const fovSer1 = fovWedge(AN.ser1[0], AN.ser1[1], TWIN ? aimAt(AN.ser1, [-27, -19]) : 1.39, HUES.see, TWIN ? 6.5 : 8.5, .42);
 const fovSer2 = fovWedge(AN.ser2[0], AN.ser2[1], TWIN ? aimAt(AN.ser2, [-15, -4]) : 1.23, HUES.see, TWIN ? 5.5 : 7.5, .42);
-const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [31.5, 11.5]) : -.38, HUES.guard, TWIN ? 5.5 : 8, .52);
+const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [27.5, 9.8]) : -.38, HUES.guard, TWIN ? 5.5 : 8, .52);
 
 /* ── satellite ──────────────────────────────────────────────────────────── */
 
@@ -813,7 +813,7 @@ if (TWIN) poachers.visible = false;
   window.__pickup = truck;
 }
 
-// the informant at the north track — hidden behind cover, Landseed Mobile up,
+// the informant at the north track — hidden behind cover, handheld up,
 // watching the men dismount at the pickup
 const informant = figure(0x4e5a66, .82);
 informant.position.set(AN.informant[0], heightAt(AN.informant[0], AN.informant[1]), AN.informant[1]);
@@ -1442,7 +1442,7 @@ tl.call(() => {
   ringAt(AN.informant[0], AN.informant[1], HUES.report, 1.4);
   const shot = TWIN ? fieldCard('people-walk', 236, 1.15) : sensorSnap(V3(25.5, heightAt(25.2, 19.8) + 1.2, 19.8), V3(29.2, heightAt(29.6, 19.1) + .9, 18.9),
     { boxes: [...pFigs.map((f, i) => boxFor(f, 1.3, .42, '#4da3ff', i === 0 ? 'HUMAN' : null)), boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] } );
-  popup(V3(0, 0, 0), HUES.report, 'Report filed', 'Mobile-07', 'Four men and a vehicle at the north track — shot from cover on a $50 Landseed Mobile', shot, 3.4);
+  popup(V3(0, 0, 0), HUES.report, 'Report filed', 'Mobile-07', 'Four men and a vehicle at the north track — shot from cover on a $50 handheld', shot, 3.4);
   window.__mobShot = shot;
 }, null, 11.2);
 tl.call(() => {                                                       // …and visibly uploaded
@@ -1461,9 +1461,9 @@ tl.call(() => {                                                     // DETECTION
   if (mPoach) markerPulse(mPoach, true);
   ringAt(pp.x, pp.z, HUES.see, 2.6);
   gsap.fromTo(fovSer1, { opacity: .4 }, { opacity: .1, duration: 1.8 });
-  popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · detected on approach · 200 ms to image', fieldCard('people-walk'), 3.2);
+  popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'AI CAMERA 01 · detected on approach · 200 ms to image', fieldCard('people-walk'), 3.2);
 }, null, 17.9);
-tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Serengeti-01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 18.8);
+tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'AI camera 01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 18.8);
 tl.call(() => fireUplink(), null, 20);
 tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 21.2);
 tl.to(poach, { u: .95, duration: 12.6, ease: 'none' }, 19.8);
@@ -1476,7 +1476,7 @@ tl.call(() => {                                                     // second ca
   flashAt(V3(AN.ser2[0], heightAt(AN.ser2[0], AN.ser2[1]) + 1.6, AN.ser2[1]), 0xd9ffe4);
   gsap.fromTo(fovSer2, { opacity: .3 }, { opacity: .1, duration: 1.4 });
   stSer2Gate.play(2);
-  feed(HUES.see, 'Serengeti-02 · confirm', 'Track confirmed heading for the crossing');
+  feed(HUES.see, 'AI camera 02 · confirm', 'Track confirmed heading for the crossing');
 }, null, 28.2);
 tl.call(() => {                                                     // INTERCEPT — the jeep halts short
   placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
@@ -1518,7 +1518,7 @@ tl.call(() => {
 }, null, 33.9);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
-tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 5.5), null, 38.8);
+tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A camera on the field edge runs one model with every species on the conflict list.', 5.5), null, 38.8);
 tl.call(() => { herd.visible = true; }, null, 36.5);
 tl.to(herdState, { u: .78, duration: 6.2, ease: 'none' }, 36.4);
 tl.to(herdState, { u: 1, duration: 2.2, ease: 'none' }, 42.7);
@@ -1528,9 +1528,9 @@ tl.call(() => {                                                     // DETECTION
   if (mHerd) markerPulse(mHerd, true);
   ringAt(hp.x, hp.z, HUES.guard, 2.6);
   gsap.fromTo(fovVG, { opacity: .4 }, { opacity: .1, duration: 1.8 });
-  popup(V3(0, 0, 0), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · detected at the treeline · alert < 1 KB', fieldCard('elephant-walk'), 2.4);
+  popup(V3(0, 0, 0), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGE CAMERA 04 · detected at the treeline · alert < 1 KB', fieldCard('elephant-walk'), 2.4);
   stVGHQ.play(2.2);
-  feedPhoto(HUES.guard, 'VillageGuard-04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-bull', 128));
+  feedPhoto(HUES.guard, 'Village camera 04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-bull', 128));
 }, null, 42.0);
 tl.call(() => {
   gsap.to(lampMat, { emissiveIntensity: 2.6, duration: .4 });
@@ -1540,8 +1540,8 @@ tl.call(() => {
 }, null, 43.8);
 tl.to(guardState, { u: 1, duration: 5.2, ease: 'none' }, 44.1);
 tl.call(() => {
-  popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGEGUARD-04 · every class on the list in a single detector', fieldCard('multi-class'), 2.2);
-  feed(HUES.guard, 'VillageGuard-04 · multi-class', 'Elephant and person in the same frame · one detector');
+  popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGE CAMERA 04 · every class on the list in a single detector', fieldCard('multi-class'), 2.2);
+  feed(HUES.guard, 'Village camera 04 · multi-class', 'Elephant and person in the same frame · one detector');
 }, null, 47.4);
 tl.call(() => {                                                     // the herd actually turns
   herdState.turning = true;
@@ -1555,7 +1555,7 @@ tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, peo
 tl.call(() => { pack.visible = true; storks.forEach(st => st.b.visible = true); }, null, 51.4);
 tl.call(() => gsap.to(packLight, { intensity: 20, duration: 2 }), null, 50.5);
 tl.call(() => gsap.to(packLight, { intensity: 0, duration: 2.5 }), null, 60.5);
-tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 5.5), null, 53.4);
+tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three listeners breathe the forest in. Every call becomes a bearing; three bearings become a place.', 5.5), null, 53.4);
 tl.call(() => { howl(wolvesAnim[0]); if (mPack) markerPulse(mPack, true); }, null, 53.8);                     // the lead howls…
 tl.call(() => {
   const wp = new THREE.Vector3();
@@ -1569,25 +1569,25 @@ tl.call(() => {
   wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
 }, null, 56.1);
 tl.call(() => {                                                     // …and a bird overhead — rapid chirp waveform
-  if (storks[0]) {
-    const wp = storks[0].b.position.clone();
+  {
+    const wp = V3(AN.pack[0] + 5, heightAt(AN.pack[0] + 5, AN.pack[1] - 3) + 4.5, AN.pack[1] - 3);   // birdsong from the canopy
     wolves.forEach((w, i) => setTimeout(() => soundWave(wp.clone(), w, { freq: 16, amp: .26, hue: 0xc9a4ff, dur: 1.1 }), i * 220));
   }
 }, null, 59.2);
 tl.call(() => bearings(AN.pack[0], AN.pack[1]), null, 56.8);
 tl.call(() => {
-  popup(V3(-12.8, heightAt(-12.8, 12.6) + 2.3, 12.6), HUES.listen, 'Howl · wolves', '0.97', 'WOLF-02 · 3 bearings agree · pack located on the map', spectroCard(), 2.8);
+  popup(V3(-12.8, heightAt(-12.8, 12.6) + 2.3, 12.6), HUES.listen, 'Wolves located', '0.97', 'LISTENER ARRAY · 3 bearings agree · pack located on the map', spectroCard(), 2.8);
   stWolfGate.play(2.4);
-  feedPhoto(HUES.listen, 'Wolf array · fix', 'Wolf pack located · 3 bearings agree', spectroCard());
+  feedPhoto(HUES.listen, 'Listener array · fix', 'Wolf pack located · 3 bearings agree · confidence 0.97', spectroCard());
 }, null, 57.6);
 tl.call(() => {
-  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 1.7);
-  feed(HUES.listen, 'Wolf array \u00b7 chorus', 'Bird calls overhead indexed \u00b7 14 species tonight');
+  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'LISTENER 03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 1.7);
+  feed(HUES.listen, 'Listener array \u00b7 chorus', 'Birdsong indexed overnight \u00b7 14 species logged');
 }, null, 60.2);
 tl.call(() => {
 
   ringAt(AN.jw[0], AN.jw[1], 0xFF8C42, 2);
-  feed(0xFF8C42, 'Jungle-Wallah · survey', 'Offloaded on patrol pass · two individuals re-identified');
+  feed(0xFF8C42, 'Survey unit · archive', 'Offloaded on patrol pass · two individuals re-identified');
 }, null, 61.3);
 tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 4.2), null, 61.6);
 
@@ -1719,12 +1719,12 @@ function markerPulse(rec, big = false) {
   rec.el.classList.add(big ? 'pulse-big' : 'pulse');
 }
 if (TWIN) {
-  const SHORT = { serengeti: 'Serengeti', villageguard: 'VillageGuard', gateway: 'Gateway', junglewallah: 'Jungle-Wallah', wolf: 'Wolf', ai: 'HQ · Landseed AI' };
+  const SHORT = { serengeti: 'AI camera', villageguard: 'Village camera', gateway: 'Relay station', junglewallah: 'Survey unit', wolf: 'Listener', ai: 'HQ · Landseed AI' };
   const HUE_BY = { serengeti: HUES.see, villageguard: HUES.guard, gateway: HUES.link, junglewallah: 0xFF8C42, wolf: HUES.listen, ai: HUES.brain };
   const RANGE = { serengeti: 6.5, villageguard: 5.5, gateway: 9, junglewallah: 4.5, wolf: 5.5 };
   let wolfN = 0, serN = 0;
   for (const rec of SENSORS) {
-    const label = rec.id === 'wolf' ? ('Wolf ' + (++wolfN)) : rec.id === 'serengeti' ? ('Serengeti ' + (++serN)) : SHORT[rec.id];
+    const label = rec.id === 'wolf' ? ('Listener ' + (++wolfN)) : rec.id === 'serengeti' ? ('AI camera ' + (++serN)) : SHORT[rec.id];
     const m = marker('sensor', HUE_BY[rec.id], label, rec.g, null, true);
     m.pri = 1;
     m.lift = 4.4;
@@ -1945,14 +1945,6 @@ function tick(dt, t) {
     jeep.userData.lights[1].emissiveIntensity = on ? 0 : 3.2;
   }
 
-  if (TWIN && window.__birdM && storks.length && window.__birdM.length < storks.length) {
-    for (let bi = window.__birdM.length; bi < storks.length; bi++) {
-      const bm = marker('bird', 0xE6A5E6, bi === 0 ? 'Birds' : null, storks[bi].b);
-      bm.key = 'birds';
-      bm.pri = 1;
-      window.__birdM.push(bm);
-    }
-  }
   for (const st of storks) {
     const a = t * .22 + st.ph;
     st.b.position.set(AN.pack[0] + Math.cos(a) * 3.8, 5 + Math.sin(t * .55 + st.ph) * .3, AN.pack[1] + .3 + Math.sin(a) * 3.4);

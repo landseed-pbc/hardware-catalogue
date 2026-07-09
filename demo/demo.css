@@ -152,3 +152,10 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .twin-icon{transition:opacity .6s ease,filter .6s ease}
 .twin-icon.dim{opacity:.34;filter:grayscale(.85)}
 .twin-icon.dim .ti-tag{display:none}
+/* the wall screen is full-bleed — no letterbox */
+.bar{display:none}
+.hud{top:14px}
+#phone{top:74px;height:min(520px,calc(100vh - 200px))}
+#cap{bottom:104px}
+#chapters{bottom:34px}
+#endcta{bottom:112px}
