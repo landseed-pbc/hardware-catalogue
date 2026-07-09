@@ -109,9 +109,9 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // build — no per-move starts.
 const CAMKEYS = [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
-  [9,    36, 20, 34,     4, 2, 6],        // drifting in over the river
-  [10.8, 30, 13, 26,    27.2, .6, 17.2],  // the stakeout: hidden informant, men at the truck
-  [13.4, 30, 13, 26,    27.2, .6, 17.2],  // · hold — the report goes out
+  [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
+  [10.8, 30, 13, 26,    27.4, .7, 19.4],  // the stakeout: watcher, cover, men at the truck
+  [13.4, 30, 13, 26,    27.4, .7, 19.4],  // · hold — the report goes out
   [15,   23, 11, 21,    13, 1, 11],       // transit — damps the spline's curl
   [16.6, 16.5, 8.5, 15.5, 4.5, .8, 7.5],  // behind the group, sensor ahead
   [21.4, 16.5, 8.5, 15.5, 4.5, .8, 7.5],  // · hold — detection at range, relay
@@ -737,11 +737,14 @@ const poach = { u: 0.02, lastU: 0.02, stopped: false };
 // the informant at the north track — hidden behind cover, Landseed Mobile up,
 // watching the men dismount at the pickup
 const informant = figure(0x4e5a66, .82);
-informant.position.set(24.9, heightAt(24.9, 15.7), 15.7);
-informant.lookAt(29.2, informant.position.y, 18.6);
+informant.position.set(25.2, heightAt(25.2, 19.8), 19.8);
+informant.lookAt(29.6, informant.position.y, 19.1);
+const stakeLight = new THREE.PointLight(0xbfd9ff, 0, 7);
+stakeLight.position.set(25.2, heightAt(25.2, 19.8) + 2.4, 19.8);
+scene.add(stakeLight);
 {
   const bushM = new THREE.MeshStandardMaterial({ color: 0x2e4226, roughness: .95 });
-  for (const [bx, bz, bs] of [[25.9, 16.6, 1.05], [25.35, 16.05, .8], [26.35, 17.1, .7]]) {
+  for (const [bx, bz, bs] of [[26.7, 19.5, 1.0], [26.3, 20.3, .75], [27.1, 18.8, .65]]) {
     const b = new THREE.Mesh(new THREE.IcosahedronGeometry(bs, 1), bushM);
     b.position.set(bx, heightAt(bx, bz) + bs * .55, bz);
     b.scale.y = .72;
@@ -751,6 +754,7 @@ informant.lookAt(29.2, informant.position.y, 18.6);
 }
 const phone = new THREE.Mesh(new THREE.PlaneGeometry(.16, .24), new THREE.MeshStandardMaterial({ color: 0x0a0f0a, emissive: 0x9fd4ff, emissiveIntensity: 1.4 }));
 phone.position.set(.2, .95, .25); phone.rotation.y = .5;
+phone.material.emissiveIntensity = 2.2;
 informant.add(phone);
 scene.add(informant);
 
@@ -1346,9 +1350,9 @@ tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station'
 // ── intrusion 10–24 · the report comes first, then the cameras confirm
 tl.call(() => $('#phone').classList.add('on'), null, 10.3);         // the phone arrives with the story
 tl.call(() => {
-  flashAt(V3(24.9, heightAt(24.9, 15.7) + 1.1, 15.7), 0xcfe8ff);      // the phone takes its photo
-  ringAt(24.9, 15.7, HUES.report, 1.4);
-  const shot = sensorSnap(V3(25.1, heightAt(24.9, 15.7) + 1.2, 15.9), V3(29, heightAt(29.6, 19.1) + .9, 18.7),
+  flashAt(V3(25.2, heightAt(25.2, 19.8) + 1.1, 19.8), 0xcfe8ff);      // the phone takes its photo
+  ringAt(25.2, 19.8, HUES.report, 1.4);
+  const shot = sensorSnap(V3(25.5, heightAt(25.2, 19.8) + 1.2, 19.8), V3(29.2, heightAt(29.6, 19.1) + .9, 18.9),
     { boxes: [...pFigs.map((f, i) => boxFor(f, 1.3, .42, '#4da3ff', i === 0 ? 'HUMAN' : null)), boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] });
   popup(V3(0, 0, 0), HUES.report, 'Report filed', 'Mobile-07', 'Four men and a vehicle at the north track — shot from cover on a $50 Landseed Mobile', shot, 3.4);
   window.__mobShot = shot;
@@ -1357,6 +1361,8 @@ tl.call(() => {                                                       // …and 
   stMobHQ.play(3.2);
   if (window.__mobShot) feedPhoto(HUES.report, 'Mobile-07 \u00b7 report', 'Four men + vehicle at the north track \u00b7 direct-to-cell \u00b7 pin attached', window.__mobShot);
 }, null, 12.2);
+tl.call(() => gsap.to(stakeLight, { intensity: 7, duration: 1.2 }), null, 10.6);
+tl.call(() => gsap.to(stakeLight, { intensity: 0, duration: 1.6 }), null, 13.6);
 tl.call(() => caption(HUES.report, 'To report · Human in the loop', 'The first sensor is a person', 'An informant’s photo reaches HQ before the men are inside. The cameras are already waiting.', 6.2), null, 11.6);
 tl.to(poach, { u: .4, duration: 6.4, ease: 'none' }, 13.2);
 tl.call(() => {                                                     // DETECTION 1 — at the wedge edge, seven units out
@@ -1454,41 +1460,41 @@ tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, peo
 // ── listening 50–62 · wolves howl, birds call, the array breathes it in
 tl.call(() => gsap.to(packLight, { intensity: 20, duration: 2 }), null, 50.5);
 tl.call(() => gsap.to(packLight, { intensity: 0, duration: 2.5 }), null, 60.5);
-tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 6), null, 52);
-tl.call(() => howl(wolvesAnim[0]), null, 52.4);                     // the lead howls…
+tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 5.5), null, 53.4);
+tl.call(() => howl(wolvesAnim[0]), null, 53.8);                     // the lead howls…
 tl.call(() => {
   const wp = new THREE.Vector3();
   (wolvesAnim[0] || pack).getWorldPosition(wp); wp.y += 1;
   wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
-}, null, 53.1);
-tl.call(() => howl(wolvesAnim[1] || wolvesAnim[0]), null, 54);                       // …an answer…
+}, null, 54.5);
+tl.call(() => howl(wolvesAnim[1] || wolvesAnim[0]), null, 55.4);                       // …an answer…
 tl.call(() => {
   const wp = new THREE.Vector3();
   (wolvesAnim[1] || wolvesAnim[0] || pack).getWorldPosition(wp); wp.y += 1;
   wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
-}, null, 54.7);
+}, null, 56.1);
 tl.call(() => {                                                     // …and a bird overhead — rapid chirp waveform
   if (storks[0]) {
     const wp = new THREE.Vector3(); storks[0].b.getWorldPosition(wp);
     wolves.forEach((w, i) => setTimeout(() => soundWave(wp.clone(), w, { freq: 16, amp: .26, hue: 0xc9a4ff, dur: 1.1 }), i * 220));
   }
-}, null, 58.6);
-tl.call(() => bearings(-13.5, 15.2), null, 55.7);
+}, null, 59.2);
+tl.call(() => bearings(-13.5, 15.2), null, 56.8);
 tl.call(() => {
   popup(V3(-12.8, heightAt(-12.8, 12.6) + 2.3, 12.6), HUES.listen, 'Howl · wolves', '0.97', 'WOLF-02 · 3 bearings agree · pack located on the map', spectroCard(), 2.8);
   stWolfGate.play(2.4);
   feedPhoto(HUES.listen, 'Wolf array · fix', 'Wolf pack located · 3 bearings agree', spectroCard());
-}, null, 56.4);
+}, null, 57.6);
 tl.call(() => {
-  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 1.9);
+  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 1.7);
   feed(HUES.listen, 'Wolf array \u00b7 chorus', 'Bird calls overhead indexed \u00b7 14 species tonight');
-}, null, 59.7);
+}, null, 60.2);
 tl.call(() => {
 
   ringAt(-3, 14.5, 0xFF8C42, 2);
   feed(0xFF8C42, 'Jungle-Wallah · survey', 'Offloaded on patrol pass · two individuals re-identified');
-}, null, 61.1);
-tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 4.4), null, 60.6);
+}, null, 61.3);
+tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 4.2), null, 61.6);
 
 // ── network 62–78 · one continuous pull to the whole board
 
@@ -1516,7 +1522,10 @@ endcta.querySelector('.end-again').addEventListener('click', () => {
   tl.time(.01, false);
   tl.play();
 });
-tl.call(() => endcta.classList.add('on'), null, 70.5);
+tl.call(() => {
+  $('#cap').classList.remove('on');                     // the story hands the floor to the actions
+  endcta.classList.add('on');
+}, null, 70.5);
 
 tl.call(() => tl.pause(), null, 77.9);                              // hold on the closing frame — the overlay owns the restart
 
@@ -1728,6 +1737,13 @@ function tick(dt, t) {
   sampleCam(tl.time());
   {
     const T = tl.time();
+    if (T > 14.8 && T < 21.6) {                                     // the eye rides the intruders to the wedge
+      const wIn = Math.min(1, (T - 14.8) / 1.4), wOut = Math.min(1, (21.6 - T) / 1.2);
+      const w = Math.min(wIn, wOut) * .8;
+      camL.x += (poachers.position.x - camL.x) * w;
+      camL.y += (poachers.position.y + .8 - camL.y) * w;
+      camL.z += (poachers.position.z - camL.z) * w;
+    }
     if (jeep.visible && T > 26.4 && T < 32.6) {                     // the camera's eye rides the truck
       const wIn = Math.min(1, (T - 26.4) / 1.2), wOut = Math.min(1, (32.6 - T) / 1.2);
       const w = Math.min(wIn, wOut) * .95;
