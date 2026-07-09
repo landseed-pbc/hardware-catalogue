@@ -802,10 +802,10 @@ new GLTFLoader().load('./assets/wolf.glb', (g) => {
   // the rig's armature carries a baked 100× scale that bounding boxes miss —
   // rendered height ≈ 5.5 units at scale 1, so ~0.2 gives a real wolf
   const sc0 = .34;
-  const spots = [[0, 0, 0, 0], [-1.15, .95, .7, 1], [-.95, -1.05, -.5, 2]];
+  const spots = [[0, 0, 0, 0], [-1.15, .95, .7, 1], [-.95, -1.05, -.5, 2], [-2.1, -.15, .25, 3], [-1.8, 1.9, 1.1, 4]];
   for (const [px, pz, ry, i] of spots) {
     const w = SkeletonUtils.clone(g.scene);
-    w.scale.setScalar(sc0 * (1 - i * .09));
+    w.scale.setScalar(sc0 * (1 - i * .06));
     w.position.set(px, 0, pz);
     w.rotation.y = ry;
     w.traverse(o => {
@@ -840,50 +840,50 @@ function howl(w) {                                       // muzzle lifts on the 
     gsap.to(b.rotation, { x: 0, duration: .9, delay: 2.1, ease: 'sine.inOut', overwrite: false });
   }
   const wp = new THREE.Vector3(); w.getWorldPosition(wp);
-  for (let i = 0; i < 3; i++)
-    setTimeout(() => ringAt(wp.x, wp.z, HUES.listen, 1.5 + i * .45, wp.y + 1.15), 500 + i * 380);
+  setTimeout(() => ringAt(wp.x, wp.z, HUES.listen, 1.6, wp.y + 1.15), 500);
 }
-// a call travels: faint pink pulse runs from the animal to each unit, then the
-// unit visibly breathes it in
-function soundPulse(from, unit) {
-  const to = unit.position.clone().setY(unit.position.y + 1.1);
-  const mid = from.clone().lerp(to, .5); mid.y += .8;
+// sound made visible: a waveform travels from the animal to each sensor —
+// long slow harmonics for a howl, rapid chirps for birdsong
+function soundWave(from, unit, { freq = 6, amp = .55, hue = 0xE682E6, dur = 1.3 } = {}) {
+  const to = unit.position.clone().setY(unit.position.y + 1.15);
+  const mid = from.clone().lerp(to, .5); mid.y += .9;
   const curve = new THREE.QuadraticBezierCurve3(from.clone(), mid, to);
-  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(24)),
-    new THREE.LineBasicMaterial({ color: 0xf0c8ec, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
-  const dot = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: 0xf6def4, transparent: true, opacity: .95, depthWrite: false }));
-  dot.scale.setScalar(.32);
-  scene.add(line, dot);
-  const st = { u: 0 };
-  gsap.to(line.material, { opacity: .26, duration: .2 });
+  const N = 56;
+  const g = new THREE.BufferGeometry();
+  const posAttr = new THREE.BufferAttribute(new Float32Array(N * 3), 3);
+  g.setAttribute('position', posAttr);
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({
+    map: glowTex(), color: hue, size: .3, transparent: true, opacity: .95,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  }));
+  scene.add(pts);
+  const st = { head: 0 };
+  const pt = new THREE.Vector3();
   gsap.to(st, {
-    u: 1, duration: .8, ease: 'sine.in',
-    onUpdate: () => dot.position.copy(curve.getPoint(st.u)),
-    onComplete: () => {
-      scene.remove(dot);
-      gsap.to(line.material, { opacity: 0, duration: .4, onComplete: () => scene.remove(line) });
-      intakeAt(unit.position.x, unit.position.z);
+    head: 1.3, duration: dur, ease: 'none',
+    onUpdate: () => {
+      const s1 = Math.min(1, st.head), s0 = Math.max(0, st.head - .32);
+      for (let i = 0; i < N; i++) {
+        const f = i / (N - 1);
+        const sPar = s0 + f * Math.max(0.001, s1 - s0);
+        curve.getPoint(sPar, pt);
+        const env = Math.sin(f * Math.PI);                       // packet envelope
+        pt.y += env * amp * Math.sin(sPar * freq * Math.PI * 2);
+        posAttr.setXYZ(i, pt.x, pt.y, pt.z);
+      }
+      posAttr.needsUpdate = true;
+      pts.material.opacity = st.head < 1 ? .95 : Math.max(0, .95 * (1.3 - st.head) / .3);
     },
+    onComplete: () => scene.remove(pts),
   });
-}
-// sound arriving AT a sensor — rings contract onto the unit: intake, visualised
-function intakeAt(x, z) {
-  const m = new THREE.Mesh(new THREE.TorusGeometry(1, .04, 8, 48).rotateX(Math.PI / 2),
-    new THREE.MeshBasicMaterial({ color: 0xf2d9f2, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
-  m.position.set(x, heightAt(x, z) + 1.1, z);
-  m.scale.setScalar(2.1);
-  scene.add(m);
-  gsap.to(m.scale, { x: .4, y: .4, z: .4, duration: .9, ease: 'power2.in' });
-  gsap.to(m.material, { opacity: .5, duration: .45, ease: 'power1.in' });
-  gsap.to(m.material, { opacity: 0, duration: .3, delay: .62, onComplete: () => scene.remove(m) });
 }
 
 // storks — animated birds over the forest
 const storks = [];
 new GLTFLoader().load('./assets/stork.glb', (g) => {
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 1; i++) {
     const b = SkeletonUtils.clone(g.scene);
-    b.scale.setScalar(.011);
+    b.scale.setScalar(.009);
     b.traverse(o => { if (o.isMesh) o.castShadow = true; });
     const mixer = new THREE.AnimationMixer(b);
     mixer.clipAction(g.animations[0]).play();
@@ -1000,7 +1000,10 @@ const stSer2Gate = stream(V3(-4.5, heightAt(-4.5, 5.6) + 1.6, 5.6), GATE_TOP, HU
 const stVGHQ = stream(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), HQ_TOP, HUES.guard, 2.4);
 const stWolfGate = stream(V3(-12, heightAt(-12, 10.5) + 1.4, 10.5), GATE_TOP, HUES.listen, 3.6);
 const stJWGate = stream(V3(-3, heightAt(-3, 14.5) + 1.4, 14.5), GATE_TOP, HUES.link, 4.2);
-const stSatHQ = stream(V3(-2, 27, -2), HQ_TOP, HUES.brain, -4);
+const stSatHQ = stream(V3(-8, 21.5, -4), HQ_TOP, HUES.brain, -4);
+const stWolf2Gate = stream(V3(-8.5, heightAt(-8.5, 15.5) + 1.4, 15.5), GATE_TOP, HUES.listen, 4.2);
+const stWolf3Gate = stream(V3(-15.5, heightAt(-15.5, 14.5) + 1.4, 14.5), GATE_TOP, HUES.listen, 3);
+const stHQPatrol = stream(HQ_TOP, V3(-2.8, heightAt(-2.8, 5.3) + 1, 5.3), HUES.brain, 3.4);
 const stMobHQ = stream(V3(26.5, heightAt(26.5, 16.6) + 1.4, 16.6), HQ_TOP, HUES.report, 4.5);
 let uplink = null;
 function fireUplink() {
@@ -1106,7 +1109,7 @@ const boxFor = (obj, height, ar, col, tag) => {
 
 // real field captures (project archive) — the strongest possible evidence
 const FIELD = {};
-for (const k of ['people-walk', 'elephant-walk', 'multi-class']) {
+for (const k of ['people-walk', 'people-close', 'elephant-walk', 'multi-class']) {
   const im = new Image();
   im.src = `./assets/field/${k}.jpg`;
   FIELD[k] = im;
@@ -1125,7 +1128,7 @@ function fieldCard(key) {
   return c;
 }
 // the acoustic card is a spectrogram — a listening sensor shows sound, not pictures
-function spectroCard() {
+function spectroCard(mode) {
   const W = 392, H = 176;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d');
@@ -1154,14 +1157,21 @@ function spectroCard() {
   for (const bx of [64, 96, 168, 262, 300, 344]) {
     x.beginPath(); x.moveTo(bx, 42); x.quadraticCurveTo(bx + 5, 22, bx + 11, 34); x.stroke();
   }
-  x.strokeStyle = '#E682E6'; x.lineWidth = 2;
-  x.strokeRect(24, 46, 132, 84);
-  x.fillStyle = '#E682E6'; x.font = "700 12px 'Hanken Grotesk'";
-  x.fillText('HOWL 0.97', 26, 40);
-  x.strokeStyle = '#c9a4ff';
-  x.strokeRect(252, 16, 108, 28);
-  x.fillStyle = '#c9a4ff';
-  x.fillText('CHORUS · BIRDS', 254, 58);
+  if (mode === 'bird') {
+    x.strokeStyle = '#c9a4ff'; x.lineWidth = 2;
+    x.strokeRect(52, 12, 316, 40);
+    x.fillStyle = '#c9a4ff'; x.font = "700 12px 'Hanken Grotesk'";
+    x.fillText('CHORUS 0.93 \u00b7 14 SPECIES', 56, 66);
+  } else {
+    x.strokeStyle = '#E682E6'; x.lineWidth = 2;
+    x.strokeRect(24, 46, 132, 84);
+    x.fillStyle = '#E682E6'; x.font = "700 12px 'Hanken Grotesk'";
+    x.fillText('HOWL 0.97', 26, 40);
+    x.strokeStyle = '#c9a4ff';
+    x.strokeRect(252, 16, 108, 28);
+    x.fillStyle = '#c9a4ff';
+    x.fillText('CHORUS \u00b7 BIRDS', 254, 58);
+  }
   x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 22, W, 22);
   x.fillStyle = '#e8efe6'; x.fillText(clockStr() + ' · 60 s window · 0–4 kHz', 9, H - 7);
   return c;
@@ -1275,16 +1285,19 @@ tl.call(() => {                                                     // lamp down
   feed(HUES.see, 'Patrol · on site', 'Four detained at the ford · rifles seized');
 }, null, 34);
 tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
-tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Like the 20 arrests across 13 gangs that earlier versions made possible, beginning in the Serengeti.', 5.4), null, 33.4);
+tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Rangers reach the ford before the group does. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 5.6), null, 33.4);
+tl.call(() => {
+  popup(V3(-2.8, heightAt(-2.8, 5.3) + 2.2, 5.3), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 4.4, 165);
+  feed(HUES.see, 'Patrol \u00b7 evidence', 'Capture imagery packaged \u00b7 chain of custody logged');
+}, null, 34.4);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
-cam(35.4, [8, 13, 3.5], [10, 1, -5], 1.9, 'power1.in');             // crane up from the ford
-cam(37.3, [19.5, 7.5, 1], [11, 1, -6.5], 2.6, 'power2.out');        // settle over the crop edge
-tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 5.5), null, 37.2);
-tl.call(() => { herd.visible = true; }, null, 35.3);
-tl.to(herdState, { u: .78, duration: 6.4, ease: 'none' }, 35.4);
-cam(40.4, [5.8, 4.4, -10.8], [10.8, 1.1, -3.2], 3.4, 'sine.inOut'); // one unhurried glide down to the field edge
-tl.to(herdState, { u: 1, duration: 3.2, ease: 'none' }, 41.6);
+cam(36.6, [8, 15, 4], [10, 0, -5.5], 1.9, 'power1.in');             // crane up from the ford — the arrest gets its beat
+cam(38.5, [21, 15.5, 5.5], [9.5, 0, -6.5], 2.8, 'power2.out');      // broad overhead: herd path, crops, village — full context
+tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 5.5), null, 38.8);
+tl.call(() => { herd.visible = true; }, null, 36.5);
+tl.to(herdState, { u: .78, duration: 5.6, ease: 'none' }, 36.6);
+tl.to(herdState, { u: 1, duration: 2.4, ease: 'none' }, 42.4);
 tl.call(() => {                                                     // DETECTION 2
   flashAt(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), 0xffe9bd);
   ringAt(12.4, -6.4, HUES.guard, 3.2);
@@ -1293,7 +1306,7 @@ tl.call(() => {                                                     // DETECTION
   stVGHQ.play(2.2);
   feed(HUES.guard, 'VillageGuard-04 · alert', 'Elephant ×3 approaching the fields');
 }, null, 44.9);
-cam(45.1, [21.5, 4.6, -7.5], [13.2, 1, -7.2], 2.6, 'sine.inOut');   // the deterrent frame: lamp, guards, herd
+cam(44.6, [18.5, 12.5, 2.5], [10.5, .5, -6.5], 4.2, 'sine.inOut');  // one slow push-in as the deterrent plays
 tl.call(() => {
   gsap.to(lampMat, { emissiveIntensity: 2.6, duration: .4 });
   gsap.to(villageLight, { intensity: 16, duration: .4 });
@@ -1323,28 +1336,30 @@ tl.call(() => howl(wolvesAnim[0]), null, 52.4);                     // the lead 
 tl.call(() => {
   const wp = new THREE.Vector3();
   (wolvesAnim[0] || pack).getWorldPosition(wp); wp.y += 1;
-  wolves.forEach((w, i) => setTimeout(() => soundPulse(wp, w), i * 200));
+  wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
 }, null, 53.1);
 tl.call(() => howl(wolvesAnim[1] || wolvesAnim[0]), null, 54);                       // …an answer…
 tl.call(() => {
   const wp = new THREE.Vector3();
   (wolvesAnim[1] || wolvesAnim[0] || pack).getWorldPosition(wp); wp.y += 1;
-  wolves.forEach((w, i) => setTimeout(() => soundPulse(wp, w), i * 200));
+  wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
 }, null, 54.7);
-tl.call(() => {                                                     // …and a bird overhead
+tl.call(() => {                                                     // …and a bird overhead — rapid chirp waveform
   if (storks[0]) {
     const wp = new THREE.Vector3(); storks[0].b.getWorldPosition(wp);
-    ringAt(wp.x, wp.z, 0xE682E6, 2.2, wp.y);
-    wolves.forEach((w, i) => setTimeout(() => soundPulse(wp.clone(), w), 200 + i * 200));
+    wolves.forEach((w, i) => setTimeout(() => soundWave(wp.clone(), w, { freq: 16, amp: .26, hue: 0xc9a4ff, dur: 1.1 }), i * 220));
   }
-}, null, 55.6);
+}, null, 55.5);
 tl.call(() => bearings(-12.8, 12.6), null, 56.6);
 tl.call(() => {
   popup(V3(-12.8, heightAt(-12.8, 12.6) + 2.3, 12.6), HUES.listen, 'Howl · wolves', '0.97', 'WOLF-02 · 3 bearings agree · pack located on the map', spectroCard(), 5.5, 150);
   stWolfGate.play(2.4);
   feed(HUES.listen, 'Wolf array · fix', 'Wolf pack located · 3 bearings agree');
 }, null, 57.4);
-tl.call(() => feed(HUES.listen, 'Wolf array · chorus', 'Bird calls overhead indexed · 14 species tonight'), null, 56.2);
+tl.call(() => {
+  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 3.6, 155);
+  feed(HUES.listen, 'Wolf array \u00b7 chorus', 'Bird calls overhead indexed \u00b7 14 species tonight');
+}, null, 56.1);
 tl.call(() => {
   popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · offloaded on patrol pass · density updated', 'reid', 4, 140);
   ringAt(-3, 14.5, 0xFF8C42, 2);
@@ -1356,9 +1371,10 @@ tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howl
 cam(62, [-2, 25, 29], [-2, 0, -2], 5.2, 'sine.inOut');
 tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landscape, reporting', 'See, listen, connect, report — every detection lands in Landseed AI, and the record writes itself.', 9), null, 63.5);
 tl.call(() => { stSer1Gate.play(3); stSer2Gate.play(3); stMobHQ.play(3); }, null, 65);
-tl.call(() => { stWolfGate.play(3); }, null, 65.9);
-tl.call(() => { fireUplink(); stVGHQ.play(3); }, null, 66.9);
+tl.call(() => { stWolfGate.play(3); stWolf2Gate.play(3.4); stWolf3Gate.play(3.2); stJWGate.play(3.4); }, null, 65.9);
+tl.call(() => { fireUplink(); stVGHQ.play(3); stHQPatrol.play(3); }, null, 66.9);
 tl.call(() => { stSatHQ.play(3); }, null, 68);
+tl.call(() => { stSer1Gate.play(4); stSer2Gate.play(4.4); stWolfGate.play(4); stWolf2Gate.play(4.6); stWolf3Gate.play(4.2); stMobHQ.play(4.4); stVGHQ.play(4); stJWGate.play(4.6); stHQPatrol.play(4.2); }, null, 71.5);
 tl.call(() => fireUplink(), null, 70);
 tl.call(() => { fireUplink(); stSatHQ.play(2.6); }, null, 73.2);
 tl.call(() => fireUplink(), null, 75.2);
@@ -1367,15 +1383,18 @@ tl.call(() => feed(HUES.brain, 'Landseed AI · report', 'Daily summary compiled 
 cam(66.5, [50, 27, 46], [-5, 9, -2], 11.5, 'sine.inOut');           // pull wide to gateway + satellite — lands exactly on the opening frame
 tl.call(() => {}, null, 78);
 
-const endcta = document.createElement('a');
+const endcta = document.createElement('div');
 endcta.id = 'endcta';
-endcta.href = '/';
-endcta.textContent = 'View Landseed\u2019s devices \u2192';
+endcta.innerHTML = `<a class="end-primary" href="/">View Landseed\u2019s devices \u2192</a><button class="end-again" type="button">Watch again</button>`;
 document.body.appendChild(endcta);
+endcta.querySelector('.end-again').addEventListener('click', () => {
+  normalizeUI(0);
+  tl.play();
+  tl.time(.01);
+});
 tl.call(() => endcta.classList.add('on'), null, 70.5);
 
 tl.eventCallback('onRepeat', () => {
-  endcta.classList.remove('on');
   poach.u = .02; poach.stopped = false;
   herdState.u = 0; herdState.curve = 'in'; herdState.turning = false; herd.visible = false;
   jeepState.u = 0; jeepState.on = false; jeepState.arrived = false;
@@ -1534,7 +1553,7 @@ function tick(dt, t) {
 
   for (const st of storks) {
     const a = t * .22 + st.ph;
-    st.b.position.set(-11 + Math.cos(a) * 3.6, 3.5 + Math.sin(t * .55 + st.ph) * .35, 12.6 + Math.sin(a) * 3.2);
+    st.b.position.set(-11.5 + Math.cos(a) * 5.2, 4.1 + Math.sin(t * .55 + st.ph) * .3, 13 + Math.sin(a) * 4.4);
     st.b.rotation.y = -a - Math.PI / 2;
   }
   sat.position.x = -8 + Math.sin(t * .05) * 3;
