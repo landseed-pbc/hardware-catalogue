@@ -143,3 +143,8 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .twin-icon.pulse-big .ti-ic::after{animation:twinPulseBig 1.3s ease-out 3}
 .twin-icon.nolabel .ti-tag{display:none}
 .twin-icon.pill-only .ti-ic{display:none}
+/* organic cluster scatter — glyph rows breathe instead of standing in rank */
+.ti-ic svg:nth-child(2){transform:translateY(3px) scale(.92)}
+.ti-ic svg:nth-child(3){transform:translateY(-2px)}
+.ti-ic svg:nth-child(4){transform:translateY(2px) scale(.95)}
+.ti-ic svg:nth-child(5){transform:translateY(-3px) scale(.9)}

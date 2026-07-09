@@ -33,15 +33,15 @@ const AN = TWIN ? {
   // into the massif's forest — HQ below at 2,000 m, crossing at 2,600 m,
   // the listening meadow at 2,730 m under the 4,170 m peak.
   ser1: [-20.5, -12.5], ser2: [-10.8, 1], vg: [40, 15.2],
-  w1: [-18, 9], w2: [-26, 14], w3: [-21, 17], jw: [-13, 10],
-  gate: [13.5, 16.2], ai: [-38, -30], village: [43.5, 16],
+  w1: [-17.5, 8], w2: [-27, 15.5], w3: [-20.5, 18.5], jw: [-12, 9.5],
+  gate: [13.5, 16.2], ai: [12, -2], village: [43.5, 16], villages: [[43.5, 16], [-38, -30]],
   informant: [-33.5, -22.5], truck: [-31, -24],
   trail: [[-31, -24], [-27, -19], [-22.5, -13.5], [-18, -8], [-14, -3], [-11.2, .2], [-9, 3]],
-  road: [[-38, -30], [-33, -26.5], [-28.5, -22], [-24, -17], [-18, -10], [-13, -4], [-10.5, 1], [-9.2, 2.6]],
+  road: [[12, -2], [6.5, -1.2], [1, -.2], [-3.5, .8], [-6.8, 1.8], [-9.2, 2.6]],
   herdIn: [[28, 10], [31.5, 11.5], [34.5, 12.8], [36.8, 13.8], [37.8, 14.2]],
   herdOut: [[37.8, 14.2], [34, 12], [30, 10.5], [26, 9], [22, 8]],
   guard: [[43.5, 16], [41.5, 15.2], [39.6, 14.7]],
-  pack: [-22, 12],
+  pack: [-22.5, 12.8],
 } : {
   ser1: [6.8, 10.2], ser2: [-4.5, 5.6], vg: [12.9, -8.6],
   w1: [-10.5, 14.2], w2: [-15, 16.5], w3: [-17.5, 13.2], jw: [-3, 14.5],
@@ -168,7 +168,7 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // build — no per-move starts.
 const CAMKEYS = TWIN ? [
 // one constant SE-overhead viewing vector — transits are pure glides, never through terrain
-  [0, 36.8, 73.3, 34.2,   0, 2, 2],
+  [0, 46.0, 44.0, 44.0,   0, 4, 2],
   [10.2, -15.0, 32.0, -9.5,   -31, 1, -23.5],
   [14.2, -15.0, 32.0, -9.5,   -31, 1, -23.5],
   [17.6, -4.0, 33.0, 3.0,   -20, 2, -11],
@@ -181,7 +181,8 @@ const CAMKEYS = TWIN ? [
   [46.2, 54.0, 32.0, 28.0,   38, 1, 14],
   [53.4, -5.0, 34.0, 26.0,   -21, 3, 12],
   [62, -5.0, 34.0, 26.0,   -21, 3, 12],
-  [78, 36.8, 73.3, 34.2,   0, 2, 2],
+  [68, 46.0, 44.0, 44.0,   0, 4, 2],
+  [78, 46.0, 44.0, 44.0,   0, 4, 2],
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
@@ -727,7 +728,7 @@ const sat = new THREE.Group();
   stalk.position.y = .82;
   sat.add(body, rim, halo, stalk);
   sat.scale.setScalar(1.9);
-  sat.position.set(-8, TWIN ? 47 : 21.5, -4);
+  sat.position.set(TWIN ? -2 : -8, TWIN ? 28 : 21.5, TWIN ? 0 : -4);
   scene.add(sat);
 }
 
@@ -840,6 +841,7 @@ scene.add(stakeLight);
     b.scale.y = .72;
     b.castShadow = true;
     if (!TWIN) scene.add(b);
+    if (TWIN) b.visible = false;
   }
 }
 const phone = new THREE.Mesh(new THREE.PlaneGeometry(.16, .24), new THREE.MeshStandardMaterial({ color: 0x0a0f0a, emissive: 0x9fd4ff, emissiveIntensity: 1.4 }));
@@ -1074,6 +1076,7 @@ new GLTFLoader().load('./assets/stork.glb', (g) => {
     mixer.clipAction(g.animations[0]).play();
     mixers.push(mixer);
     if (!TWIN) scene.add(b);
+    if (TWIN) b.visible = false;
     storks.push({ b, ph: i * Math.PI });
   }
 }, undefined, () => console.warn('stork asset unavailable'));
@@ -1559,7 +1562,7 @@ tl.to(herdState, { u: 0, duration: 4.6, ease: 'sine.inOut' }, 49.2);
 tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, people out, and the herd drifts back to the treeline. No crops lost, no retaliation.', 5), null, 47);
 
 // ── listening 50–62 · wolves howl, birds call, the array breathes it in
-tl.call(() => { pack.visible = true; }, null, 51.4);
+tl.call(() => { pack.visible = true; storks.forEach(st => st.b.visible = true); }, null, 51.4);
 tl.call(() => gsap.to(packLight, { intensity: 20, duration: 2 }), null, 50.5);
 tl.call(() => gsap.to(packLight, { intensity: 0, duration: 2.5 }), null, 60.5);
 tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 5.5), null, 53.4);
@@ -1634,7 +1637,7 @@ tl.call(() => tl.pause(), null, 77.9);                              // hold on t
 function resetWorld() {
   poach.u = .02; poach.stopped = false;
   herdState.u = 0; herdState.curve = 'in'; herdState.turning = false; herd.visible = false;
-  if (TWIN) { poachers.visible = false; informant.visible = false; pack.visible = false; }
+  if (TWIN) { poachers.visible = false; informant.visible = false; pack.visible = false; storks.forEach(st => st.b.visible = false); }
   jeepState.u = 0; jeepState.on = false; jeepState.arrived = false;
   jeep.visible = false;
   jeep.userData.lights.forEach(m => m.emissiveIntensity = 0);
@@ -1666,14 +1669,16 @@ if (TWIN) {
 /* ── icon entities: the twin's actors are tracked markers, not models ────── */
 const ICONS = [];
 const GLYPHS = {
-  human: 'M12 5a2.4 2.4 0 110 4.8A2.4 2.4 0 0112 5zm-4 14v-4.5a4 4 0 018 0V19h-2.4v-4.2a1.6 1.6 0 00-3.2 0V19H8z',
-  elephant: 'M5 16v-5a5 5 0 019.5-2H17a3 3 0 013 3v4h-2.5v-3.2a1.5 1.5 0 00-1.6-1.5h-.9V16h-2.6v-3.4a2.5 2.5 0 00-4.9.6V16H5z',
-  wolf: 'M6 8l3 2 3-4 3 4 3-2-1 5a5 5 0 01-10 0L6 8zm4.4 6.2h3.2L12 17l-1.6-2.8z',
-  vehicle: 'M5 13l1.4-4.2A2 2 0 018.3 7.4h7.4a2 2 0 011.9 1.4L19 13v4.2h-2.2v-1.4H7.2v1.4H5V13zm2.6-1h8.8l-.9-2.8H8.5L7.6 12zM8 15.4a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4zm8 0a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4z',
-  phone: 'M9 4h6a1.6 1.6 0 011.6 1.6v12.8A1.6 1.6 0 0115 20H9a1.6 1.6 0 01-1.6-1.6V5.6A1.6 1.6 0 019 4zm.4 2v10.6h5.2V6H9.4zM12 18.6a.9.9 0 100-1.8.9.9 0 000 1.8z',
-  bird: 'M4 12c3-.5 5-2.5 6-5 1 2 3 3 5.5 3L20 8.5 17.5 12c-1.5 2.5-4 4-7.5 4l-2 3-1-.5 1.4-2.9C6.5 15 5 13.8 4 12z',
-  sensor: 'M12 4l7 4v8l-7 4-7-4V8l7-4zm0 2.4L7.4 9v6l4.6 2.6L16.6 15V9L12 6.4zm0 3a2.6 2.6 0 110 5.2 2.6 2.6 0 010-5.2z',
+  human: 'M12.2 3.4a2.1 2.1 0 110 4.2 2.1 2.1 0 010-4.2zM10 8.6h4.2l1.9 4.6-1.6.7-1.3-3v3.4l1.8 6.4-1.9.6-1.7-5.7-1.6 5.7-1.9-.6 1.7-6.4V11l-1.4 3-1.6-.7L10 8.6z',
+  elephant: 'M4.5 17.5v-6.2C4.5 8 7 6 10.2 6h5.3c2.4 0 4 1.3 4.6 3.2l1.4 4.1-1.7.6-1.2-3.4c-.2 1-.2 2-.2 3v4h-2.7v-3.6h-1.2V17H12v-3.4a3.4 3.4 0 00-4.8.5v3.4H4.5zm14-11c.9 0 1.6.5 1.9 1.3l-1.5.6c-.2-.4-.4-.5-.7-.5l.3-1.4z',
+  wolf: 'M5.5 9.5L8 11l1.5-4 2.5 3.5 3-4.5 1.5 3 2.5-1-1.5 5.5c-.5 2-2.2 3.5-4.5 3.5h-1c-2.3 0-4-1.4-4.6-3.4L5.5 9.5zm5 8.5h3l-1.5 2.8L10.5 18z',
+  vehicle: 'M4.5 13.5l1.6-4.3A2.4 2.4 0 018.4 7.6h7.2a2.4 2.4 0 012.3 1.6l1.6 4.3v4.6h-2.3v-1.5H6.8v1.5H4.5v-4.6zm2.8-1.2h9.4l-1-2.9H8.3l-1 2.9zM8 16.2a1.3 1.3 0 100-2.6 1.3 1.3 0 000 2.6zm8 0a1.3 1.3 0 100-2.6 1.3 1.3 0 000 2.6z',
+  phone: 'M9.2 3.6h5.6c.9 0 1.6.7 1.6 1.6v13.6c0 .9-.7 1.6-1.6 1.6H9.2c-.9 0-1.6-.7-1.6-1.6V5.2c0-.9.7-1.6 1.6-1.6zm.4 2v11h4.8v-11H9.6zm2.4 13.4a.8.8 0 100-1.6.8.8 0 000 1.6z',
+  bird: 'M3.5 11.5c2.8 0 4.8-1.3 6-3.5.8 1.7 2.3 2.7 4.3 2.9l6.7-2.4-2.3 3.2c-1.8 2.4-4.3 3.7-7.6 3.7l-2.3 3.4-1.2-.7 1.7-3.1c-2.4-.4-4.2-1.6-5.3-3.5zm14.8-2.4a.8.8 0 110-1.6.8.8 0 010 1.6z',
+  sensor: 'M6.5 6h11a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 015 16.5v-9A1.5 1.5 0 016.5 6zm5.5 3.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zm0 1.5a1.3 1.3 0 110 2.6 1.3 1.3 0 010-2.6zM7 7.2a.9.9 0 100 1.8.9.9 0 000-1.8zM11 3.6h2V6h-2V3.6z',
+  village: 'M12 4l6.5 5.5v1.3h-1.2V18h-3.4v-4.4h-3.8V18H6.7v-7.2H5.5V9.5L12 4zm7.5 14v-3.6l2.6 2V18h-2.6zM2 18v-1.6l2.5-2V18H2z',
 };
+
 function iconEl(kind, hue, label, count, pillOnly) {
   const el = document.createElement('div');
   el.className = 'twin-icon' + (kind === 'sensor' ? ' twin-sensor' : '') + (pillOnly ? ' pill-only' : '');
@@ -1707,7 +1712,7 @@ function markerPulse(rec, big = false) {
   rec.el.classList.add(big ? 'pulse-big' : 'pulse');
 }
 if (TWIN) {
-  const SHORT = { serengeti: 'Serengeti', villageguard: 'VillageGuard', gateway: 'Gateway', junglewallah: 'Jungle-Wallah', wolf: 'Wolf', ai: 'Landseed AI' };
+  const SHORT = { serengeti: 'Serengeti', villageguard: 'VillageGuard', gateway: 'Gateway', junglewallah: 'Jungle-Wallah', wolf: 'Wolf', ai: 'HQ · Landseed AI' };
   const HUE_BY = { serengeti: HUES.see, villageguard: HUES.guard, gateway: HUES.link, junglewallah: 0xFF8C42, wolf: HUES.listen, ai: HUES.brain };
   const RANGE = { serengeti: 6.5, villageguard: 5.5, gateway: 9, junglewallah: 4.5, wolf: 5.5 };
   let wolfN = 0, serN = 0;
@@ -1729,9 +1734,15 @@ if (TWIN) {
   mHerd = marker('elephant', HUES.guard, 'Elephants', herd, 3);
   trailFrom(mHerd, HUES.guard);
   mPack = marker('wolf', 0xE682E6, 'Wolf pack', pack, 5);
+  window.__birdM = [];
   mGuards = marker('human', 0x9fdc8f, 'Rangers', guard1, 2);
-  mVillage = marker('sensor', 0xffc36b, 'Village', villageGrp);
+  mVillage = marker('village', 0xffc36b, 'Village', villageGrp);
   mVillage.pri = 1;
+  if (AN.villages) for (let vi = 1; vi < AN.villages.length; vi++) {
+    const vm = marker('village', 0xffc36b, 'Village', null);
+    vm.pri = 1; vm.fixed = true;
+    vm.pos.set(AN.villages[vi][0], heightAt(AN.villages[vi][0], AN.villages[vi][1]) + 1, AN.villages[vi][1]);
+  }
   mVillage.pos.set(AN.village[0], heightAt(AN.village[0], AN.village[1]) + 1, AN.village[1]);
   mVillage.fixed = true;
 }
@@ -1822,8 +1833,8 @@ const CHSETUP = {
   intrusion() {},
   response: setupResponse,
   coexist: setupSettled,
-  listening() { setupSettled(); pack.visible = true; },
-  network() { setupSettled(); pack.visible = true; },
+  listening() { setupSettled(); pack.visible = true; storks.forEach(st => st.b.visible = true); },
+  network() { setupSettled(); pack.visible = true; storks.forEach(st => st.b.visible = true); },
 };
 chips.forEach(b => b.addEventListener('click', () => {
   const T = CH[b.dataset.ch] + .02;
@@ -1919,12 +1930,19 @@ function tick(dt, t) {
     jeep.userData.lights[1].emissiveIntensity = on ? 0 : 3.2;
   }
 
+  if (TWIN && window.__birdM && storks.length && window.__birdM.length < storks.length) {
+    for (let bi = window.__birdM.length; bi < storks.length; bi++) {
+      const bm = marker('bird', 0xE6A5E6, bi === 0 ? 'Birds' : null, storks[bi].b);
+      bm.pri = 1;
+      window.__birdM.push(bm);
+    }
+  }
   for (const st of storks) {
     const a = t * .22 + st.ph;
     st.b.position.set(AN.pack[0] + Math.cos(a) * 3.8, 5 + Math.sin(t * .55 + st.ph) * .3, AN.pack[1] + .3 + Math.sin(a) * 3.4);
     st.b.rotation.y = -a - Math.PI / 2;
   }
-  sat.position.x = -8 + Math.sin(t * .05) * 3;
+  sat.position.x = (TWIN ? -2 : -8) + Math.sin(t * .05) * 3;
   sat.rotation.y = .5 + Math.sin(t * .07) * .25;
   sat.position.z = -2 + Math.cos(t * .05) * 5;
   sat.rotation.y = t * .1;
