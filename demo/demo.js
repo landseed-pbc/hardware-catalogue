@@ -1581,10 +1581,6 @@ tl.call(() => {
   feedPhoto(HUES.listen, 'Listener array · fix', 'Wolf pack located · 3 bearings agree · confidence 0.97', spectroCard());
 }, null, 57.6);
 tl.call(() => {
-  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'LISTENER 03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 1.7);
-  feed(HUES.listen, 'Listener array \u00b7 chorus', 'Birdsong indexed overnight \u00b7 14 species logged');
-}, null, 60.2);
-tl.call(() => {
 
   ringAt(AN.jw[0], AN.jw[1], 0xFF8C42, 2);
   feed(0xFF8C42, 'Survey unit · archive', 'Offloaded on patrol pass · two individuals re-identified');
@@ -2055,14 +2051,23 @@ function tick(dt, t) {
     const hidden = proj.z > 1 || (ic.follow && ic.follow.visible === false);
     ic.el.style.display = hidden ? 'none' : '';
     if (hidden) continue;
-    const sx = (proj.x * .5 + .5) * innerWidth, sy = (-proj.y * .5 + .5) * innerHeight;
+    const rx = (proj.x * .5 + .5) * innerWidth, ry = (-proj.y * .5 + .5) * innerHeight;
+    ic.sx = ic.sx === undefined ? rx : ic.sx + (rx - ic.sx) * .35;   // smoothed — labels glide, never jitter
+    ic.sy = ic.sy === undefined ? ry : ic.sy + (ry - ic.sy) * .35;
+    const sx = Math.round(ic.sx), sy = Math.round(ic.sy);
     ic.el.style.left = sx + 'px';
     ic.el.style.top = sy + 'px';
     const w = ic.el.offsetWidth || 120;
     const box = { x0: sx - 20, x1: sx + w, y0: sy - 20, y1: sy + 22 };
     const clash = shownPills.some(b => box.x0 < b.x1 && box.x1 > b.x0 && box.y0 < b.y1 && box.y1 > b.y0);
-    if (clash && ic.pri < 2) ic.el.classList.add('nolabel');
-    else { ic.el.classList.remove('nolabel'); shownPills.push(box); }
+    const now = performance.now();
+    if (clash && ic.pri < 2) {
+      if (!ic.lockUntil || now > ic.lockUntil) { ic.el.classList.add('nolabel'); ic.lockUntil = now + 1200; }
+      else if (!ic.el.classList.contains('nolabel')) shownPills.push(box);
+    } else {
+      if (ic.el.classList.contains('nolabel') && ic.lockUntil && now < ic.lockUntil) { /* hold hidden */ }
+      else { ic.el.classList.remove('nolabel'); shownPills.push(box); ic.lockUntil = now + 1200; }
+    }
     const dimmed = !!(FOCUS && ic.key && !FOCUS.has(ic.key));
     ic.el.classList.toggle('dim', dimmed);
     if (ic.ring) ic.ring.material.opacity += (((dimmed ? .07 : .4)) - ic.ring.material.opacity) * .08;
