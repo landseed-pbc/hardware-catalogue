@@ -44,13 +44,13 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 
 /* projected detection cards */
 #pops{position:fixed;inset:0;z-index:24;pointer-events:none}
-.pop{position:absolute;transform:translate(-50%,-116%);width:224px;border-radius:11px;overflow:hidden;background:linear-gradient(180deg,rgba(6,12,8,.9),rgba(6,12,8,.96));border:1px solid rgba(240,240,234,.14);box-shadow:0 14px 44px rgba(0,0,0,.5);opacity:0}
+.pop{position:fixed;left:46%;top:118px;transform:translate(-50%,0);width:252px;border-radius:11px;overflow:hidden;background:linear-gradient(180deg,rgba(6,12,8,.9),rgba(6,12,8,.96));border:1px solid rgba(240,240,234,.14);box-shadow:0 14px 44px rgba(0,0,0,.5);opacity:0}
 .pop canvas{display:block;width:100%;height:auto}
 .pop .p-b{padding:8px 11px 9px}
 .pop .p-t{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--fa,#fff)}
 .pop .p-t em{font-style:normal;font-size:10px;font-weight:700;color:var(--dim)}
 .pop .p-s{margin-top:2px;font-size:11px;line-height:1.4;color:var(--dim)}
-.pop::after{content:"";position:absolute;left:50%;bottom:-7px;width:12px;height:12px;transform:translateX(-50%) rotate(45deg);background:rgba(6,12,8,.95);border-right:1px solid rgba(240,240,234,.14);border-bottom:1px solid rgba(240,240,234,.14)}
+
 
 /* chapters + controls */
 #chapters{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);z-index:30;display:flex;gap:7px;padding:6px;border-radius:999px;background:rgba(7,15,7,.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.1);max-width:96vw}
@@ -111,3 +111,9 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .end-primary:hover{transform:translateY(-2px);box-shadow:0 20px 56px rgba(0,255,100,.4),inset 0 1px 0 rgba(255,255,255,.4)}
 .end-again{background:rgba(7,15,7,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(240,240,234,.22);border-radius:999px;padding:10px 24px;color:rgba(240,240,234,.82);font:600 13px var(--sans);letter-spacing:.04em;cursor:pointer;transition:.25s}
 .end-again:hover{border-color:rgba(0,255,100,.55);color:var(--alive)}
+
+/* photo bubbles + hud link */
+.tg-photo img{display:block;width:100%;border-radius:9px;margin-top:7px}
+.tg-photo span{margin-top:6px}
+.hud-link{color:rgba(240,240,234,.5);text-decoration:none;margin-right:18px;transition:.2s}
+.hud-link:hover{color:var(--alive)}

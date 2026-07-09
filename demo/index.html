@@ -10,8 +10,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./demo.css?v=15" />
+<link rel="stylesheet" href="./demo.css?v=16" />
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
+<link rel="preload" as="fetch" href="./assets/soldier.glb" crossorigin />
+<link rel="preload" as="fetch" href="./assets/wolf.glb" crossorigin />
 </head>
 <body class="booting">
 
@@ -26,7 +28,7 @@
 
 <header class="hud">
   <div class="brand"><img class="b-word" src="/public/landseed-wordmark.svg" alt="Landseed" /></div>
-  <div class="hud-right"><span class="hud-tag">Field Demonstration · Simulated Landscape</span></div>
+  <div class="hud-right"><a class="hud-tag hud-link" id="terr" href="./?terrain=real">Real terrain ↗</a><span class="hud-tag">Field Demonstration · Simulated Landscape</span></div>
 </header>
 
 <!-- opening title -->
@@ -66,9 +68,7 @@
   <button class="chip" data-ch="listening">Listening</button>
   <button class="chip" data-ch="network">The Network</button>
   <span class="chip-div"></span>
-  <button class="chip" id="pause" aria-label="pause">⏸</button>
-  <a class="chip" id="terr" href="./?terrain=real">Real terrain ↗</a>
-  <a class="chip cta" href="/">Hardware catalogue →</a>
+  <a class="chip cta" href="/">Catalogue</a>
 </nav>
 
 <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -78,6 +78,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./demo.js?v=40"></script>
+<script type="module" src="./demo.js?v=41"></script>
 </body>
 </html>

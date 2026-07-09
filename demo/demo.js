@@ -50,6 +50,9 @@ async function loadDEM() {
   const sorted = Float32Array.from(grid).sort();
   dem = { grid, n: 768, base: sorted[Math.floor(sorted.length * .12)] };
 }
+const soldierFetch = new Promise((res) => {
+  new GLTFLoader().load('./assets/soldier.glb', (g) => res(g), undefined, () => res(null));
+});
 if (REAL) { try { await Promise.race([loadDEM(), new Promise((_, r) => setTimeout(r, 8000))]); } catch (e) { dem = null; console.warn('DEM unavailable — procedural terrain', e); } }
 function demAt(x, z) {
   // world 76×56 → central window of the 512² DEM
@@ -570,10 +573,11 @@ const sat = new THREE.Group();
 // rigged human — cloned from the shared Soldier asset with real clips
 let soldierProto = null, soldierClips = null;
 const mixers = [];
-await new Promise((res) => {
-  new GLTFLoader().load('./assets/soldier.glb', (g) => { soldierProto = g.scene; soldierClips = g.animations; res(); },
-    undefined, () => { console.warn('soldier asset unavailable'); res(); });
-});
+{
+  const g = await soldierFetch;                          // kicked off before the world build — overlaps CPU work
+  if (g) { soldierProto = g.scene; soldierClips = g.animations; }
+  else console.warn('soldier asset unavailable');
+}
 function figure(color, h = .8) {
   const g = new THREE.Group();
   if (soldierProto) {
@@ -1028,6 +1032,26 @@ function caption(hue, k, t, l, hold = 7) {
   gsap.to(cap, { opacity: 0, delay: hold, duration: .8, overwrite: false });
 }
 const FEED_EMOJI = [[HUES.see, '\u{1F6A8}'], [HUES.guard, '\u{1F418}'], [HUES.listen, '\u{1F43A}'], [HUES.link, '\u{1F4E1}'], [HUES.brain, '\u{1F9E0}'], [HUES.report, '\u{1F4F1}'], [0xFF8C42, '\u{1F4F7}']];
+function feedPhoto(hue, title, text, cnv) {
+  const em = (FEED_EMOJI.find(([h]) => h === hue) || [0, '\u{1F4CD}'])[1];
+  const el = document.createElement('div');
+  el.className = 'tg-msg tg-photo';
+  const img = document.createElement('img');
+  img.src = cnv.toDataURL('image/jpeg', .82);
+  el.innerHTML = `<b>${em} ${title}</b>`;
+  el.appendChild(img);
+  const sp = document.createElement('span'); sp.textContent = text;
+  const tm = document.createElement('em'); tm.textContent = clockStr();
+  el.appendChild(sp); el.appendChild(tm);
+  const list = $('#feed-list');
+  list.appendChild(el);
+  gsap.fromTo(el, { opacity: 0, y: 20, scale: .97 }, { opacity: 1, y: 0, scale: 1, duration: .75, ease: 'power3.out' });
+  while (list.children.length > 4) {
+    const first = list.querySelector('.tg-msg');
+    if (!first) break;
+    list.removeChild(first);
+  }
+}
 function feed(hue, title, text) {
   const em = (FEED_EMOJI.find(([h]) => h === hue) || [0, '\u{1F4CD}'])[1];
   const el = document.createElement('div');
@@ -1036,7 +1060,7 @@ function feed(hue, title, text) {
   const list = $('#feed-list');
   list.appendChild(el);
   gsap.fromTo(el, { opacity: 0, y: 20, scale: .97 }, { opacity: 1, y: 0, scale: 1, duration: .75, ease: 'power3.out' });
-  while (list.children.length > 5) {
+  while (list.children.length > 4) {
     const first = list.querySelector('.tg-msg');
     if (!first) break;
     list.removeChild(first);
@@ -1193,14 +1217,14 @@ function popup(world, hue, title, conf, sub, kind, hold = 6.5, dx = 0) {
   b.innerHTML = `<div class="p-t">${title}<em>${conf}</em></div><div class="p-s">${sub}</div>`;
   el.appendChild(b);
   $('#pops').appendChild(el);
-  const rec = { el, world, dx };
+  const rec = { el };
   pops.push(rec);
-  while (pops.length > 2) {                             // two cards max on screen — kill the oldest outright
+  while (pops.length > 1) {                             // one card at a time — the dock belongs to the newest alert
     const old = pops.shift();
     gsap.killTweensOf(old.el);
     old.el.remove();
   }
-  gsap.fromTo(el, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: .5 });
+  gsap.fromTo(el, { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: .55, ease: 'power2.out' });
   gsap.to(el, { opacity: 0, delay: hold, duration: .6, onComplete: () => { el.remove(); pops.splice(pops.indexOf(rec), 1); } });
 }
 function clockStr() {
@@ -1234,7 +1258,7 @@ tl.call(() => {
   flashAt(V3(26.5, heightAt(26.5, 16.6) + 1.2, 16.6), 0xcfe8ff);      // the phone takes its photo
   const shot = sensorSnap(V3(26.9, heightAt(26.5, 16.6) + 1.15, 16.9), V3(28.8, heightAt(28.8, 17.9) + .7, 17.9),
     { boxes: [boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] });
-  popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', shot, 5, 140);
+  popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', shot, 4.6);
   stMobHQ.play(2.4);
   feed(HUES.report, 'Mobile-07 · report', 'Vehicle at the north track · direct-to-cell · photo at HQ');
 }, null, 11.2);
@@ -1246,9 +1270,9 @@ tl.call(() => {                                                     // DETECTION
   const pp = trail.getPoint(poach.u);
   ringAt(pp.x, pp.z, HUES.see, 3.4);
   gsap.fromTo(fovSer1, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', fieldCard('people-walk'), 5.5, 160);
+  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', fieldCard('people-walk'), 3.8);
 }, null, 19);
-tl.call(() => { stSer1Gate.play(2.6); feed(HUES.see, 'Serengeti-01 · alert', 'Human ×4 at the chokepoint · image → Gateway over LoRa'); }, null, 19.9);
+tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Serengeti-01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128)); }, null, 19.9);
 tl.call(() => fireUplink(), null, 21.2);
 tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 22);
 tl.to(poach, { u: .74, duration: 12, ease: 'none' }, 19.5);
@@ -1293,12 +1317,12 @@ tl.call(() => {                                                     // INTERCEPT
 }, null, 32.6);
 tl.call(() => {                                                     // lamp down, cuffs on — quiet close
   pFigs[0].traverse(o => { if (o.isSpotLight) gsap.to(o, { intensity: 0, duration: .8 }); });
-  feed(HUES.see, 'Patrol \u00b7 on site', 'Four detained at the ford \u00b7 rifles seized \u00b7 evidence packaged, chain of custody logged');
+  feedPhoto(HUES.see, 'Patrol \u00b7 on site', 'Four detained \u00b7 rifles seized \u00b7 evidence packaged, chain of custody logged', fieldCard('people-close', 128));
 }, null, 34);
 tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
 tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Rangers reach the ford before the group does. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 5.6), null, 33.4);
 tl.call(() => {
-  popup(V3(-2.8, heightAt(-2.8, 5.3) + 2.2, 5.3), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 4.4, 165);
+  popup(V3(-2.8, heightAt(-2.8, 5.3) + 2.2, 5.3), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 2.8);
 }, null, 34.4);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
@@ -1312,9 +1336,9 @@ tl.call(() => {                                                     // DETECTION
   flashAt(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), 0xffe9bd);
   ringAt(12.4, -6.4, HUES.guard, 3.2);
   gsap.fromTo(fovVG, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · alert < 1 KB · direct-to-cell', fieldCard('elephant-walk'), 5, -150);
+  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · alert < 1 KB · direct-to-cell', fieldCard('elephant-walk'), 4.4);
   stVGHQ.play(2.2);
-  feed(HUES.guard, 'VillageGuard-04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 deterrence lights on \u00b7 protection unit walking out');
+  feedPhoto(HUES.guard, 'VillageGuard-04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-walk', 128));
 }, null, 44.9);
 cam(44.6, [18.5, 12.5, 2.5], [10.5, .5, -6.5], 4.2, 'sine.inOut');  // one slow push-in as the deterrent plays
 tl.call(() => {
@@ -1324,7 +1348,7 @@ tl.call(() => {
 }, null, 45.7);
 tl.to(guardState, { u: 1, duration: 5.2, ease: 'none' }, 45.9);
 tl.call(() => {
-  popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGEGUARD-04 · every class on the list in a single detector', fieldCard('multi-class'), 4.5, 165);
+  popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGEGUARD-04 · every class on the list in a single detector', fieldCard('multi-class'), 3);
   feed(HUES.guard, 'VillageGuard-04 · multi-class', 'Elephant and person in the same frame · one detector');
 }, null, 47.6);
 tl.call(() => {                                                     // the herd actually turns
@@ -1366,9 +1390,9 @@ tl.call(() => {
   feed(HUES.listen, 'Wolf array · fix', 'Wolf pack located · 3 bearings agree');
 }, null, 57.4);
 tl.call(() => {
-  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 3.4, 190);
+  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 2.2);
   feed(HUES.listen, 'Wolf array \u00b7 chorus', 'Bird calls overhead indexed \u00b7 14 species tonight');
-}, null, 56.1);
+}, null, 55.8);
 tl.call(() => {
   popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · offloaded on patrol pass · density updated', 'reid', 4, 140);
   ringAt(-3, 14.5, 0xFF8C42, 2);
@@ -1487,7 +1511,7 @@ function markChapter() {
   for (const [k, v] of Object.entries(CH)) if (t >= v) cur = k;
   chips.forEach(b => b.classList.toggle('on', b.dataset.ch === cur));
 }
-$('#pause').addEventListener('click', () => {
+if ($('#pause')) $('#pause').addEventListener('click', () => {
   if (tl.paused()) { tl.play(); $('#pause').textContent = '⏸'; }
   else { tl.pause(); $('#pause').textContent = '▶'; }
 });
@@ -1611,15 +1635,6 @@ function tick(dt, t) {
   camera.position.set(camP.x, camP.y, camP.z);
   camera.lookAt(camL.x, camL.y, camL.z);
 
-  for (const rec of pops) {
-    proj.copy(rec.world).project(camera);
-    if (proj.z > 1 || Math.abs(proj.x) > 1.08 || Math.abs(proj.y) > 1.08) { rec.el.style.display = 'none'; continue; }
-    rec.el.style.display = '';
-    const px2 = Math.max(260, Math.min(innerWidth - 300, (proj.x * .5 + .5) * innerWidth + (rec.dx || 0)));
-    const py2 = Math.max(rec.el.offsetHeight * 1.16 + 64, Math.min(innerHeight - 185, (-proj.y * .5 + .5) * innerHeight));
-    rec.el.style.left = px2 + 'px';
-    rec.el.style.top = py2 + 'px';
-  }
   const TT = tl.time();
   for (const wl of wlabels) {
     proj.copy(wl.pos).project(camera);

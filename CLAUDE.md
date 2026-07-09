@@ -73,3 +73,10 @@ catalogue moving to /catalogue, once perfected.
   `heightAt` to the DEM; falls back to procedural on failure.
 - Iterate against the LIVE deploy and bump `demo.js?v=N` on every deploy — the
   Pages CDN caches aggressively.
+- Alert cards render in a fixed top-centre dock (one at a time, killed by the
+  next) — they are deliberately NOT world-projected. Big beats also land in the
+  Telegram phone as photo bubbles (`feedPhoto`). The film pauses on its final
+  frame; the overlay's Watch again restarts via `resetWorld()`.
+- Verification gotcha: backgrounded tabs freeze rAF AND gsap real-time holds —
+  ghost cards / stale clocks in screenshots are artifacts, not bugs. Foreground
+  the window before judging timing.
