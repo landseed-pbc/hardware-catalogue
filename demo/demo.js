@@ -112,9 +112,9 @@ const CAMKEYS = [
   [9,    36, 20, 34,     4, 2, 6],        // drifting in over the river
   [10.8, 30, 13, 26,    25.5, .5, 15.8],  // the informant's corner, high oblique
   [13.4, 30, 13, 26,    25.5, .5, 15.8],  // · hold — the report goes out
-  [15,   22, 12.5, 21.5, 13, 1, 11],      // transit — damps the spline's curl
-  [16.6, 14, 12, 18,     5.5, .5, 8.5],   // chokepoint from altitude
-  [21,   14, 12, 18,     5.5, .5, 8.5],   // · hold — detection at range, relay
+  [15,   23, 11, 21,    13, 1, 11],       // transit — damps the spline's curl
+  [16.6, 16.5, 8.5, 15.5, 4.5, .8, 7.5],  // behind the group, sensor ahead
+  [21.4, 16.5, 8.5, 15.5, 4.5, .8, 7.5],  // · hold — detection at range, relay
   [22.6, 20, 15, 7,     12, .5, -6],      // over the forest
   [24.4, 25, 11, -1,    17, .8, -12.3],   // HQ
   [26.2, 25, 11, -1,    17, .8, -12.3],   // · hold — dispatch
@@ -126,8 +126,8 @@ const CAMKEYS = [
   [45.8, 22, 17, 6,      9.5, 0, -6.5],   // · hold — detection, guards emerge, a breath
   [49.4, 19, 14, 3,     10.5, .3, -6.5],  // one slow push as the deterrent plays
   [50.9, 7, 16, 12,     -1, .8, 5],       // over the river
-  [53.2, -2, 12, 24,    -12.2, 1, 12.2],  // the listening clearing from altitude
-  [61.9, -2, 12, 24,    -12.2, 1, 12.2],  // · hold — howls, reports
+  [53.2, -3.5, 12, 26,  -13.5, 1.2, 14.6],// the listening meadow from altitude
+  [61.9, -3.5, 12, 26,  -13.5, 1.2, 14.6],// · hold — howls, reports
   [78,   50, 27, 46,    -5, 9, -2],       // one pull home — lands on the opening frame
 ];
 
@@ -384,7 +384,7 @@ let fireflies;
 
 /* ── vegetation & rocks (instanced, three species) ──────────────────────── */
 
-const SPOTS = [[6.8, 10.2], [-4.5, 5.6], [12.9, -8.6], [-12, 10.5], [-8.5, 15.5], [-17, 11.5], [-3, 14.5], [-21.5, -3.5], [-12.8, 12.6], [-11.5, 13.5], [-9.8, 14.2], [-7.8, 16], [-6.5, 17.5], [-2.8, 5.3], [-1, 3.5], [-5, 3.8], [0, 6.5]];
+const SPOTS = [[6.8, 10.2], [-4.5, 5.6], [12.9, -8.6], [-10.5, 14.2], [-15, 16.5], [-17.5, 13.2], [-3, 14.5], [-21.5, -3.5], [-13.5, 15.2], [-12, 15.9], [-14.9, 14.4], [-8, 18.5], [-6, 20], [-2.8, 5.3], [-1, 3.5], [-5, 3.8], [0, 6.5], [-9, 16.5]];
 function scatterOK(x, z, h) {
   if (h < -.2 || h > 3.6) return false;
   if (Math.abs(z - riverZ(x)) < 2.4) return false;
@@ -569,7 +569,7 @@ function placeS(id, x, z, ry, sc) { const g = place(id, x, z, ry, sc); SENSORS.p
 placeS('serengeti', 6.8, 10.2, 1.4, 1.9);
 placeS('serengeti', -4.5, 5.6, 1.25, 1.9);
 placeS('villageguard', 12.9, -8.6, -.4, 1.9);
-const wolves = [placeS('wolf', -12, 10.5, .6, 2.1), placeS('wolf', -8.5, 15.5, 0, 2.1), placeS('wolf', -17, 11.5, 1, 2.1)];
+const wolves = [placeS('wolf', -10.5, 14.2, .6, 2.1), placeS('wolf', -15, 16.5, 0, 2.1), placeS('wolf', -17.5, 13.2, 1, 2.1)];
 placeS('junglewallah', -3, 14.5, 2.4, 1.9);
 placeS('gateway', -21.5, -3.5, 1.1, 2.6);
 const sAI = placeS('ai', 17, -12.3, 0, .85);
@@ -728,8 +728,8 @@ const poach = { u: 0.02, lastU: 0.02, stopped: false };
     const w = new THREE.Mesh(wG, wM); w.position.set(wx, .2, wz); truck.add(w);
   }
   truck.add(bed, cab);
-  truck.position.set(26.2, heightAt(26.2, 19.4), 19.4);
-  truck.rotation.y = 2.4;
+  truck.position.set(29.6, heightAt(29.6, 19.1), 19.1);
+  truck.rotation.y = -2.2;
   scene.add(truck);
   window.__pickup = truck;
 }
@@ -870,7 +870,7 @@ scene.add(herd);
 const herdState = { u: 0, curve: 'in', turning: false };
 
 // the wolf pack — Quaternius' animated rig (CC0), three clones with real clips
-const PACK_AT = [-12.8, 12.6];
+const PACK_AT = [-13.5, 15.2];
 const pack = new THREE.Group();
 pack.position.set(PACK_AT[0], heightAt(PACK_AT[0], PACK_AT[1]), PACK_AT[1]);
 pack.rotation.y = 1.2;
@@ -1077,11 +1077,11 @@ const GATE_TOP = V3(-21.5, heightAt(-21.5, -3.5) + 2.4, -3.5);
 const stSer1Gate = stream(V3(6.8, heightAt(6.8, 10.2) + 1.6, 10.2), GATE_TOP, HUES.see, 5);
 const stSer2Gate = stream(V3(-4.5, heightAt(-4.5, 5.6) + 1.6, 5.6), GATE_TOP, HUES.see, 4);
 const stVGHQ = stream(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), HQ_TOP, HUES.guard, 2.4);
-const stWolfGate = stream(V3(-12, heightAt(-12, 10.5) + 1.4, 10.5), GATE_TOP, HUES.listen, 3.6);
+const stWolfGate = stream(V3(-10.5, heightAt(-10.5, 14.2) + 1.4, 14.2), GATE_TOP, HUES.listen, 3.6);
 const stJWGate = stream(V3(-3, heightAt(-3, 14.5) + 1.4, 14.5), GATE_TOP, HUES.link, 4.2);
 const stSatHQ = stream(V3(-8, 21.5, -4), HQ_TOP, HUES.brain, -4);
-const stWolf2Gate = stream(V3(-8.5, heightAt(-8.5, 15.5) + 1.4, 15.5), GATE_TOP, HUES.listen, 4.2);
-const stWolf3Gate = stream(V3(-17, heightAt(-17, 11.5) + 1.4, 11.5), GATE_TOP, HUES.listen, 3);
+const stWolf2Gate = stream(V3(-15, heightAt(-15, 16.5) + 1.4, 16.5), GATE_TOP, HUES.listen, 4.2);
+const stWolf3Gate = stream(V3(-17.5, heightAt(-17.5, 13.2) + 1.4, 13.2), GATE_TOP, HUES.listen, 3);
 const stHQPatrol = stream(HQ_TOP, V3(-2.8, heightAt(-2.8, 5.3) + 1, 5.3), HUES.brain, 3.4);
 const stMobHQ = stream(V3(26.5, heightAt(26.5, 16.6) + 1.4, 16.6), HQ_TOP, HUES.report, 4.5);
 let uplink = null;
@@ -1337,25 +1337,25 @@ tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station'
 tl.call(() => $('#phone').classList.add('on'), null, 10.3);         // the phone arrives with the story
 tl.call(() => {
   flashAt(V3(26.5, heightAt(26.5, 16.6) + 1.2, 16.6), 0xcfe8ff);      // the phone takes its photo
-  const shot = sensorSnap(V3(26.8, heightAt(26.5, 16.6) + 1.15, 17.1), V3(26.2, heightAt(26.2, 19.4) + .7, 19.4),
+  const shot = sensorSnap(V3(26.8, heightAt(26.5, 16.6) + 1.15, 17.1), V3(29.6, heightAt(29.6, 19.1) + .7, 19.1),
     { boxes: [boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] });
   popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', shot, 2.9);
   stMobHQ.play(2.4);
   feed(HUES.report, 'Mobile-07 · report', 'Vehicle at the north track · direct-to-cell · photo at HQ');
 }, null, 11.2);
 tl.call(() => caption(HUES.report, 'To report · Human in the loop', 'The first sensor is a person', 'An informant’s photo reaches HQ before the men are inside. The cameras are already waiting.', 6.2), null, 11.6);
-tl.to(poach, { u: .52, duration: 6.4, ease: 'none' }, 13.2);
+tl.to(poach, { u: .4, duration: 6.4, ease: 'none' }, 13.2);
 tl.call(() => {                                                     // DETECTION 1 — at the wedge edge, seven units out
   const pp = trail.getPoint(poach.u);
   triggerBeam(pp.x, pp.z, 6.8, 10.2, HUES.see);
   ringAt(pp.x, pp.z, HUES.see, 2.6);
   gsap.fromTo(fovSer1, { opacity: .4 }, { opacity: .1, duration: 1.8 });
   popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · detected at 40 m · 200 ms to image', fieldCard('people-walk'), 3.2);
-}, null, 17.4);
-tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Serengeti-01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128)); }, null, 18.3);
-tl.call(() => fireUplink(), null, 19.6);
-tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 20.8);
-tl.to(poach, { u: .74, duration: 12, ease: 'none' }, 19.5);
+}, null, 17.9);
+tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Serengeti-01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128)); }, null, 18.8);
+tl.call(() => fireUplink(), null, 20);
+tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 21.2);
+tl.to(poach, { u: .74, duration: 12.6, ease: 'none' }, 19.8);
 
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
 tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. A patrol is rolling in under a minute.', 5), null, 24.6);
@@ -1369,7 +1369,7 @@ tl.call(() => {                                                     // second ca
 }, null, 28.2);
 tl.call(() => {                                                     // INTERCEPT — the jeep halts short
   placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
-  placeOnCurve(jeep, road, Math.max(jeepState.u, .96), 0, 1);
+  placeOnCurve(jeep, road, Math.max(jeepState.u, .96), 0, .05, true);
   poach.stopped = true;
   jeepState.arrived = true;
   const pp = trail.getPoint(poach.u);
@@ -1434,7 +1434,7 @@ tl.call(() => {                                                     // the herd 
   gsap.to(herd.rotation, { y: '+=2.9', duration: 2.3, ease: 'sine.inOut',
     onComplete: () => { herdState.turning = false; herdState.curve = 'out'; } });
 }, null, 46.2);
-tl.to(herdState, { u: 0, duration: 5.4, ease: 'sine.inOut' }, 48);
+tl.to(herdState, { u: 0, duration: 4.6, ease: 'sine.inOut' }, 49.2);
 tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, people out, and the herd drifts back to the treeline. No crops lost, no retaliation.', 5), null, 47);
 
 // ── listening 50–62 · wolves howl, birds call, the array breathes it in
@@ -1459,7 +1459,7 @@ tl.call(() => {                                                     // …and a 
     wolves.forEach((w, i) => setTimeout(() => soundWave(wp.clone(), w, { freq: 16, amp: .26, hue: 0xc9a4ff, dur: 1.1 }), i * 220));
   }
 }, null, 58.6);
-tl.call(() => bearings(-12.8, 12.6), null, 55.7);
+tl.call(() => bearings(-13.5, 15.2), null, 55.7);
 tl.call(() => {
   popup(V3(-12.8, heightAt(-12.8, 12.6) + 2.3, 12.6), HUES.listen, 'Howl · wolves', '0.97', 'WOLF-02 · 3 bearings agree · pack located on the map', spectroCard(), 2.8);
   stWolfGate.play(2.4);
@@ -1670,7 +1670,7 @@ function tick(dt, t) {
 
   for (const st of storks) {
     const a = t * .22 + st.ph;
-    st.b.position.set(-11.5 + Math.cos(a) * 5.2, 4.1 + Math.sin(t * .55 + st.ph) * .3, 13 + Math.sin(a) * 4.4);
+    st.b.position.set(-13.5 + Math.cos(a) * 3.8, 5 + Math.sin(t * .55 + st.ph) * .3, 15.5 + Math.sin(a) * 3.4);
     st.b.rotation.y = -a - Math.PI / 2;
   }
   sat.position.x = -8 + Math.sin(t * .05) * 3;
@@ -1716,10 +1716,12 @@ function tick(dt, t) {
     const T = tl.time();
     if (jeep.visible && T > 26.4 && T < 32.6) {                     // the camera's eye rides the truck
       const wIn = Math.min(1, (T - 26.4) / 1.2), wOut = Math.min(1, (32.6 - T) / 1.2);
-      const w = Math.min(wIn, wOut) * .85;
-      camL.x += (jeep.position.x - camL.x) * w;
+      const w = Math.min(wIn, wOut) * .95;
+      const lx = jeep.position.x + Math.cos(jeep.rotation.y) * 1.4;   // lead the truck slightly
+      const lz = jeep.position.z - Math.sin(jeep.rotation.y) * 1.4;
+      camL.x += (lx - camL.x) * w;
       camL.y += (jeep.position.y + .6 - camL.y) * w;
-      camL.z += (jeep.position.z - camL.z) * w;
+      camL.z += (lz - camL.z) * w;
     }
   }
   camera.position.set(camP.x, camP.y, camP.z);
