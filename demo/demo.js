@@ -531,7 +531,6 @@ const sat = new THREE.Group();
   const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.15, 1.15), [sideM, sideM, capM, capM, sideM, sideM]);
   const rim = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.17, 1.17, 1.17)),
     new THREE.LineBasicMaterial({ color: 0x59F5A0, transparent: true, opacity: .85 }));
-  const face = new THREE.Group();
   // solar wings — two cell panels per side, vertical green cells
   const cellTex = (() => {
     const c = document.createElement('canvas'); c.width = 128; c.height = 96;
@@ -560,7 +559,7 @@ const sat = new THREE.Group();
   halo.position.y = .95;
   const stalk = new THREE.Mesh(new THREE.CylinderGeometry(.02, .02, .22, 6), halo.material);
   stalk.position.y = .82;
-  sat.add(body, rim, face, halo, stalk);
+  sat.add(body, rim, halo, stalk);
   sat.scale.setScalar(1.9);
   sat.position.set(-8, 21.5, -4);
   scene.add(sat);
@@ -703,6 +702,7 @@ function elephant(sc = 1) {
     pivot.add(ear);
     pivot.position.set(-.12, .08, side * .1);
     pivot.rotation.y = side * .35;
+    pivot.rotation.x = side * .5;                               // droop outward — ears, not fins
     head.add(pivot);
     ears.push(pivot);
   }
@@ -1013,7 +1013,6 @@ function fireUplink() {
   flashAt(GATE_TOP.clone(), 0xbfe9ff);
 }
 
-const sfx = { feed() {}, detect() {}, chirp() {} };
 
 /* ── UI: captions, feed, popups ─────────────────────────────────────────── */
 
@@ -1040,53 +1039,26 @@ function feed(hue, title, text) {
     list.removeChild(first);
   }
   list.scrollTop = list.scrollHeight;
-  sfx.feed();
 }
-function thumb(kind) {
-  const c = document.createElement('canvas'); c.width = 196; c.height = 96;
+function thumb() {                                   // JW re-ID archive card — the one drawn thumb left
+  const c = document.createElement('canvas');
+  c.width = 392; c.height = 176;
   const x = c.getContext('2d');
-  const g = x.createLinearGradient(0, 0, 0, 96);
-  g.addColorStop(0, '#26302a'); g.addColorStop(1, '#12180f');
-  x.fillStyle = g; x.fillRect(0, 0, 196, 96);
-  x.fillStyle = 'rgba(0,0,0,.5)'; x.fillRect(0, 74, 196, 22);
-  x.strokeStyle = 'rgba(240,240,234,.25)'; x.strokeRect(.5, .5, 195, 95);
-  x.font = "700 9px 'Hanken Grotesk'";
-  if (kind === 'human') {
-    x.fillStyle = '#0c0f0b';
-    for (let i = 0; i < 3; i++) {
-      const px = 46 + i * 42, ph = 34 + (i % 2) * 6;
-      x.beginPath(); x.arc(px, 66 - ph, 5, 0, 7); x.fill();
-      x.fillRect(px - 6, 66 - ph + 4, 12, ph - 4);
-      x.strokeStyle = '#00FF64'; x.lineWidth = 1.5;
-      x.strokeRect(px - 12, 66 - ph - 10, 24, ph + 12);
-    }
-    x.fillStyle = '#00FF64'; x.fillText('HUMAN ×3 · 0.96 · IR', 8, 88);
-  } else if (kind === 'elephant') {
-    x.fillStyle = '#3d3c37';
-    x.beginPath(); x.ellipse(96, 52, 42, 23, 0, 0, 7); x.fill();
-    x.beginPath(); x.arc(136, 44, 15, 0, 7); x.fill();
-    x.fillRect(147, 44, 6, 24);
-    x.strokeStyle = '#FFC800'; x.lineWidth = 1.5; x.strokeRect(50, 22, 110, 56);
-    x.fillStyle = '#FFC800'; x.fillText('ELEPHANT ×3 · 0.99', 8, 88);
-  } else if (kind === 'vehicle') {
-    x.fillStyle = '#101511';
-    x.fillRect(60, 42, 76, 22); x.fillRect(76, 32, 40, 14);
-    x.beginPath(); x.arc(76, 66, 7, 0, 7); x.arc(120, 66, 7, 0, 7); x.fill();
-    x.strokeStyle = '#1482FF'; x.lineWidth = 1.5; x.strokeRect(52, 26, 92, 48);
-    x.fillStyle = '#4da3ff'; x.fillText('HUMAN REPORT · PHOTO', 8, 88);
-  } else {   // re-id
-    x.fillStyle = '#0d120d';
-    x.beginPath(); x.arc(70, 46, 16, 0, 7); x.fill();
-    x.beginPath(); x.arc(130, 50, 14, 0, 7); x.fill();
-    x.strokeStyle = '#FF8C42'; x.lineWidth = 1.5;
-    x.strokeRect(50, 26, 40, 44); x.strokeRect(112, 32, 38, 40);
-    x.fillStyle = '#FF8C42'; x.fillText('IND-041          IND-017', 56, 88);
+  x.fillStyle = '#0d130f'; x.fillRect(0, 0, 392, 176);
+  x.font = "700 12px 'Hanken Grotesk'";
+  for (let i = 0; i < 2; i++) {
+    const ox = 58 + i * 150;
+    x.fillStyle = '#10231a'; x.fillRect(ox, 26, 110, 96);
+    x.strokeStyle = '#FF8C42'; x.lineWidth = 2; x.strokeRect(ox + 18, 40, 66, 68);
+    x.fillStyle = '#1c3527'; x.beginPath(); x.arc(ox + 51, 66, 16, 0, 7); x.fill();
+    x.fillStyle = '#FF8C42'; x.fillText(`IND-0${i ? 17 : 41}`, ox + 20, 140);
   }
+  x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, 154, 392, 22);
+  x.fillStyle = '#e8efe6'; x.fillText(clockStr() + ' \u00b7 archive \u00b7 re-ID', 9, 169);
   return c;
 }
 // render the world through the sensor's own lens — the alert card shows what
-// the camera genuinely saw, IR-graded for the night units, boxes projected
-// from the true actor positions
+// the camera genuinely saw
 function sensorSnap(from, look, { ir = false, boxes = [] } = {}) {
   const W = 392, H = 192;
   const cam2 = new THREE.PerspectiveCamera(52, W / H, .1, 200);
@@ -1123,7 +1095,7 @@ function sensorSnap(from, look, { ir = false, boxes = [] } = {}) {
     if (bx.tag) { x.fillStyle = bx.col; x.fillText(bx.tag, Math.max(4, tx - wid / 2), Math.max(12, ty - 8)); }
   }
   x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 22, W, 22);
-  x.fillStyle = '#e8efe6'; x.fillText((ir ? 'IR · ' : '') + clockStr(), 9, H - 7);
+  x.fillStyle = '#e8efe6'; x.fillText((ir ? 'IR \u00b7 ' : '') + clockStr(), 9, H - 7);
   x.fillStyle = '#ff5a4d'; x.beginPath(); x.arc(W - 14, H - 12, 4, 0, 7); x.fill();
   return c;
 }
@@ -1209,7 +1181,6 @@ function popup(world, hue, title, conf, sub, kind, hold = 6.5, dx = 0) {
   pops.push(rec);
   gsap.fromTo(el, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: .5 });
   gsap.to(el, { opacity: 0, delay: hold, duration: .6, onComplete: () => { el.remove(); pops.splice(pops.indexOf(rec), 1); } });
-  sfx.detect();
 }
 function clockStr() {
   const mins = 401 + Math.floor(tl.time() * 1.4);
@@ -1228,7 +1199,7 @@ const cam = (t, p, l, dur, ease = 'power2.inOut') => {
 // ── overview 0–10 · one continuous establishing move, high and oblique
 tl.call(() => {
   gsap.fromTo('#title', { opacity: 0 }, { opacity: 1, duration: 1.4, delay: .4, overwrite: true });
-  gsap.to('#title', { opacity: 0, duration: 1, delay: 6.2, overwrite: false });
+  gsap.to('#title', { opacity: 0, duration: 1.1, delay: 7.4, overwrite: false });
 }, null, .01);
 cam(0, [50, 27, 46], [-5, 9, -2], .01, 'none');
 cam(.02, [24, 19, 34], [-4, .5, 0], 9.8, 'sine.inOut');
@@ -1236,7 +1207,7 @@ tl.call(() => fireUplink(), null, 1.2);
 tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station', 'Cameras at the chokepoints, three ears in the forest, a gateway on the ridge — the brain above headquarters.', 6.5), null, 2.6);
 
 // ── intrusion 10–24 · the report comes first, then the cameras confirm
-cam(10, [31.5, 7.5, 24.5], [25.5, 1, 15.8], 2.6);
+cam(10, [31.5, 7.5, 24.5], [25.5, 1, 15.8], 3, 'sine.inOut');
 tl.call(() => $('#phone').classList.add('on'), null, 10.3);         // the phone arrives with the story
 tl.call(() => {
   flashAt(V3(26.5, heightAt(26.5, 16.6) + 1.2, 16.6), 0xcfe8ff);      // the phone takes its photo
@@ -1262,8 +1233,8 @@ tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ · Landseed AI', 'Alert 
 tl.to(poach, { u: .74, duration: 12, ease: 'none' }, 19.5);
 
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
-cam(22.8, [20, 13, 8], [10, 1, -4], 1.6, 'power1.in');              // crane up out of the trail
-cam(24.4, [24, 8, -2], [17, 1.2, -12.3], 2.2, 'power2.out');        // settle on HQ
+cam(22.8, [20, 13, 8], [10, 1, -4], 1.9, 'power1.in');              // crane up out of the trail
+cam(24.7, [24, 8, -2], [17, 1.2, -12.3], 2.6, 'power2.out');        // settle on HQ
 tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. A patrol is rolling in under a minute.', 5), null, 24.6);
 tl.call(() => { jeepState.on = true; jeep.visible = true; feed(HUES.brain, 'HQ · dispatch', 'Patrol unit 2 rolling · intercept set at the ford'); }, null, 25.2);
 tl.to(jeepState, { u: 1, duration: 7.6, ease: 'power1.inOut' }, 25.6);
@@ -1304,16 +1275,15 @@ tl.call(() => {                                                     // lamp down
   feed(HUES.see, 'Patrol · on site', 'Four detained at the ford · rifles seized');
 }, null, 34);
 tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
-tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Like the 20 arrests across 13 gangs that earlier versions made possible, beginning in the Serengeti.', 4.5), null, 33.4);
+tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Like the 20 arrests across 13 gangs that earlier versions made possible, beginning in the Serengeti.', 5.4), null, 33.4);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
-cam(35.4, [8, 13, 3.5], [10, 1, -5], 1.6, 'power1.in');             // crane up from the ford
-cam(37, [19.5, 7.5, 1], [11, 1, -6.5], 2.2, 'power2.out');          // settle over the crop edge
+cam(35.4, [8, 13, 3.5], [10, 1, -5], 1.9, 'power1.in');             // crane up from the ford
+cam(37.3, [19.5, 7.5, 1], [11, 1, -6.5], 2.6, 'power2.out');        // settle over the crop edge
 tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 5.5), null, 37.2);
 tl.call(() => { herd.visible = true; }, null, 35.3);
 tl.to(herdState, { u: .78, duration: 6.4, ease: 'none' }, 35.4);
-cam(39.2, [14.5, 5.4, -9.8], [11, 1.2, -4.4], 1.7, 'power1.in');    // orbit the crops in one direction…
-cam(40.9, [5.8, 4.4, -10.8], [10.8, 1.1, -3.2], 1.9, 'power2.out'); // …and settle low — no counter-rotation
+cam(40.4, [5.8, 4.4, -10.8], [10.8, 1.1, -3.2], 3.4, 'sine.inOut'); // one unhurried glide down to the field edge
 tl.to(herdState, { u: 1, duration: 3.2, ease: 'none' }, 41.6);
 tl.call(() => {                                                     // DETECTION 2
   flashAt(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), 0xffe9bd);
@@ -1323,7 +1293,7 @@ tl.call(() => {                                                     // DETECTION
   stVGHQ.play(2.2);
   feed(HUES.guard, 'VillageGuard-04 · alert', 'Elephant ×3 approaching the fields');
 }, null, 44.9);
-cam(45.1, [21.5, 4.6, -7.5], [13.2, 1, -7.2], 2.2, 'power2.inOut'); // the deterrent frame: lamp, guards, herd
+cam(45.1, [21.5, 4.6, -7.5], [13.2, 1, -7.2], 2.6, 'sine.inOut');   // the deterrent frame: lamp, guards, herd
 tl.call(() => {
   gsap.to(lampMat, { emissiveIntensity: 2.6, duration: .4 });
   gsap.to(villageLight, { intensity: 16, duration: .4 });
@@ -1341,11 +1311,11 @@ tl.call(() => {                                                     // the herd 
     onComplete: () => { herdState.turning = false; herdState.curve = 'out'; } });
 }, null, 46.2);
 tl.to(herdState, { u: 0, duration: 4.6, ease: 'sine.inOut' }, 48);
-tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, people out, and the herd drifts back to the treeline. No crops lost, no retaliation.', 4), null, 47);
+tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, people out, and the herd drifts back to the treeline. No crops lost, no retaliation.', 5), null, 47);
 
 // ── listening 50–62 · wolves howl, birds call, the array breathes it in
-cam(50, [16, 13, 2], [-11, 1, 11], 1.8, 'power1.in');               // crane over the river
-cam(51.8, [-5.5, 5.6, 18.6], [-12.8, 1, 12.5], 2.4, 'power2.out');  // settle close on the pack
+cam(50, [16, 13, 2], [-11, 1, 11], 2, 'power1.in');                 // crane over the river
+cam(52, [-5.5, 5.6, 18.6], [-12.8, 1, 12.5], 2.8, 'power2.out');    // settle close on the pack
 tl.call(() => gsap.to(packLight, { intensity: 20, duration: 2 }), null, 50.5);
 tl.call(() => gsap.to(packLight, { intensity: 0, duration: 2.5 }), null, 60.5);
 tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 6), null, 52);
@@ -1380,10 +1350,10 @@ tl.call(() => {
   ringAt(-3, 14.5, 0xFF8C42, 2);
   feed(0xFF8C42, 'Jungle-Wallah · survey', 'Offloaded on patrol pass · two individuals re-identified');
 }, null, 59.4);
-tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 3.4), null, 60.2);
+tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 4.8), null, 60.2);
 
 // ── network 62–78 · one continuous pull to the whole board
-cam(62, [-2, 25, 29], [-2, 0, -2], 4.5);
+cam(62, [-2, 25, 29], [-2, 0, -2], 5.2, 'sine.inOut');
 tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landscape, reporting', 'See, listen, connect, report — every detection lands in Landseed AI, and the record writes itself.', 9), null, 63.5);
 tl.call(() => { stSer1Gate.play(3); stSer2Gate.play(3); stMobHQ.play(3); }, null, 65);
 tl.call(() => { stWolfGate.play(3); }, null, 65.9);
@@ -1465,12 +1435,18 @@ addEventListener('click', (e) => {
 /* ── chapter chips / pause ──────────────────────────────────────────────── */
 
 const chips = document.querySelectorAll('#chapters .chip[data-ch]');
-chips.forEach(b => b.addEventListener('click', () => {
+function normalizeUI(T) {
   document.querySelectorAll('.pop').forEach(el => el.remove());   // a seek fires every skipped beat — don't stack their cards
   pops.length = 0;
-  endcta.classList.remove('on');
+  endcta.classList.toggle('on', T >= 70.5);
+  $('#phone').classList.toggle('on', T >= 10.3);
+  $('#feed-list').innerHTML = '<div class="tg-day"><span>Today</span></div>';
+}
+chips.forEach(b => b.addEventListener('click', () => {
+  const T = CH[b.dataset.ch] + .02;
+  normalizeUI(T);
   tl.play();
-  tl.time(CH[b.dataset.ch] + .02);
+  tl.time(T);
 }));
 function markChapter() {
   const t = tl.time();
@@ -1604,10 +1580,10 @@ function tick(dt, t) {
 
   for (const rec of pops) {
     proj.copy(rec.world).project(camera);
-    if (proj.z > 1) { rec.el.style.display = 'none'; continue; }
+    if (proj.z > 1 || Math.abs(proj.x) > 1.08 || Math.abs(proj.y) > 1.08) { rec.el.style.display = 'none'; continue; }
     rec.el.style.display = '';
     const px2 = Math.max(260, Math.min(innerWidth - 300, (proj.x * .5 + .5) * innerWidth + (rec.dx || 0)));
-    const py2 = Math.max(230, Math.min(innerHeight - 130, (-proj.y * .5 + .5) * innerHeight));
+    const py2 = Math.max(230, Math.min(innerHeight - 185, (-proj.y * .5 + .5) * innerHeight));
     rec.el.style.left = px2 + 'px';
     rec.el.style.top = py2 + 'px';
   }
