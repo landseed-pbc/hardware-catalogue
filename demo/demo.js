@@ -1034,7 +1034,11 @@ function feed(hue, title, text) {
   const list = $('#feed-list');
   list.appendChild(el);
   gsap.fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .45, ease: 'power2.out' });
-  while (list.children.length > 6) list.removeChild(list.firstChild);
+  while (list.children.length > 7) {
+    const first = list.querySelector('.tg-msg');
+    if (!first) break;
+    list.removeChild(first);
+  }
   list.scrollTop = list.scrollHeight;
   sfx.feed();
 }
@@ -1233,6 +1237,7 @@ tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station'
 
 // ── intrusion 10–24 · the report comes first, then the cameras confirm
 cam(10, [31.5, 7.5, 24.5], [25.5, 1, 15.8], 2.6);
+tl.call(() => $('#phone').classList.add('on'), null, 10.3);         // the phone arrives with the story
 tl.call(() => {
   flashAt(V3(26.5, heightAt(26.5, 16.6) + 1.2, 16.6), 0xcfe8ff);      // the phone takes its photo
   const shot = sensorSnap(V3(26.9, heightAt(26.5, 16.6) + 1.15, 16.9), V3(28.8, heightAt(28.8, 17.9) + .7, 17.9),
@@ -1410,7 +1415,8 @@ tl.eventCallback('onRepeat', () => {
   herd.rotation.y = 0;                                            // the turn tween accumulates otherwise
   rangers.forEach(r => { r.visible = false; setGait(r, 'Idle'); });
   gsap.set(lampMat, { emissiveIntensity: 0 }); gsap.set(villageLight, { intensity: 0 });
-  $('#feed-list').innerHTML = '';
+  $('#feed-list').innerHTML = '<div class="tg-day"><span>Today</span></div>';
+  $('#phone').classList.remove('on');
 });
 
 /* ── persistent infrastructure labels — the Gateway and HQ always read ──── */
