@@ -167,22 +167,11 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // neighbours keeps velocity continuous, so arrivals decelerate and departures
 // build — no per-move starts.
 const CAMKEYS = TWIN ? [
-// one constant SE-overhead viewing vector — transits are pure glides, never through terrain
-  [0, -48.0, 34.0, 26.0,   10, 3, 4],
-  [10.2, -15.0, 32.0, -9.5,   -31, 1, -23.5],
-  [14.2, -15.0, 32.0, -9.5,   -31, 1, -23.5],
-  [17.6, -4.0, 33.0, 3.0,   -20, 2, -11],
-  [21.8, -4.0, 33.0, 3.0,   -20, 2, -11],
-  [24.6, -22.0, 31.5, -15.5,   -38, 0.5, -29.5],
-  [26.6, -22.0, 31.5, -15.5,   -38, 0.5, -29.5],
-  [32.4, 6.5, 33.0, 17.0,   -9.5, 2, 3],
-  [36.8, 6.5, 33.0, 17.0,   -9.5, 2, 3],
-  [40.6, 54.0, 32.0, 28.0,   38, 1, 14],
-  [46.2, 54.0, 32.0, 28.0,   38, 1, 14],
-  [53.4, -5.0, 34.0, 26.0,   -21, 3, 12],
-  [62, -5.0, 34.0, 26.0,   -21, 3, 12],
-  [68, -48.0, 34.0, 26.0,   10, 3, 4],
-  [78, -48.0, 34.0, 26.0,   10, 3, 4],
+  // Mission control: ONE fixed command view of the whole board for all 78 s.
+  // The only motion is a near-imperceptible push-in plus the drone sway.
+  // Every scene plays as events lighting up across a stationary map.
+  [0,  -54, 37, 29,   10, 3, 4],
+  [78, -44, 31.5, 23.5, 8.5, 3, 4.5],
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river

@@ -77,6 +77,10 @@ catalogue moving to /catalogue, once perfected.
   next) — they are deliberately NOT world-projected. Big beats also land in the
   Telegram phone as photo bubbles (`feedPhoto`). The film pauses on its final
   frame; the overlay's Watch again restarts via `resetWorld()`.
+- TWIN camera doctrine (FINAL): ONE fixed command view for the whole film —
+  no stations, no cuts. CAMKEYS is two keys (a 78 s push-in) + drone sway.
+  Scene direction = events on the board (pulses, beams, streams, cards),
+  never camera moves. Do not reintroduce stations.
 - TWIN (default): real DEM (z13) + ESRI imagery (z15, z14 on LOW) with ALL
   story anchors in the `AN` table, hand-picked from the imagery/DEM (grid
   overlay script in the session scratchpad). Fictional keeps its own AN set.
