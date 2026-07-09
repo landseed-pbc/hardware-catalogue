@@ -164,20 +164,20 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // neighbours keeps velocity continuous, so arrivals decelerate and departures
 // build — no per-move starts.
 const CAMKEYS = TWIN ? [
-  [0,    74, 42, 50,   16, 2, 8],         // the sector, wide (loop frame)
-  [10.2, 58.6, 17, 21,  44.8, 1, 5.6],    // the boundary track — horizon in frame
-  [14.2, 58.6, 17, 21,  44.8, 1, 5.6],
-  [17.6, 35.1, 16, 23.3, 15.5, 1, 6.8],   // the chokepoint canopy
-  [21.8, 35.1, 16, 23.3, 15.5, 1, 6.8],
-  [24.6, 59.5, 16, 22.6, 46, 1.5, 12.6],  // headquarters on the farm belt
-  [26.6, 59.5, 16, 22.6, 46, 1.5, 12.6],
-  [32.4, 16.6, 14.5, 18.7, 2.6, 1, 4.5],  // the crossing
-  [36.8, 16.6, 14.5, 18.7, 2.6, 1, 4.5],
-  [40.6, 52.9, 17, 28.9, 38, 1, 13.8],    // the fields
-  [46.2, 52.9, 17, 28.9, 38, 1, 13.8],
-  [53.4, 34.9, 17, 10.6, 20, 1, -3.2],    // the meadow
-  [62,   34.9, 17, 10.6, 20, 1, -3.2],
-  [78,   74, 42, 50,   16, 2, 8],         // one pull home
+  [0,    74, 40, 50,   16, 2, 8],          // the sector, wide (loop frame)
+  [10.2, 58.6, 9.5, 21, 44.8, 1, 5.6],     // the boundary track — street-drone low
+  [14.2, 58.6, 9.5, 21, 44.8, 1, 5.6],
+  [17.6, 35.1, 9.5, 23.3, 15.5, 1, 6.8],   // the chokepoint canopy
+  [21.8, 35.1, 9.5, 23.3, 15.5, 1, 6.8],
+  [24.6, 59.5, 9, 22.6, 46, 1.5, 12.6],    // headquarters on the farm belt
+  [26.6, 59.5, 9, 22.6, 46, 1.5, 12.6],
+  [32.4, 16.6, 9, 18.7, 2.6, 1, 4.5],      // the crossing
+  [36.8, 16.6, 9, 18.7, 2.6, 1, 4.5],
+  [40.6, 52.9, 10, 28.9, 38, 1, 13.8],     // the fields
+  [46.2, 52.9, 10, 28.9, 38, 1, 13.8],
+  [53.4, 34.9, 10, 10.6, 20, 1, -3.2],     // the meadow
+  [62,   34.9, 10, 10.6, 20, 1, -3.2],
+  [78,   74, 40, 50,   16, 2, 8],          // one pull home
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
@@ -1637,7 +1637,7 @@ function resetWorld() {
 tl.eventCallback('onRepeat', resetWorld);
 
 /* ── the twin stands the physical cast down and tracks markers instead ──── */
-let mPoach, mTruck, mInformant, mJeep, mHerd, mPack, mGuards, mVillage;
+let mPoach, mInformant, mJeep, mHerd, mPack, mGuards, mVillage;
 if (TWIN) {
   scene.remove(poachers, herd, jeep, pack, informant, guard1, guard2, villageGrp);
   if (window.__hqGrp) scene.remove(window.__hqGrp);
@@ -1667,8 +1667,10 @@ function iconEl(kind, hue, label, count, pillOnly) {
   const el = document.createElement('div');
   el.className = 'twin-icon' + (kind === 'sensor' ? ' twin-sensor' : '') + (pillOnly ? ' pill-only' : '');
   el.style.setProperty('--ic', hex(hue));
-  el.innerHTML = `<span class="ti-ic"><svg viewBox="0 0 24 24"><path d="${GLYPHS[kind] || GLYPHS.sensor}"/></svg></span>`
-    + (label ? `<span class="ti-tag"><b>${label}</b>${count ? `<i>${count}</i>` : ''}</span>` : '');
+  const n = Math.min(count || 1, 5);
+  const one = `<svg viewBox="0 0 24 24"><path d="${GLYPHS[kind] || GLYPHS.sensor}"/></svg>`;
+  el.innerHTML = `<span class="ti-ic">${one.repeat(n)}</span>`
+    + (label ? `<span class="ti-tag"><b>${label}</b></span>` : '');
   document.body.appendChild(el);
   return el;
 }
@@ -1709,8 +1711,7 @@ if (TWIN) {
   }
   mPoach = marker('human', 0xff5a4d, 'Intruders', poachers, 4);
   trailFrom(mPoach, 0xff5a4d);
-  mTruck = marker('vehicle', 0xd98a6a, 'Pickup', window.__pickup);
-  mTruck.pri = 1;
+
   mInformant = marker('phone', HUES.report, 'Informant', informant);
   mJeep = marker('vehicle', 0x59F5A0, 'Patrol', jeep, 2);
   trailFrom(mJeep, 0x59F5A0);
@@ -1949,6 +1950,15 @@ function tick(dt, t) {
   grade.uniforms.uTime.value = t;
 
   sampleCam(tl.time());
+  if (TWIN) {                                            // the drone is alive: slow yaw sway + gentle bob, loop-safe
+    const T2 = tl.time();
+    const a = Math.sin(T2 * .16) * .09;
+    const dx = camP.x - camL.x, dz = camP.z - camL.z;
+    const ca = Math.cos(a), sa = Math.sin(a);
+    camP.x = camL.x + dx * ca - dz * sa;
+    camP.z = camL.z + dx * sa + dz * ca;
+    camP.y += Math.sin(T2 * .23) * .35;
+  }
   {
     const T = tl.time();
     if (T > 14.8 && T < 21.6) {                                     // the eye rides the intruders to the wedge

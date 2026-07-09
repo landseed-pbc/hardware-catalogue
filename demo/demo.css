@@ -125,14 +125,16 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
   #cap-l{font-size:14.5px}
 }
 /* ── twin markers — the gorillas-page grammar: silhouette + name pill ────── */
-.twin-icon{position:fixed;z-index:22;transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;pointer-events:none;white-space:nowrap}
-.ti-ic{position:relative;width:38px;height:38px;flex:none;display:block}
-.ti-ic svg{width:100%;height:100%;display:block;fill:var(--ic);filter:drop-shadow(0 0 1.5px rgba(4,9,5,.95)) drop-shadow(0 1px 2.5px rgba(0,0,0,.95))}
+.twin-icon{position:fixed;z-index:22;transform:translate(-50%,calc(-100% - 12px));display:flex;align-items:center;gap:5px;pointer-events:none;white-space:nowrap}
+.twin-icon::after{content:"";position:absolute;left:50%;top:100%;width:1.5px;height:12px;background:linear-gradient(180deg,var(--ic),transparent)}
+.ti-ic{position:relative;height:34px;flex:none;display:flex;align-items:center}
+.ti-ic svg{width:30px;height:30px;display:block;fill:var(--ic);filter:drop-shadow(0 0 1.5px rgba(4,9,5,.95)) drop-shadow(0 1px 2.5px rgba(0,0,0,.95))}
+.ti-ic svg+svg{margin-left:-13px}
 .ti-tag{display:flex;align-items:baseline;gap:6px;font-size:14px;color:#F0F0EA;padding:3.5px 12px 4px 9px;border-radius:999px;background:rgba(7,14,9,.62);border:1px solid color-mix(in srgb,var(--ic) 40%,transparent);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);box-shadow:0 1px 5px rgba(0,0,0,.5);text-shadow:0 1px 2px rgba(0,0,0,.85)}
 .ti-tag b{font-weight:700;letter-spacing:.01em;color:color-mix(in srgb,var(--ic) 72%,#fff)}
 .ti-tag i{font-style:normal;font-weight:800;font-size:14px;color:#fff;font-variant-numeric:tabular-nums}
 .twin-sensor{pointer-events:auto;cursor:pointer;transition:transform .15s}
-.twin-sensor:hover{transform:translate(-50%,-50%) scale(1.1)}
+.twin-sensor:hover{transform:translate(-50%,calc(-100% - 12px)) scale(1.08)}
 .twin-sensor:hover .ti-tag{border-color:color-mix(in srgb,var(--ic) 75%,transparent);background:rgba(10,22,13,.8)}
 .ti-ic::after{content:"";position:absolute;inset:-2px;border-radius:50%;pointer-events:none}
 @keyframes twinPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ic) 70%,transparent)}100%{box-shadow:0 0 0 26px transparent}}
