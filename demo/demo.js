@@ -34,7 +34,7 @@ const AN = TWIN ? {
   // the listening meadow at 2,730 m under the 4,170 m peak.
   ser1: [-20.5, -12.5], ser2: [-10.8, 1], vg: [40, 15.2],
   w1: [-17.5, 8], w2: [-27, 15.5], w3: [-20.5, 18.5], jw: [-12, 9.5],
-  gate: [13.5, 16.2], ai: [12, -2], village: [43.5, 16], villages: [[43.5, 16], [-38, -30]],
+  gate: [13.5, 16.2], ai: [12, -2], village: [43.5, 16], villages: [[43.5, 16]],
   informant: [-33.5, -22.5], truck: [-31, -24],
   trail: [[-31, -24], [-27, -19], [-22.5, -13.5], [-18, -8], [-14, -3], [-11.2, .2], [-9, 3]],
   road: [[12, -2], [6.5, -1.2], [1, -.2], [-3.5, .8], [-6.8, 1.8], [-9.2, 2.6]],
@@ -168,7 +168,7 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // build — no per-move starts.
 const CAMKEYS = TWIN ? [
 // one constant SE-overhead viewing vector — transits are pure glides, never through terrain
-  [0, 46.0, 44.0, 44.0,   0, 4, 2],
+  [0, -48.0, 34.0, 26.0,   10, 3, 4],
   [10.2, -15.0, 32.0, -9.5,   -31, 1, -23.5],
   [14.2, -15.0, 32.0, -9.5,   -31, 1, -23.5],
   [17.6, -4.0, 33.0, 3.0,   -20, 2, -11],
@@ -181,8 +181,8 @@ const CAMKEYS = TWIN ? [
   [46.2, 54.0, 32.0, 28.0,   38, 1, 14],
   [53.4, -5.0, 34.0, 26.0,   -21, 3, 12],
   [62, -5.0, 34.0, 26.0,   -21, 3, 12],
-  [68, 46.0, 44.0, 44.0,   0, 4, 2],
-  [78, 46.0, 44.0, 44.0,   0, 4, 2],
+  [68, -48.0, 34.0, 26.0,   10, 3, 4],
+  [78, -48.0, 34.0, 26.0,   10, 3, 4],
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
@@ -1520,6 +1520,7 @@ tl.call(() => {                                                     // INTERCEPT
 tl.call(() => {                                                     // lamp down, cuffs on — quiet close
   pFigs[0].traverse(o => { if (o.isSpotLight) gsap.to(o, { intensity: 0, duration: .8 }); });
   feedPhoto(HUES.see, 'Patrol \u00b7 on site', 'Four detained \u00b7 rifles seized \u00b7 evidence packaged, chain of custody logged', fieldCard('people-close', 128, 1.3));
+  if (mPoach) { mPoach.el.classList.add('nolabel'); mPoach.el.style.setProperty('--ic', '#98a29a'); }
 }, null, 34);
 tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
 tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Rangers reach the crossing before the group does. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 5.6), null, 33.4);
@@ -1638,6 +1639,7 @@ function resetWorld() {
   poach.u = .02; poach.stopped = false;
   herdState.u = 0; herdState.curve = 'in'; herdState.turning = false; herd.visible = false;
   if (TWIN) { poachers.visible = false; informant.visible = false; pack.visible = false; storks.forEach(st => st.b.visible = false); }
+  if (mPoach) { mPoach.el.classList.remove('nolabel'); mPoach.el.style.setProperty('--ic', hex(0xff5a4d)); }
   jeepState.u = 0; jeepState.on = false; jeepState.arrived = false;
   jeep.visible = false;
   jeep.userData.lights.forEach(m => m.emissiveIntensity = 0);
@@ -1652,6 +1654,22 @@ tl.eventCallback('onRepeat', resetWorld);
 
 /* ── the twin stands the physical cast down and tracks markers instead ──── */
 let mPoach, mInformant, mJeep, mHerd, mPack, mGuards, mVillage;
+if (TWIN) {
+  const hutW = new THREE.MeshStandardMaterial({ color: 0x8f7a58, roughness: .92 });
+  const hutR = new THREE.MeshStandardMaterial({ color: 0x574430 });
+  for (const [hx2, hz2, hs] of [[12, -2, 1], [13.6, -1.2, .85], [11, -.6, .8], [13, -3.2, .9]]) {
+    const hh2 = heightAt(hx2, hz2);
+    const w2 = new THREE.Mesh(new THREE.CylinderGeometry(.8 * hs, .9 * hs, 1 * hs, 8), hutW);
+    w2.position.set(hx2, hh2 + .5 * hs, hz2); w2.castShadow = true;
+    const r2 = new THREE.Mesh(new THREE.ConeGeometry(1.15 * hs, .85 * hs, 8), hutR);
+    r2.position.set(hx2, hh2 + 1.4 * hs, hz2); r2.castShadow = true;
+    scene.add(w2, r2);
+  }
+  const mast2 = new THREE.Mesh(new THREE.CylinderGeometry(.05, .07, 4.5, 6),
+    new THREE.MeshStandardMaterial({ color: 0x9aa39b, metalness: .8, roughness: .35 }));
+  mast2.position.set(12.8, heightAt(12.8, -2.4) + 2.2, -2.4);
+  scene.add(mast2);
+}
 if (TWIN) {
   scene.remove(poachers, herd, jeep, pack, informant, guard1, guard2, villageGrp);
   if (window.__hqGrp) scene.remove(window.__hqGrp);
@@ -1671,7 +1689,7 @@ const ICONS = [];
 const GLYPHS = {
   human: 'M12.2 3.4a2.1 2.1 0 110 4.2 2.1 2.1 0 010-4.2zM10 8.6h4.2l1.9 4.6-1.6.7-1.3-3v3.4l1.8 6.4-1.9.6-1.7-5.7-1.6 5.7-1.9-.6 1.7-6.4V11l-1.4 3-1.6-.7L10 8.6z',
   elephant: 'M4.5 17.5v-6.2C4.5 8 7 6 10.2 6h5.3c2.4 0 4 1.3 4.6 3.2l1.4 4.1-1.7.6-1.2-3.4c-.2 1-.2 2-.2 3v4h-2.7v-3.6h-1.2V17H12v-3.4a3.4 3.4 0 00-4.8.5v3.4H4.5zm14-11c.9 0 1.6.5 1.9 1.3l-1.5.6c-.2-.4-.4-.5-.7-.5l.3-1.4z',
-  wolf: 'M5.5 9.5L8 11l1.5-4 2.5 3.5 3-4.5 1.5 3 2.5-1-1.5 5.5c-.5 2-2.2 3.5-4.5 3.5h-1c-2.3 0-4-1.4-4.6-3.4L5.5 9.5zm5 8.5h3l-1.5 2.8L10.5 18z',
+  wolf: 'M18.6 4.2l1.2 3.4c.4 1.1.2 2-.5 2.8l-2.5 2.6-.6 4.2 1.5 2.6-1.7 1-1.6-2.8.4-3.3-3.2.6-2.4 3-1.5 2.5-1.7-.9 1.5-2.7 2.2-2.9-3.3-.4c-1.5-.2-2.5-1.2-2.7-2.7L3.5 8.5l1.9-.3.3 2.1c.1.7.5 1.1 1.2 1.2l5.6.7 3.5-3.6 2.6-4.4z',
   vehicle: 'M4.5 13.5l1.6-4.3A2.4 2.4 0 018.4 7.6h7.2a2.4 2.4 0 012.3 1.6l1.6 4.3v4.6h-2.3v-1.5H6.8v1.5H4.5v-4.6zm2.8-1.2h9.4l-1-2.9H8.3l-1 2.9zM8 16.2a1.3 1.3 0 100-2.6 1.3 1.3 0 000 2.6zm8 0a1.3 1.3 0 100-2.6 1.3 1.3 0 000 2.6z',
   phone: 'M9.2 3.6h5.6c.9 0 1.6.7 1.6 1.6v13.6c0 .9-.7 1.6-1.6 1.6H9.2c-.9 0-1.6-.7-1.6-1.6V5.2c0-.9.7-1.6 1.6-1.6zm.4 2v11h4.8v-11H9.6zm2.4 13.4a.8.8 0 100-1.6.8.8 0 000 1.6z',
   bird: 'M3.5 11.5c2.8 0 4.8-1.3 6-3.5.8 1.7 2.3 2.7 4.3 2.9l6.7-2.4-2.3 3.2c-1.8 2.4-4.3 3.7-7.6 3.7l-2.3 3.4-1.2-.7 1.7-3.1c-2.4-.4-4.2-1.6-5.3-3.5zm14.8-2.4a.8.8 0 110-1.6.8.8 0 010 1.6z',
