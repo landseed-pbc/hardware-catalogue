@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./css/styles.css?v=6" />
+<link rel="stylesheet" href="./css/styles.css?v=7" />
 <!-- discover the big three.js module early so it downloads in parallel with the app code -->
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 <link rel="prefetch" href="/demo/demo.js?v=41" />
@@ -56,21 +56,14 @@
 <!-- product-line key (catalogue view) — right rail, tappable rows -->
 <div id="plegend">
   <div class="wl-h">Product line<span class="wl-tap">tap a device ↗</span></div>
-  <div class="pl-group">To see</div>
-  <div class="wl-row dv" data-dev="serengeti"><i></i><b>Serengeti</b><em>$199–225</em></div>
-  <div class="wl-row dv" data-dev="villageguard"><i></i><b>VillageGuard</b><em>$299</em></div>
-  <div class="pl-group">To see &amp; listen</div>
-  <div class="wl-row dv" data-dev="junglewallah"><i></i><b>Jungle-Wallah</b><em>custom</em></div>
-  <div class="pl-group">To listen</div>
-  <div class="wl-row dv" data-dev="wolf"><i></i><b>Wolf</b><em>$100 tgt</em></div>
-  <div class="pl-group">To connect</div>
-  <div class="wl-row dv" data-dev="gateway"><i></i><b>Gateway</b><em>$150 tgt</em></div>
-  <div class="pl-group">To report</div>
-  <div class="wl-row dv" data-dev="mobile"><i></i><b>Mobile</b><em>$50 tgt</em></div>
-  <div class="pl-group">To understand</div>
-  <div class="wl-row dv" data-dev="ai"><i></i><b>Landseed AI</b><em>subscription</em></div>
-  <div class="wl-sep"></div>
-  <div class="pl-foot">Every sensor feeds Landseed AI — the measurement layer for Earth Credits.</div>
+  <div class="wl-row dv" data-dev="serengeti"><i></i><b>Serengeti</b><span>see</span><em>$199–225</em></div>
+  <div class="wl-row dv" data-dev="villageguard"><i></i><b>VillageGuard</b><span>see</span><em>$299</em></div>
+  <div class="wl-row dv" data-dev="junglewallah"><i></i><b>Jungle-Wallah</b><span>see + listen</span><em>custom</em></div>
+  <div class="wl-row dv" data-dev="wolf"><i></i><b>Wolf</b><span>listen</span><em>$100 tgt</em></div>
+  <div class="wl-row dv" data-dev="gateway"><i></i><b>Gateway</b><span>connect</span><em>$150 tgt</em></div>
+  <div class="wl-row dv" data-dev="mobile"><i></i><b>Mobile</b><span>report</span><em>$50 tgt</em></div>
+  <div class="wl-row dv" data-dev="ai"><i></i><b>Landseed AI</b><span>understand</span><em>subscription</em></div>
+  <div class="pl-foot">Every sensor feeds Landseed AI — the measurement layer for Earth&nbsp;Credits.</div>
 </div>
 
 <!-- device views: how-it-works panel (left) + key specification panel (right) -->

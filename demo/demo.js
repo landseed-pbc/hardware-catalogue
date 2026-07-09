@@ -22,6 +22,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
    /demo/?terrain=real&lat=..&lon=..  — same simulation, real topography. */
 const qs = new URLSearchParams(location.search);
 const REAL = qs.get('terrain') === 'real';
+const LOW = innerWidth < 760 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
 let dem = null;   // {grid: Float32Array, n, base}
 async function loadDEM() {
   const lat = parseFloat(qs.get('lat') || '-1.32');
@@ -69,7 +70,7 @@ const HUES = { see: 0x00FF64, guard: 0xFFC800, link: 0x32C8FF, listen: 0xE682E6,
 
 const renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true });
 renderer.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); setTimeout(() => location.reload(), 400); });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, LOW ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -186,7 +187,7 @@ scene.add(new THREE.AmbientLight(0x2c3a30, .5));
 const sun = new THREE.DirectionalLight(0xffc98f, 2.75);
 sun.position.set(-40, 13, 12);                                       // low in the west — long dusk shadows
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.set(LOW ? 1024 : 2048, LOW ? 1024 : 2048);
 sun.shadow.camera.left = sun.shadow.camera.bottom = -44;
 sun.shadow.camera.right = sun.shadow.camera.top = 44;
 sun.shadow.camera.far = 140;
@@ -283,7 +284,7 @@ function nearCurve(curve, x, z, n = 60) {
 }
 
 {
-  const geo = new THREE.PlaneGeometry(110, 84, 300, 230).rotateX(-Math.PI / 2);
+  const geo = new THREE.PlaneGeometry(110, 84, LOW ? 170 : 300, LOW ? 130 : 230).rotateX(-Math.PI / 2);
   const pos = geo.attributes.position;
   const col = new Float32Array(pos.count * 3);
   const cGrass1 = new THREE.Color(0x44603a), cGrass2 = new THREE.Color(0x54693c), cDry = new THREE.Color(0x6e7145);
@@ -406,7 +407,7 @@ function scatterOK(x, z, h) {
   const blobTopG = new THREE.SphereGeometry(.5, 8, 6);
   const accG = new THREE.SphereGeometry(1, 9, 6);
   const leafM = () => new THREE.MeshStandardMaterial({ roughness: .95 });
-  const NT = 620;
+  const NT = LOW ? 380 : 620;
   const trunks = new THREE.InstancedMesh(trunkG, trunkM, NT);
   const cons = new THREE.InstancedMesh(conG, leafM(), NT);
   const blobs = new THREE.InstancedMesh(blobG, leafM(), NT);
@@ -474,10 +475,10 @@ function scatterOK(x, z, h) {
 
   // grass tufts — small, everywhere the story walks
   const tuftG = new THREE.ConeGeometry(.09, .42, 4);
-  const tufts = new THREE.InstancedMesh(tuftG, leafM(), 900);
+  const tufts = new THREE.InstancedMesh(tuftG, leafM(), LOW ? 320 : 900);
   let nG = 0; guard = 0;
   const GT1 = new THREE.Color(0x5d7a42), GT2 = new THREE.Color(0x6d8449);
-  while (nG < 900 && guard++ < 12000) {
+  while (nG < (LOW ? 320 : 900) && guard++ < 12000) {
     const x = (rnd() - .5) * 70, z = (rnd() - .5) * 50;
     const h = heightAt(x, z);
     if (h < -.1 || h > 2.6) continue;
@@ -1236,24 +1237,29 @@ const boxFor = (obj, height, ar, col, tag) => {
 
 // real field captures (project archive) — the strongest possible evidence
 const FIELD = {};
-for (const k of ['people-walk', 'people-close', 'elephant-walk', 'multi-class']) {
+for (const k of ['people-walk', 'people-close', 'elephant-walk', 'elephant-bull', 'multi-class']) {
   const im = new Image();
   im.src = `./assets/field/${k}.jpg`;
   FIELD[k] = im;
 }
-function fieldCard(key, maxH = 300) {
+function fieldCard(key, maxH = 300, zoom = 1) {
   const im = FIELD[key];
   const c = document.createElement('canvas');
   const W = 504, natW = im.naturalWidth || 400, natH = im.naturalHeight || 220;
-  let H = Math.round(W * natH / natW), sy = 0, sh = natH;
+  let H = Math.round(W * natH / natW), sy = 0, sh = natH, sx = 0, sw = natW;
   if (H > maxH) {                                       // cover-crop tall frames, keep faces high
     H = maxH;
     sh = Math.round(natW * H / W);
     sy = Math.round((natH - sh) * .3);
   }
+  if (zoom > 1) {                                       // a tighter second frame of the same capture
+    const sw2 = sw / zoom, sh2 = sh / zoom;
+    sx += (sw - sw2) * .5; sy += (sh - sh2) * .4;
+    sw = sw2; sh = sh2;
+  }
   c.width = W; c.height = H;
   const x = c.getContext('2d');
-  x.drawImage(im, 0, sy, natW, sh, 0, 0, W, H);
+  x.drawImage(im, sx, sy, sw, sh, 0, 0, W, H);
   x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 27, W, 27);
   x.fillStyle = '#e8efe6'; x.font = "700 14.5px 'Hanken Grotesk'";
   x.fillText(clockStr() + ' · field capture', 11, H - 9);
@@ -1372,7 +1378,7 @@ tl.call(() => {                                                     // DETECTION
   gsap.fromTo(fovSer1, { opacity: .4 }, { opacity: .1, duration: 1.8 });
   popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · detected at 40 m · 200 ms to image', fieldCard('people-walk'), 3.2);
 }, null, 17.9);
-tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Serengeti-01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128)); }, null, 18.8);
+tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Serengeti-01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 18.8);
 tl.call(() => fireUplink(), null, 20);
 tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 21.2);
 tl.to(poach, { u: .74, duration: 12.6, ease: 'none' }, 19.8);
@@ -1417,7 +1423,7 @@ tl.call(() => {                                                     // INTERCEPT
 }, null, 32.6);
 tl.call(() => {                                                     // lamp down, cuffs on — quiet close
   pFigs[0].traverse(o => { if (o.isSpotLight) gsap.to(o, { intensity: 0, duration: .8 }); });
-  feedPhoto(HUES.see, 'Patrol \u00b7 on site', 'Four detained \u00b7 rifles seized \u00b7 evidence packaged, chain of custody logged', fieldCard('people-close', 128));
+  feedPhoto(HUES.see, 'Patrol \u00b7 on site', 'Four detained \u00b7 rifles seized \u00b7 evidence packaged, chain of custody logged', fieldCard('people-close', 128, 1.3));
 }, null, 34);
 tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
 tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Rangers reach the ford before the group does. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 5.6), null, 33.4);
@@ -1437,7 +1443,7 @@ tl.call(() => {                                                     // DETECTION
   gsap.fromTo(fovVG, { opacity: .4 }, { opacity: .1, duration: 1.8 });
   popup(V3(0, 0, 0), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · detected at 60 m · alert < 1 KB', fieldCard('elephant-walk'), 2.4);
   stVGHQ.play(2.2);
-  feedPhoto(HUES.guard, 'VillageGuard-04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-walk', 128));
+  feedPhoto(HUES.guard, 'VillageGuard-04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-bull', 128));
 }, null, 42.0);
 tl.call(() => {
   gsap.to(lampMat, { emissiveIntensity: 2.6, duration: .4 });
@@ -1599,11 +1605,31 @@ function normalizeUI(T) {
   $('#phone').classList.toggle('on', T >= 10.3);
   $('#feed-list').innerHTML = '<div class="tg-day"><span>Today</span></div>';
 }
+const setupResponse = () => {
+  poach.u = .58; poach.lastU = .58;
+  jeepState.on = true; jeep.visible = true; jeepState.u = .1;
+};
+const setupSettled = () => {
+  poach.u = .74; poach.lastU = .74; poach.stopped = true;
+  placeOnCurve(poachers, trail, .74, 0, .05);
+  jeepState.on = true; jeepState.arrived = true; jeep.visible = true;
+  placeOnCurve(jeep, road, .96, 0, .05, true);
+};
+const CHSETUP = {
+  overview() {},
+  intrusion() {},
+  response: setupResponse,
+  coexist: setupSettled,
+  listening() { setupSettled(); },
+  network() { setupSettled(); },
+};
 chips.forEach(b => b.addEventListener('click', () => {
   const T = CH[b.dataset.ch] + .02;
+  resetWorld();                                          // clean base state…
   normalizeUI(T);
+  (CHSETUP[b.dataset.ch] || (() => {}))();               // …then just what the chapter needs
+  tl.time(T, true);                                      // no compressed beat replay
   tl.play();
-  tl.time(T);
 }));
 function markChapter() {
   const t = tl.time();

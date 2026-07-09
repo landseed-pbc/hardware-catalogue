@@ -117,3 +117,10 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .tg-photo span{margin-top:6px}
 .hud-link{color:rgba(240,240,234,.5);text-decoration:none;margin-right:18px;transition:.2s}
 .hud-link:hover{color:var(--alive)}
+/* small screens: the phone panel yields (must trail the #phone base rule) */
+@media(max-width:900px){
+  #phone{display:none}
+  .pop{left:50%;width:224px}
+  #cap-t{font-size:24px}
+  #cap-l{font-size:14.5px}
+}
