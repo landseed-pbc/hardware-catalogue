@@ -33,7 +33,7 @@ const AN = TWIN ? {
   // into the massif's forest — HQ below at 2,000 m, crossing at 2,600 m,
   // the listening meadow at 2,730 m under the 4,170 m peak.
   ser1: [-20.5, -12.5], ser2: [-10.8, 1], vg: [40, 15.2],
-  w1: [-17.5, 8], w2: [-27, 15.5], w3: [-20.5, 18.5], jw: [-12, 9.5],
+  w1: [0, -13], w2: [9, -19], w3: [2, -21], jw: [10, -12],
   gate: [13.5, 16.2], ai: [12, -2], village: [43.5, 16], villages: [[43.5, 16]],
   informant: [-33.5, -22.5], truck: [-31, -24],
   trail: [[-31, -24], [-27, -19], [-22.5, -13.5], [-18, -8], [-14, -3], [-11.2, .2], [-9, 3]],
@@ -41,7 +41,7 @@ const AN = TWIN ? {
   herdIn: [[28, 10], [31.5, 11.5], [34.5, 12.8], [36.8, 13.8], [37.8, 14.2]],
   herdOut: [[37.8, 14.2], [34, 12], [30, 10.5], [26, 9], [22, 8]],
   guard: [[43.5, 16], [41.5, 15.2], [39.6, 14.7]],
-  pack: [-22.5, 12.8],
+  pack: [4, -16],
 } : {
   ser1: [6.8, 10.2], ser2: [-4.5, 5.6], vg: [12.9, -8.6],
   w1: [-10.5, 14.2], w2: [-15, 16.5], w3: [-17.5, 13.2], jw: [-3, 14.5],
@@ -1728,22 +1728,30 @@ if (TWIN) {
     const m = marker('sensor', HUE_BY[rec.id], label, rec.g, null, true);
     m.pri = 1;
     m.lift = 4.4;
+    m.key = rec.id === 'wolf' ? ('w' + wolfN) : rec.id === 'serengeti' ? ('ser' + serN) : rec.id;
     m.el.addEventListener('click', () => { location.href = '/#' + rec.id; });
     m.el.title = 'View in the catalogue';
-    if (RANGE[rec.id]) rangeRing(rec.g.position.x, rec.g.position.z, HUE_BY[rec.id], RANGE[rec.id]);
+    if (RANGE[rec.id]) m.ring = rangeRing(rec.g.position.x, rec.g.position.z, HUE_BY[rec.id], RANGE[rec.id]);
   }
   mPoach = marker('human', 0xff5a4d, 'Intruders', poachers, 4);
+  mPoach.key = 'intruders';
   trailFrom(mPoach, 0xff5a4d);
 
   mInformant = marker('phone', HUES.report, 'Informant', informant);
+  mInformant.key = 'informant';
   mJeep = marker('vehicle', 0x59F5A0, 'Patrol', jeep, 2);
+  mJeep.key = 'patrol';
   trailFrom(mJeep, 0x59F5A0);
   mHerd = marker('elephant', HUES.guard, 'Elephants', herd, 3);
+  mHerd.key = 'herd';
   trailFrom(mHerd, HUES.guard);
   mPack = marker('wolf', 0xE682E6, 'Wolf pack', pack, 5);
+  mPack.key = 'pack';
   window.__birdM = [];
   mGuards = marker('human', 0x9fdc8f, 'Rangers', guard1, 2);
+  mGuards.key = 'rangers';
   mVillage = marker('village', 0xffc36b, 'Village', villageGrp);
+  mVillage.key = 'village';
   mVillage.pri = 1;
   if (AN.villages) for (let vi = 1; vi < AN.villages.length; vi++) {
     const vm = marker('village', 0xffc36b, 'Village', null);
@@ -1940,6 +1948,7 @@ function tick(dt, t) {
   if (TWIN && window.__birdM && storks.length && window.__birdM.length < storks.length) {
     for (let bi = window.__birdM.length; bi < storks.length; bi++) {
       const bm = marker('bird', 0xE6A5E6, bi === 0 ? 'Birds' : null, storks[bi].b);
+      bm.key = 'birds';
       bm.pri = 1;
       window.__birdM.push(bm);
     }
@@ -2030,6 +2039,22 @@ function tick(dt, t) {
       }
     }
   }
+  const FOCUS = (() => {
+    const T3 = tl.time();
+    if (T3 < 9.8 || T3 >= 62) return null;                          // overview + network: everything lit
+    if (T3 < 24)  return new Set(['ser1', 'ser2', 'gateway', 'ai', 'informant', 'intruders']);
+    if (T3 < 36.5) return new Set(['ser2', 'gateway', 'ai', 'patrol', 'intruders']);
+    if (T3 < 50)  return new Set(['villageguard', 'ai', 'herd', 'village', 'rangers']);
+    return new Set(['w1', 'w2', 'w3', 'junglewallah', 'gateway', 'pack', 'birds']);
+  })();
+  {
+    const wmap = { ser1: fovSer1, ser2: fovSer2, villageguard: fovVG };
+    for (const wk in wmap) {
+      const m2 = wmap[wk];
+      const tgt = (!FOCUS || FOCUS.has(wk)) ? .22 : .04;
+      m2.opacity += (tgt - m2.opacity) * .06;
+    }
+  }
   const shownPills = [];
   const byPri = [...ICONS].sort((a, b) => b.pri - a.pri);
   for (const ic of byPri) {
@@ -2046,6 +2071,9 @@ function tick(dt, t) {
     const clash = shownPills.some(b => box.x0 < b.x1 && box.x1 > b.x0 && box.y0 < b.y1 && box.y1 > b.y0);
     if (clash && ic.pri < 2) ic.el.classList.add('nolabel');
     else { ic.el.classList.remove('nolabel'); shownPills.push(box); }
+    const dimmed = !!(FOCUS && ic.key && !FOCUS.has(ic.key));
+    ic.el.classList.toggle('dim', dimmed);
+    if (ic.ring) ic.ring.material.opacity += (((dimmed ? .07 : .4)) - ic.ring.material.opacity) * .08;
   }
   for (const wl of wlabels) {
     proj.copy(wl.pos).project(camera);

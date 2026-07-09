@@ -148,3 +148,7 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .ti-ic svg:nth-child(3){transform:translateY(-2px)}
 .ti-ic svg:nth-child(4){transform:translateY(2px) scale(.95)}
 .ti-ic svg:nth-child(5){transform:translateY(-3px) scale(.9)}
+/* chapter focus: the unfocused board recedes */
+.twin-icon{transition:opacity .6s ease,filter .6s ease}
+.twin-icon.dim{opacity:.34;filter:grayscale(.85)}
+.twin-icon.dim .ti-tag{display:none}
