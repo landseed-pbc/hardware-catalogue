@@ -110,8 +110,8 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 const CAMKEYS = [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    36, 20, 34,     4, 2, 6],        // drifting in over the river
-  [10.8, 30, 13, 26,    25.5, .5, 15.8],  // the informant's corner, high oblique
-  [13.4, 30, 13, 26,    25.5, .5, 15.8],  // · hold — the report goes out
+  [10.8, 30, 13, 26,    27.2, .6, 17.2],  // the stakeout: hidden informant, men at the truck
+  [13.4, 30, 13, 26,    27.2, .6, 17.2],  // · hold — the report goes out
   [15,   23, 11, 21,    13, 1, 11],       // transit — damps the spline's curl
   [16.6, 16.5, 8.5, 15.5, 4.5, .8, 7.5],  // behind the group, sensor ahead
   [21.4, 16.5, 8.5, 15.5, 4.5, .8, 7.5],  // · hold — detection at range, relay
@@ -734,10 +734,21 @@ const poach = { u: 0.02, lastU: 0.02, stopped: false };
   window.__pickup = truck;
 }
 
-// the informant at the north track, Landseed Mobile in hand
+// the informant at the north track — hidden behind cover, Landseed Mobile up,
+// watching the men dismount at the pickup
 const informant = figure(0x4e5a66, .82);
-informant.position.set(26.5, heightAt(26.5, 16.6), 16.6);
-informant.rotation.y = -2.2;
+informant.position.set(24.9, heightAt(24.9, 15.7), 15.7);
+informant.lookAt(29.2, informant.position.y, 18.6);
+{
+  const bushM = new THREE.MeshStandardMaterial({ color: 0x2e4226, roughness: .95 });
+  for (const [bx, bz, bs] of [[25.9, 16.6, 1.05], [25.35, 16.05, .8], [26.35, 17.1, .7]]) {
+    const b = new THREE.Mesh(new THREE.IcosahedronGeometry(bs, 1), bushM);
+    b.position.set(bx, heightAt(bx, bz) + bs * .55, bz);
+    b.scale.y = .72;
+    b.castShadow = true;
+    scene.add(b);
+  }
+}
 const phone = new THREE.Mesh(new THREE.PlaneGeometry(.16, .24), new THREE.MeshStandardMaterial({ color: 0x0a0f0a, emissive: 0x9fd4ff, emissiveIntensity: 1.4 }));
 phone.position.set(.2, .95, .25); phone.rotation.y = .5;
 informant.add(phone);
@@ -1330,19 +1341,22 @@ tl.call(() => {
   gsap.fromTo('#title', { opacity: 0 }, { opacity: 1, duration: 1.4, delay: .4, overwrite: true });
   gsap.to('#title', { opacity: 0, duration: 1.1, delay: 7.4, overwrite: false });
 }, null, .01);
-tl.call(() => fireUplink(), null, 1.2);
 tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station', 'Cameras at the chokepoints, three ears in the forest, a gateway on the ridge — the brain above headquarters.', 6.5), null, 2.6);
 
 // ── intrusion 10–24 · the report comes first, then the cameras confirm
 tl.call(() => $('#phone').classList.add('on'), null, 10.3);         // the phone arrives with the story
 tl.call(() => {
-  flashAt(V3(26.5, heightAt(26.5, 16.6) + 1.2, 16.6), 0xcfe8ff);      // the phone takes its photo
-  const shot = sensorSnap(V3(26.8, heightAt(26.5, 16.6) + 1.15, 17.1), V3(29.6, heightAt(29.6, 19.1) + .7, 19.1),
-    { boxes: [boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] });
-  popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', shot, 2.9);
-  stMobHQ.play(2.4);
-  feed(HUES.report, 'Mobile-07 · report', 'Vehicle at the north track · direct-to-cell · photo at HQ');
+  flashAt(V3(24.9, heightAt(24.9, 15.7) + 1.1, 15.7), 0xcfe8ff);      // the phone takes its photo
+  ringAt(24.9, 15.7, HUES.report, 1.4);
+  const shot = sensorSnap(V3(25.1, heightAt(24.9, 15.7) + 1.2, 15.9), V3(29, heightAt(29.6, 19.1) + .9, 18.7),
+    { boxes: [...pFigs.map((f, i) => boxFor(f, 1.3, .42, '#4da3ff', i === 0 ? 'HUMAN' : null)), boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] });
+  popup(V3(0, 0, 0), HUES.report, 'Report filed', 'Mobile-07', 'Four men and a vehicle at the north track — shot from cover on a $50 Landseed Mobile', shot, 3.4);
+  window.__mobShot = shot;
 }, null, 11.2);
+tl.call(() => {                                                       // …and visibly uploaded
+  stMobHQ.play(3.2);
+  if (window.__mobShot) feedPhoto(HUES.report, 'Mobile-07 \u00b7 report', 'Four men + vehicle at the north track \u00b7 direct-to-cell \u00b7 pin attached', window.__mobShot);
+}, null, 12.2);
 tl.call(() => caption(HUES.report, 'To report · Human in the loop', 'The first sensor is a person', 'An informant’s photo reaches HQ before the men are inside. The cameras are already waiting.', 6.2), null, 11.6);
 tl.to(poach, { u: .4, duration: 6.4, ease: 'none' }, 13.2);
 tl.call(() => {                                                     // DETECTION 1 — at the wedge edge, seven units out
@@ -1530,7 +1544,7 @@ function worldLabel(text, pos, hue, show) {
   document.body.appendChild(el);
   wlabels.push({ el, pos, show });
 }
-worldLabel('GATEWAY · RIDGE RELAY', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link, (T) => (T > 18.5 && T < 25) || T > 62 || T < 9.5);
+worldLabel('GATEWAY · RIDGE RELAY', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link, (T) => (T > 18.5 && T < 25) || T > 62);
 worldLabel('HQ · LANDSEED AI', V3(17, heightAt(17, -12.3) + 4.4, -12.3), HUES.brain, (T) => (T > 21.5 && T < 34) || T > 62 || T < 9.5);
 
 /* ── the funnel: every sensor is a doorway into the catalogue ───────────── */
