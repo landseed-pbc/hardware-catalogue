@@ -135,24 +135,49 @@ function crv(p0, p1, p2, p3, u) {
   return .5 * ((2 * p1) + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 + (-p0 + 3 * p1 - 3 * p2 + p3) * u3);
 }
 const camP = { x: 50, y: 27, z: 46 }, camL = { x: -5, y: 9, z: -2 };
-function sampleCam(T) {
-  const n = CAMKEYS.length;
+// moves are hold-to-hold runs; each is eased as ONE arc-length-parameterised
+// bell, so velocity is continuous everywhere — verified numerically at 60 Hz
+const CAMMOVES = (() => {
+  const same = (i, j) => CAMKEYS[i][1] === CAMKEYS[j][1] && CAMKEYS[i][2] === CAMKEYS[j][2] && CAMKEYS[i][3] === CAMKEYS[j][3];
+  const dist = (i, j) => Math.hypot(CAMKEYS[i][1] - CAMKEYS[j][1], CAMKEYS[i][2] - CAMKEYS[j][2], CAMKEYS[i][3] - CAMKEYS[j][3]);
+  const out = [];
   let i = 0;
-  while (i < n - 2 && T >= CAMKEYS[i + 1][0]) i++;
-  const a = CAMKEYS[Math.max(0, i - 1)], b = CAMKEYS[i], c = CAMKEYS[i + 1], d = CAMKEYS[Math.min(n - 1, i + 2)];
-  let u = (T - b[0]) / Math.max(.001, c[0] - b[0]);
-  u = Math.min(1, Math.max(0, u));
-  const same = (p, q) => p[1] === q[1] && p[2] === q[2] && p[3] === q[3];
-  const fromHold = same(a, b), toHold = same(c, d);
-  if (fromHold && toHold) u = u * u * (3 - 2 * u);                   // full ease between two holds
-  else if (fromHold) u = u * u;                                      // building out of a hold
-  else if (toHold) u = 1 - (1 - u) * (1 - u);                        // decelerating into a hold
-  /* transit keys pass linear — the spline carries the momentum */
+  while (i < CAMKEYS.length - 1) {
+    if (same(i, i + 1)) { i++; continue; }
+    let j = i;
+    while (j < CAMKEYS.length - 1 && !same(j, j + 1)) j++;
+    const cum = [0];
+    for (let k = i; k < j; k++) cum.push(cum[cum.length - 1] + dist(k, k + 1));
+    out.push({ t0: CAMKEYS[i][0], t1: CAMKEYS[j][0], i0: i, cum });
+    i = j;
+  }
+  return out;
+})();
+function sampleCam(T) {
+  let mv = null;
+  for (const m of CAMMOVES) {
+    if (T < m.t0) { mv = null; setKey(m.i0); return; }
+    if (T <= m.t1) { mv = m; break; }
+  }
+  if (!mv) { setKey(CAMKEYS.length - 1); return; }
+  let sPar = (T - mv.t0) / (mv.t1 - mv.t0);
+  sPar = sPar * sPar * sPar * (sPar * (sPar * 6 - 15) + 10);
+  const arc = sPar * mv.cum[mv.cum.length - 1];
+  let seg = 0;
+  while (seg < mv.cum.length - 2 && arc > mv.cum[seg + 1]) seg++;
+  const u = (arc - mv.cum[seg]) / Math.max(1e-6, mv.cum[seg + 1] - mv.cum[seg]);
+  const gi = mv.i0 + seg;
+  const a = CAMKEYS[Math.max(0, gi - 1)], b = CAMKEYS[gi], c = CAMKEYS[gi + 1], d = CAMKEYS[Math.min(CAMKEYS.length - 1, gi + 2)];
   for (let k = 0; k < 3; k++) {
     const kk = 'xyz'[k];
     camP[kk] = crv(a[1 + k], b[1 + k], c[1 + k], d[1 + k], u);
     camL[kk] = crv(a[4 + k], b[4 + k], c[4 + k], d[4 + k], u);
   }
+}
+function setKey(i) {
+  const k = CAMKEYS[i];
+  camP.x = k[1]; camP.y = k[2]; camP.z = k[3];
+  camL.x = k[4]; camL.y = k[5]; camL.z = k[6];
 }
 
 scene.add(new THREE.HemisphereLight(0xaec4d4, 0x2f2a1c, .8));
@@ -1542,6 +1567,8 @@ addEventListener('click', (e) => {
 
 const chips = document.querySelectorAll('#chapters .chip[data-ch]');
 function normalizeUI(T) {
+  gsap.killTweensOf('#title');
+  gsap.set('#title', { opacity: T < 1 ? undefined : 0 });
   document.querySelectorAll('.pop').forEach(el => el.remove());   // a seek fires every skipped beat — don't stack their cards
   pops.length = 0;
   endcta.classList.toggle('on', T >= 70.5);
