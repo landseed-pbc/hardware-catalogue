@@ -360,26 +360,52 @@ world.onTick = () => {
       plates.push({ t, sx, sy, ly: sy, hw: t.el.offsetWidth / 2 + 8, h: t.el.offsetHeight + 6 });
     }
   }
-  // plates: a deliberate two-row rhythm — alternating tiers by x-order, sized
-  // to the tallest plate so the safety declutter below never re-cascades
+  // plates trace the same semicircle as the devices: every label sits at its
+  // device's projected spot, and overlaps resolve by nudging neighbours APART
+  // along x — never downward, so the arc stays unbroken
   plates.sort((a, b) => a.sx - b.sx);
-  const tierH = Math.max(58, ...plates.map(pp => pp.h)) + 12;
-  plates.forEach((pp, i) => { pp.ly = pp.sy + (i % 2) * tierH; });
-  const placed = [];
   let cramped = false;
-  for (const p of plates) {
-    for (let pass = 0; pass < 8; pass++) {
-      let moved = false;
-      for (const q of placed) {
-        const xOverlap = p.sx - p.hw < q.sx + q.hw && p.sx + p.hw > q.sx - q.hw;
-        const minGap = Math.max(p.h, q.h, 58);
-        if (xOverlap && Math.abs(p.ly - q.ly) < minGap) { p.ly = q.ly + minGap; moved = true; }
+  for (let pass = 0; pass < 6; pass++) {
+    let moved = false;
+    for (let i = 1; i < plates.length; i++) {
+      const a = plates[i - 1], b = plates[i];
+      const need = a.hw + b.hw + 6;
+      const gap = b.sx - a.sx;
+      if (gap < need) {
+        const shift = (need - gap) / 2 + 1;
+        a.sx -= shift; b.sx += shift;
+        moved = true;
       }
-      if (!moved) break;
     }
-    if (p.ly > innerHeight - 150) cramped = true;      // would touch the chip bar
-    p.ly = Math.min(p.ly, innerHeight - 150);
-    placed.push(p);
+    if (!moved) break;
+    if (pass === 5) cramped = true;                    // still colliding — drop to slim plates
+  }
+  // the caption card owns the lower-left: wall the first plate past it, then
+  // sweep once left-to-right so the chain stays evenly spaced
+  if (plates.length) {
+    const wall = 486;
+    plates[0].sx = Math.max(plates[0].sx, wall + plates[0].hw);
+    for (let i = 1; i < plates.length; i++) {
+      const a = plates[i - 1], b = plates[i];
+      const need = a.hw + b.hw + 6;
+      if (b.sx - a.sx < need) b.sx = a.sx + need;
+    }
+  }
+  // names ride one clean semicircle under the device fan: ends high, centre
+  // sagging smoothly — y is computed from x, not from per-model anchor height
+  const arc = plates.filter(pp => pp.t.dev.id !== 'ai');
+  if (arc.length > 2) {
+    const minX = arc[0].sx, maxX = arc[arc.length - 1].sx;
+    const endY = Math.min(arc[0].sy, arc[arc.length - 1].sy);
+    const sag = Math.min(118, innerHeight * .15);
+    for (const pp of arc) {
+      const u = (pp.sx - minX) / Math.max(1, maxX - minX);
+      pp.ly = endY + sag * Math.sin(Math.PI * u);
+    }
+  }
+  for (const p of plates) {
+    p.sx = Math.max(p.hw + 12, Math.min(innerWidth - p.hw - 12, p.sx));
+    p.ly = Math.min(p.ly ?? p.sy, innerHeight - 150);
     p.t.el.style.left = p.sx + 'px'; p.t.el.style.top = p.ly + 'px';
   }
   // not enough vertical room for stacked plates with descriptions —
