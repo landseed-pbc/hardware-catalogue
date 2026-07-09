@@ -170,7 +170,7 @@ const CAMKEYS = TWIN ? [
   // Mission control: ONE fixed command view of the whole board for all 78 s.
   // The only motion is a near-imperceptible push-in plus the drone sway.
   // Every scene plays as events lighting up across a stationary map.
-  [0,  -45, 32, 24,   8.5, 3, 4.5],
+  [0,  -52, 31, -4,   -25, 1.5, -15],
   [78, -57, 38.5, 30.5, 10, 3, 4],
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
@@ -621,6 +621,7 @@ scene.add(villageGrp);
   villageLight.position.set(17.5, lh + 2.4, -13.8);
   villageGrp.add(pole, bulb, villageLight);
 }
+const SAT_POS = V3(TWIN ? -2 : -8, TWIN ? 28 : 21.5, TWIN ? 0 : -4);
 const HQ_TOP = V3(AN.ai[0], heightAt(AN.ai[0], AN.ai[1]) + 2.2, AN.ai[1]);
 
 /* ── sensors — the real product models + ground FOV wedges ──────────────── */
@@ -717,7 +718,7 @@ const sat = new THREE.Group();
   stalk.position.y = .82;
   sat.add(body, rim, halo, stalk);
   sat.scale.setScalar(1.9);
-  sat.position.set(TWIN ? -2 : -8, TWIN ? 28 : 21.5, TWIN ? 0 : -4);
+  sat.position.set(SAT_POS.x, SAT_POS.y, SAT_POS.z);
   scene.add(sat);
 }
 
@@ -1177,7 +1178,7 @@ const stSer2Gate = stream(V3(AN.ser2[0], heightAt(AN.ser2[0], AN.ser2[1]) + 1.6,
 const stVGHQ = stream(V3(AN.vg[0], heightAt(AN.vg[0], AN.vg[1]) + 1.6, AN.vg[1]), HQ_TOP, HUES.guard, 2.4);
 const stWolfGate = stream(V3(AN.w1[0], heightAt(AN.w1[0], AN.w1[1]) + 1.4, AN.w1[1]), GATE_TOP, HUES.listen, 3.6);
 const stJWGate = stream(V3(AN.jw[0], heightAt(AN.jw[0], AN.jw[1]) + 1.4, AN.jw[1]), GATE_TOP, HUES.link, 4.2);
-const stSatHQ = stream(V3(-8, 21.5, -4), HQ_TOP, HUES.brain, -4);
+const stSatHQ = stream(SAT_POS.clone(), HQ_TOP, HUES.brain, 2);
 const stWolf2Gate = stream(V3(AN.w2[0], heightAt(AN.w2[0], AN.w2[1]) + 1.4, AN.w2[1]), GATE_TOP, HUES.listen, 4.2);
 const stWolf3Gate = stream(V3(AN.w3[0], heightAt(AN.w3[0], AN.w3[1]) + 1.4, AN.w3[1]), GATE_TOP, HUES.listen, 3);
 const stHQPatrol = stream(HQ_TOP, V3(-2.8, heightAt(-2.8, 5.3) + 1, 5.3), HUES.brain, 3.4);
@@ -1185,7 +1186,7 @@ const stMobHQ = stream(V3(AN.informant[0], heightAt(AN.informant[0], AN.informan
 let uplink = null;
 function fireUplink() {
   if (uplink) { scene.remove(uplink.line, uplink.pts); streams.splice(streams.indexOf(uplink), 1); }
-  uplink = stream(GATE_TOP.clone(), sat.position.clone(), HUES.link, 2);
+  uplink = stream(GATE_TOP.clone(), SAT_POS.clone(), HUES.link, 2);
   if (uplink.line) uplink.line.material.opacity = Math.min(1, (uplink.line.material.opacity || .3) * 1.8);
   if (uplink.pts) uplink.pts.material.size = (uplink.pts.material.size || .5) * 1.6;
   uplink.play(2.6);
@@ -1946,7 +1947,7 @@ function tick(dt, t) {
     st.b.position.set(AN.pack[0] + Math.cos(a) * 3.8, 5 + Math.sin(t * .55 + st.ph) * .3, AN.pack[1] + .3 + Math.sin(a) * 3.4);
     st.b.rotation.y = -a - Math.PI / 2;
   }
-  sat.position.x = (TWIN ? -2 : -8) + Math.sin(t * .05) * 3;
+  sat.position.x = SAT_POS.x + Math.sin(t * .05) * 3;
   sat.rotation.y = .5 + Math.sin(t * .07) * .25;
   sat.position.z = -2 + Math.cos(t * .05) * 5;
   sat.rotation.y = t * .1;
