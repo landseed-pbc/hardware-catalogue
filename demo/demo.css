@@ -124,13 +124,18 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
   #cap-t{font-size:24px}
   #cap-l{font-size:14.5px}
 }
-/* ── twin icon markers ───────────────────────────────────────────────────── */
-.twin-icon{position:fixed;z-index:22;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:rgba(6,12,8,.72);border:2px solid var(--ic);box-shadow:0 0 10px color-mix(in srgb,var(--ic) 55%,transparent),0 2px 8px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;pointer-events:none}
-.twin-icon svg{width:17px;height:17px;fill:#F0F0EA}
-.twin-icon b{position:absolute;top:31px;left:50%;transform:translateX(-50%);font:700 9.5px var(--sans);letter-spacing:.08em;color:var(--ic);text-shadow:0 1px 4px rgba(0,0,0,.9);white-space:nowrap}
-.twin-sensor{border-radius:8px;pointer-events:auto;cursor:pointer;transition:transform .15s}
-.twin-sensor:hover{transform:translate(-50%,-50%) scale(1.18)}
+/* ── twin markers — the gorillas-page grammar: silhouette + name pill ────── */
+.twin-icon{position:fixed;z-index:22;transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;pointer-events:none;white-space:nowrap}
+.ti-ic{position:relative;width:27px;height:27px;flex:none;display:block}
+.ti-ic svg{width:100%;height:100%;display:block;fill:var(--ic);filter:drop-shadow(0 0 1.5px rgba(4,9,5,.95)) drop-shadow(0 1px 2.5px rgba(0,0,0,.95))}
+.ti-tag{display:flex;align-items:baseline;gap:5px;font-size:11.5px;color:#F0F0EA;padding:2px 9px 2.5px 7px;border-radius:999px;background:rgba(7,14,9,.62);border:1px solid color-mix(in srgb,var(--ic) 40%,transparent);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);box-shadow:0 1px 5px rgba(0,0,0,.5);text-shadow:0 1px 2px rgba(0,0,0,.85)}
+.ti-tag b{font-weight:600;letter-spacing:.01em}
+.ti-tag i{font-style:normal;font-weight:700;color:var(--ic);font-variant-numeric:tabular-nums}
+.twin-sensor{pointer-events:auto;cursor:pointer;transition:transform .15s}
+.twin-sensor:hover{transform:translate(-50%,-50%) scale(1.1)}
+.twin-sensor:hover .ti-tag{border-color:color-mix(in srgb,var(--ic) 75%,transparent);background:rgba(10,22,13,.8)}
+.ti-ic::after{content:"";position:absolute;inset:-2px;border-radius:50%;pointer-events:none}
 @keyframes twinPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ic) 70%,transparent)}100%{box-shadow:0 0 0 26px transparent}}
 @keyframes twinPulseBig{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ic) 85%,transparent)}100%{box-shadow:0 0 0 46px transparent}}
-.twin-icon.pulse{animation:twinPulse 1.1s ease-out 2}
-.twin-icon.pulse-big{animation:twinPulseBig 1.3s ease-out 3}
+.twin-icon.pulse .ti-ic::after{animation:twinPulse 1.1s ease-out 2}
+.twin-icon.pulse-big .ti-ic::after{animation:twinPulseBig 1.3s ease-out 3}

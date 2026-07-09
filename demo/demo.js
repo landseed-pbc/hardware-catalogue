@@ -1660,17 +1660,18 @@ const GLYPHS = {
   bird: 'M4 12c3-.5 5-2.5 6-5 1 2 3 3 5.5 3L20 8.5 17.5 12c-1.5 2.5-4 4-7.5 4l-2 3-1-.5 1.4-2.9C6.5 15 5 13.8 4 12z',
   sensor: 'M12 4l7 4v8l-7 4-7-4V8l7-4zm0 2.4L7.4 9v6l4.6 2.6L16.6 15V9L12 6.4zm0 3a2.6 2.6 0 110 5.2 2.6 2.6 0 010-5.2z',
 };
-function iconEl(kind, hue, label) {
+function iconEl(kind, hue, label, count) {
   const el = document.createElement('div');
   el.className = 'twin-icon' + (kind === 'sensor' ? ' twin-sensor' : '');
   el.style.setProperty('--ic', hex(hue));
-  el.innerHTML = `<svg viewBox="0 0 24 24"><path d="${GLYPHS[kind] || GLYPHS.sensor}"/></svg>${label ? `<b>${label}</b>` : ''}`;
+  el.innerHTML = `<span class="ti-ic"><svg viewBox="0 0 24 24"><path d="${GLYPHS[kind] || GLYPHS.sensor}"/></svg></span>`
+    + (label ? `<span class="ti-tag"><b>${label}</b>${count ? `<i>${count}</i>` : ''}</span>` : '');
   document.body.appendChild(el);
   return el;
 }
 // a tracked entity: world position (optionally a moving group to follow)
-function marker(kind, hue, label, follow) {
-  const el = iconEl(kind, hue, label);
+function marker(kind, hue, label, follow, count) {
+  const el = iconEl(kind, hue, label, count);
   const rec = { el, kind, follow, pos: new THREE.Vector3(), on: true };
   ICONS.push(rec);
   return rec;
@@ -1690,28 +1691,28 @@ function markerPulse(rec, big = false) {
   rec.el.classList.add(big ? 'pulse-big' : 'pulse');
 }
 if (TWIN) {
-  const SHORT = { serengeti: 'SER', villageguard: 'VG', gateway: 'GW', junglewallah: 'JW', wolf: 'W', ai: 'AI' };
+  const SHORT = { serengeti: 'Serengeti', villageguard: 'VillageGuard', gateway: 'Gateway', junglewallah: 'Jungle-Wallah', wolf: 'Wolf', ai: 'Landseed AI' };
   const HUE_BY = { serengeti: HUES.see, villageguard: HUES.guard, gateway: HUES.link, junglewallah: 0xFF8C42, wolf: HUES.listen, ai: HUES.brain };
   const RANGE = { serengeti: 6.5, villageguard: 6, gateway: 9, junglewallah: 4.5, wolf: 5.5 };
-  let wolfN = 0;
+  let wolfN = 0, serN = 0;
   for (const rec of SENSORS) {
-    const label = rec.id === 'wolf' ? ('W' + (++wolfN)) : SHORT[rec.id];
+    const label = rec.id === 'wolf' ? ('Wolf ' + (++wolfN)) : rec.id === 'serengeti' ? ('Serengeti ' + (++serN)) : SHORT[rec.id];
     const m = marker('sensor', HUE_BY[rec.id], label, rec.g);
     m.el.addEventListener('click', () => { location.href = '/#' + rec.id; });
     m.el.title = 'View in the catalogue';
     if (RANGE[rec.id]) rangeRing(rec.g.position.x, rec.g.position.z, HUE_BY[rec.id], RANGE[rec.id]);
   }
-  mPoach = marker('human', 0xff5a4d, null, poachers);
+  mPoach = marker('human', 0xff5a4d, 'Intruders', poachers, 4);
   trailFrom(mPoach, 0xff5a4d);
-  mTruck = marker('vehicle', 0xd98a6a, null, window.__pickup);
-  mInformant = marker('phone', HUES.report, null, informant);
-  mJeep = marker('vehicle', 0x59F5A0, 'PATROL', jeep);
+  mTruck = marker('vehicle', 0xd98a6a, 'Pickup', window.__pickup);
+  mInformant = marker('phone', HUES.report, 'Informant', informant);
+  mJeep = marker('vehicle', 0x59F5A0, 'Patrol', jeep, 2);
   trailFrom(mJeep, 0x59F5A0);
-  mHerd = marker('elephant', HUES.guard, null, herd);
+  mHerd = marker('elephant', HUES.guard, 'Elephants', herd, 3);
   trailFrom(mHerd, HUES.guard);
-  mPack = marker('wolf', 0xE682E6, null, pack);
-  mGuards = marker('human', 0x9fdc8f, null, guard1);
-  mVillage = marker('sensor', 0xffc36b, 'VILLAGE', villageGrp);
+  mPack = marker('wolf', 0xE682E6, 'Wolf pack', pack, 5);
+  mGuards = marker('human', 0x9fdc8f, 'Rangers', guard1, 2);
+  mVillage = marker('sensor', 0xffc36b, 'Village', villageGrp);
   mVillage.pos.set(AN.village[0], heightAt(AN.village[0], AN.village[1]) + 1, AN.village[1]);
   mVillage.fixed = true;
 }
