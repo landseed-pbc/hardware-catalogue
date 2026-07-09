@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./demo.css?v=7" />
+<link rel="stylesheet" href="./demo.css?v=8" />
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 </head>
 <body class="booting">
@@ -42,10 +42,16 @@
   <p id="cap-l"></p>
 </div>
 
-<!-- live operations feed, right -->
-<aside id="feed">
-  <div class="feed-h">Operations feed<i id="feed-clock">06:41</i></div>
-  <div id="feed-list"></div>
+<!-- live alerts — the rangers' phone -->
+<aside id="phone" aria-label="live alerts">
+  <div class="ph-island"></div>
+  <div class="ph-status"><span id="feed-clock">06:41</span><span class="ph-icons">5G&thinsp;&#9646;&#9646;&#9646;&#9647;&ensp;&#128267;</span></div>
+  <div class="tg-head">
+    <img class="tg-ava" src="/public/landseed-ai-mark.png" alt="" />
+    <div class="tg-who"><b>Landseed AI</b><span>bot &middot; alerts on</span></div>
+  </div>
+  <div id="feed-list" class="tg-body"></div>
+  <div class="tg-input"><span>Message</span><i>&#127908;</i></div>
 </aside>
 
 <!-- projected detection cards -->
@@ -72,6 +78,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./demo.js?v=28"></script>
+<script type="module" src="./demo.js?v=30"></script>
 </body>
 </html>

@@ -65,6 +65,7 @@ const HUES = { see: 0x00FF64, guard: 0xFFC800, link: 0x32C8FF, listen: 0xE682E6,
 /* ── renderer / scene / light ───────────────────────────────────────────── */
 
 const renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true });
+renderer.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); setTimeout(() => location.reload(), 400); });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
@@ -523,14 +524,14 @@ const fovVG = fovWedge(12.9, -8.6, -.38, HUES.guard, 8, .52);
 
 const sat = new THREE.Group();
 {
-  // body — dark rounded slab with the Landseed AI lockup facing the land
-  const body = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, .42),
-    new THREE.MeshStandardMaterial({ color: 0x0b120c, roughness: .5, metalness: .35 }));
-  const rim = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.12, 1.12, .44)),
+  // body — the brand cube: lockup on every side face, so the logo never leaves
+  const lockupTex = new THREE.TextureLoader().load('/public/landseed-ai-lockup.png');
+  const sideM = new THREE.MeshBasicMaterial({ map: lockupTex, color: 0xffffff });
+  const capM = new THREE.MeshStandardMaterial({ color: 0x0b120c, roughness: .5, metalness: .35 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.15, 1.15), [sideM, sideM, capM, capM, sideM, sideM]);
+  const rim = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.17, 1.17, 1.17)),
     new THREE.LineBasicMaterial({ color: 0x59F5A0, transparent: true, opacity: .85 }));
-  const face = new THREE.Mesh(new THREE.PlaneGeometry(.92, .92),
-    new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/public/landseed-ai-lockup.png'), transparent: true }));
-  face.position.z = .222;
+  const face = new THREE.Group();
   // solar wings — two cell panels per side, vertical green cells
   const cellTex = (() => {
     const c = document.createElement('canvas'); c.width = 128; c.height = 96;
@@ -549,16 +550,16 @@ const sat = new THREE.Group();
     sat.add(boom);
     for (let i = 0; i < 2; i++) {
       const panel = new THREE.Mesh(new THREE.BoxGeometry(.78, .78, .04), panelM);
-      panel.position.x = side * (1.5 + i * .86);
+      panel.position.x = side * (1.72 + i * .86);
       sat.add(panel);
     }
   }
   // antenna halo
   const halo = new THREE.Mesh(new THREE.TorusGeometry(.3, .022, 8, 20, Math.PI),
     new THREE.MeshStandardMaterial({ color: 0x59F5A0, emissive: 0x2ee87e, emissiveIntensity: .7 }));
-  halo.position.y = .72;
+  halo.position.y = .95;
   const stalk = new THREE.Mesh(new THREE.CylinderGeometry(.02, .02, .22, 6), halo.material);
-  stalk.position.y = .62;
+  stalk.position.y = .82;
   sat.add(body, rim, face, halo, stalk);
   sat.scale.setScalar(1.9);
   sat.position.set(-8, 21.5, -4);
@@ -1024,15 +1025,17 @@ function caption(hue, k, t, l, hold = 7) {
   gsap.fromTo(cap, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .7, overwrite: true });
   gsap.to(cap, { opacity: 0, delay: hold, duration: .8, overwrite: false });
 }
+const FEED_EMOJI = [[HUES.see, '\u{1F6A8}'], [HUES.guard, '\u{1F418}'], [HUES.listen, '\u{1F43A}'], [HUES.link, '\u{1F4E1}'], [HUES.brain, '\u{1F9E0}'], [HUES.report, '\u{1F4F1}'], [0xFF8C42, '\u{1F4F7}']];
 function feed(hue, title, text) {
+  const em = (FEED_EMOJI.find(([h]) => h === hue) || [0, '\u{1F4CD}'])[1];
   const el = document.createElement('div');
-  el.className = 'fi';
-  el.style.setProperty('--fa', hex(hue));
-  el.innerHTML = `<i></i><div><b>${title}</b><span>${text}</span></div><em>${clockStr()}</em>`;
+  el.className = 'tg-msg';
+  el.innerHTML = `<b>${em} ${title}</b><span>${text}</span><em>${clockStr()}</em>`;
   const list = $('#feed-list');
-  list.prepend(el);
-  gsap.to(el, { opacity: 1, x: 0, duration: .5, ease: 'power2.out' });
-  while (list.children.length > 4) list.removeChild(list.lastChild);
+  list.appendChild(el);
+  gsap.fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .45, ease: 'power2.out' });
+  while (list.children.length > 6) list.removeChild(list.firstChild);
+  list.scrollTop = list.scrollHeight;
   sfx.feed();
 }
 function thumb(kind) {
@@ -1266,8 +1269,7 @@ tl.call(() => {                                                     // second ca
   stSer2Gate.play(2);
   feed(HUES.see, 'Serengeti-02 · confirm', 'Track confirmed heading for the ford');
 }, null, 28.2);
-cam(30.6, [4.5, 11, 1.5], [-2.8, .8, 5], 1.6, 'power1.in');          // arc toward the ford — one continuous sweep
-cam(32.2, [1.6, 5.8, 10.6], [-3, 1, 4.6], 1.9, 'power2.out');        // low tactical hold — close enough to see hands go up
+cam(30.4, [1.6, 5.8, 10.6], [-3, 1, 4.6], 3.4, 'sine.inOut');        // one committed move down to the ford — hold for the arrest
 tl.call(() => {                                                     // INTERCEPT — the jeep halts short
   placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
   placeOnCurve(jeep, road, Math.max(jeepState.u, .96), 0, 1);
@@ -1405,6 +1407,7 @@ tl.eventCallback('onRepeat', () => {
   jeep.visible = false;
   jeep.userData.lights.forEach(m => m.emissiveIntensity = 0);
   guard1.visible = guard2.visible = false; guardState.u = 0;
+  herd.rotation.y = 0;                                            // the turn tween accumulates otherwise
   rangers.forEach(r => { r.visible = false; setGait(r, 'Idle'); });
   gsap.set(lampMat, { emissiveIntensity: 0 }); gsap.set(villageLight, { intensity: 0 });
   $('#feed-list').innerHTML = '';
@@ -1456,7 +1459,13 @@ addEventListener('click', (e) => {
 /* ── chapter chips / pause ──────────────────────────────────────────────── */
 
 const chips = document.querySelectorAll('#chapters .chip[data-ch]');
-chips.forEach(b => b.addEventListener('click', () => { tl.play(); tl.time(CH[b.dataset.ch] + .02); }));
+chips.forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.pop').forEach(el => el.remove());   // a seek fires every skipped beat — don't stack their cards
+  pops.length = 0;
+  endcta.classList.remove('on');
+  tl.play();
+  tl.time(CH[b.dataset.ch] + .02);
+}));
 function markChapter() {
   const t = tl.time();
   let cur = 'overview';
