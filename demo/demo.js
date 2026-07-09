@@ -108,27 +108,28 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // neighbours keeps velocity continuous, so arrivals decelerate and departures
 // build — no per-move starts.
 const CAMKEYS = [
-  [0,    50, 27, 46,    -5, 9, -2],      // the whole system (loop frame)
-  [9,    34, 15, 32,     6, 3, 8],       // drifting in over the river
-  [10.8, 31.5, 7.5, 24.5, 25.5, 1, 15.8],// the informant's corner
-  [13.4, 31.5, 7.5, 24.5, 25.5, 1, 15.8],// · hold — the report goes out
-  [16.4, 13, 7.5, 17.5,  5.5, 1, 8.5],   // chokepoint oblique, ridge behind
-  [21,   13, 7.5, 17.5,  5.5, 1, 8.5],   // · hold — detection at range, relay
-  [22.6, 19, 13.5, 6,    12, 1, -6],     // crane apex over the forest
-  [24.4, 24, 8, -2,      17, 1.2, -12.3],// HQ
-  [26.2, 24, 8, -2,      17, 1.2, -12.3],// · hold — dispatch
-  [29.2, 6, 9, -12,      -2, .8, -2],    // tracking the jeep west
-  [32.2, 1.6, 5.8, 10.6, -3, 1, 4.6],    // the ford
-  [36.6, 1.6, 5.8, 10.6, -3, 1, 4.6],    // · hold — the arrest plays
-  [38.4, 10, 17.5, 7,    9, 0, -5],      // crane apex
-  [40.4, 21, 15.5, 5.5,  9.5, 0, -6.5],  // coexistence overhead — full context
-  [44.6, 21, 15.5, 5.5,  9.5, 0, -6.5],  // · hold — detection at range
-  [49.4, 18.5, 12.5, 2.5, 10.5, .5, -6.5],// one slow push as the deterrent plays
-  [50.9, 8, 14.5, 12,    0, 1.2, 5],     // over the river
-  [53.2, -2.5, 9.5, 23,  -12.4, 1.6, 12.2],// the listening clearing, wide
-  [61.9, -2.5, 9.5, 23,  -12.4, 1.6, 12.2],// · hold — howls, reports
-  [78,   50, 27, 46,     -5, 9, -2],     // one pull home — lands on the opening frame
+  [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
+  [9,    36, 20, 34,     4, 2, 6],        // drifting in over the river
+  [10.8, 30, 13, 26,    25.5, .5, 15.8],  // the informant's corner, high oblique
+  [13.4, 30, 13, 26,    25.5, .5, 15.8],  // · hold — the report goes out
+  [16.4, 14, 12, 18,     5.5, .5, 8.5],   // chokepoint from altitude
+  [21,   14, 12, 18,     5.5, .5, 8.5],   // · hold — detection at range, relay
+  [22.6, 20, 15, 7,     12, .5, -6],      // over the forest
+  [24.4, 25, 11, -1,    17, .8, -12.3],   // HQ
+  [26.2, 25, 11, -1,    17, .8, -12.3],   // · hold — dispatch
+  [29.2, 8, 13, -10,    -1, .5, -2],      // tracking the jeep west
+  [32.2, 2.5, 11.5, 10.5, -3, .6, 4.4],   // the ford, birds-eye
+  [36.6, 2.5, 11.5, 10.5, -3, .6, 4.4],   // · hold — the arrest plays, nothing hides it
+  [38.4, 11, 18, 6,      9, 0, -5],       // crane over the forest
+  [40.4, 22, 17, 6,      9.5, 0, -6.5],   // coexistence board view
+  [44.6, 22, 17, 6,      9.5, 0, -6.5],   // · hold — detection at range
+  [49.4, 19, 14, 3,     10.5, .3, -6.5],  // one slow push as the deterrent plays
+  [50.9, 7, 16, 12,     -1, .8, 5],       // over the river
+  [53.2, -2, 12, 24,    -12.2, 1, 12.2],  // the listening clearing from altitude
+  [61.9, -2, 12, 24,    -12.2, 1, 12.2],  // · hold — howls, reports
+  [78,   50, 27, 46,    -5, 9, -2],       // one pull home — lands on the opening frame
 ];
+
 function crv(p0, p1, p2, p3, u) {
   const u2 = u * u, u3 = u2 * u;
   return .5 * ((2 * p1) + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 + (-p0 + 3 * p1 - 3 * p2 + p3) * u3);
@@ -141,7 +142,12 @@ function sampleCam(T) {
   const a = CAMKEYS[Math.max(0, i - 1)], b = CAMKEYS[i], c = CAMKEYS[i + 1], d = CAMKEYS[Math.min(n - 1, i + 2)];
   let u = (T - b[0]) / Math.max(.001, c[0] - b[0]);
   u = Math.min(1, Math.max(0, u));
-  u = u * u * u * (u * (u * 6 - 15) + 10);                           // quintic — zero accel at holds
+  const same = (p, q) => p[1] === q[1] && p[2] === q[2] && p[3] === q[3];
+  const fromHold = same(a, b), toHold = same(c, d);
+  if (fromHold && toHold) u = u * u * (3 - 2 * u);                   // full ease between two holds
+  else if (fromHold) u = u * u;                                      // building out of a hold
+  else if (toHold) u = 1 - (1 - u) * (1 - u);                        // decelerating into a hold
+  /* transit keys pass linear — the spline carries the momentum */
   for (let k = 0; k < 3; k++) {
     const kk = 'xyz'[k];
     camP[kk] = crv(a[1 + k], b[1 + k], c[1 + k], d[1 + k], u);
@@ -239,8 +245,8 @@ const trail = new THREE.CatmullRomCurve3([
 const road = new THREE.CatmullRomCurve3([
   V3(16, 0, -11.5), V3(10, 0, -9.5), V3(4, 0, -7), V3(-2, 0, -3), V3(-6, 0, 1.5),
 ]);
-const herdIn = new THREE.CatmullRomCurve3([V3(0, 0, 12), V3(4.5, 0, 7), V3(8.5, 0, 1), V3(11.2, 0, -3.6), V3(12.4, 0, -6.4)]);
-const herdOut = new THREE.CatmullRomCurve3([V3(12.4, 0, -6.4), V3(10, 0, -2.5), V3(5.5, 0, 3.5), V3(0, 0, 8), V3(-4, 0, 11)]);
+const herdIn = new THREE.CatmullRomCurve3([V3(0, 0, 12), V3(4.5, 0, 7), V3(8.5, 0, 1), V3(10.6, 0, -2.8), V3(11.5, 0, -4.6)]);
+const herdOut = new THREE.CatmullRomCurve3([V3(11.5, 0, -4.6), V3(9.5, 0, -1.5), V3(5.5, 0, 3.5), V3(0, 0, 8), V3(-4, 0, 11)]);
 function nearCurve(curve, x, z, n = 60) {
   let m = 1e9;
   for (let i = 0; i <= n; i++) {
@@ -352,7 +358,7 @@ let fireflies;
 
 /* ── vegetation & rocks (instanced, three species) ──────────────────────── */
 
-const SPOTS = [[6.8, 10.2], [-4.5, 5.6], [12.9, -8.6], [-12, 10.5], [-8.5, 15.5], [-15.5, 14.5], [-3, 14.5], [-21.5, -3.5], [-12.8, 12.6], [-11.5, 13.5], [-9.8, 14.2], [-7.8, 16], [-6.5, 17.5]];
+const SPOTS = [[6.8, 10.2], [-4.5, 5.6], [12.9, -8.6], [-12, 10.5], [-8.5, 15.5], [-15.5, 14.5], [-3, 14.5], [-21.5, -3.5], [-12.8, 12.6], [-11.5, 13.5], [-9.8, 14.2], [-7.8, 16], [-6.5, 17.5], [-2.8, 5.3], [-1, 3.5], [-5, 3.8], [0, 6.5]];
 function scatterOK(x, z, h) {
   if (h < -.2 || h > 3.6) return false;
   if (Math.abs(z - riverZ(x)) < 2.4) return false;
@@ -720,7 +726,7 @@ guard2.visible = false;
 handLamp(guard2, 0xfff0c8, 24);
 scene.add(guard1, guard2);
 const guardState = { u: 0 };
-const guardPath = new THREE.CatmullRomCurve3([V3(16.2, 0, -12.8), V3(14.6, 0, -10.4), V3(13.4, 0, -8.2)]);
+const guardPath = new THREE.CatmullRomCurve3([V3(16.2, 0, -12.8), V3(14.8, 0, -10.6), V3(13.8, 0, -8.8)]);
 
 // elephants v2 — jointed legs (hip+knee), segmented swaying trunk, hinged ears
 function elephant(sc = 1) {
@@ -1347,13 +1353,17 @@ tl.call(() => {                                                     // INTERCEPT
   if (hl) { const lp = jeep.worldToLocal(V3(pp.x, py + .6, pp.z)); gsap.to(hl.position, { x: lp.x, y: lp.y, z: lp.z, duration: .9, ease: 'sine.inOut' }); }
   arrestLight.position.set(pp.x, py + 4, pp.z);
   gsap.to(arrestLight, { intensity: 14, duration: .9 });
-  rangers.forEach((r, i) => {                                       // two rangers step out and walk over
+  const adir = V3(pp.x - jeep.position.x, 0, pp.z - jeep.position.z).normalize();
+  const aperp = V3(-adir.z, 0, adir.x);
+  rangers.forEach((r, i) => {                                       // two rangers close in from the jeep's side of the group
     r.position.set(jeep.position.x + (i ? .6 : -.4), jeep.position.y, jeep.position.z + (i ? -.5 : .7));
     r.lookAt(pp.x, r.position.y, pp.z);
     r.visible = true;
     setGait(r, 'Walk');
+    const ex = pp.x - adir.x * 1.5 + aperp.x * (i ? 1 : -1);
+    const ez = pp.z - adir.z * 1.5 + aperp.z * (i ? 1 : -1);
     gsap.to(r.position, {
-      x: pp.x + (i ? 1.1 : -1.1), y: py, z: pp.z + (i ? .5 : -.6),
+      x: ex, y: heightAt(ex, ez), z: ez,
       duration: 3.6, delay: .4 + i * .35, ease: 'none',
       onComplete: () => { setGait(r, 'Idle'); r.lookAt(pp.x, r.position.y, pp.z); },
     });
