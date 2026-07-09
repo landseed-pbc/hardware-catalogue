@@ -104,7 +104,50 @@ scene.fog = new THREE.FogExp2(0x2e3833, 0.0096);
 }
 
 const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500);
-const camP = { x: 40, y: 22, z: 38 }, camL = { x: -4, y: 0, z: -2 };
+// One continuous 78 s flight. Duplicate keys are holds; Catmull-Rom through
+// neighbours keeps velocity continuous, so arrivals decelerate and departures
+// build — no per-move starts.
+const CAMKEYS = [
+  [0,    50, 27, 46,    -5, 9, -2],      // the whole system (loop frame)
+  [9,    34, 15, 32,     6, 3, 8],       // drifting in over the river
+  [10.8, 31.5, 7.5, 24.5, 25.5, 1, 15.8],// the informant's corner
+  [13.4, 31.5, 7.5, 24.5, 25.5, 1, 15.8],// · hold — the report goes out
+  [16.4, 13, 7.5, 17.5,  5.5, 1, 8.5],   // chokepoint oblique, ridge behind
+  [21,   13, 7.5, 17.5,  5.5, 1, 8.5],   // · hold — detection at range, relay
+  [22.6, 19, 13.5, 6,    12, 1, -6],     // crane apex over the forest
+  [24.4, 24, 8, -2,      17, 1.2, -12.3],// HQ
+  [26.2, 24, 8, -2,      17, 1.2, -12.3],// · hold — dispatch
+  [29.2, 6, 9, -12,      -2, .8, -2],    // tracking the jeep west
+  [32.2, 1.6, 5.8, 10.6, -3, 1, 4.6],    // the ford
+  [36.6, 1.6, 5.8, 10.6, -3, 1, 4.6],    // · hold — the arrest plays
+  [38.4, 10, 17.5, 7,    9, 0, -5],      // crane apex
+  [40.4, 21, 15.5, 5.5,  9.5, 0, -6.5],  // coexistence overhead — full context
+  [44.6, 21, 15.5, 5.5,  9.5, 0, -6.5],  // · hold — detection at range
+  [49.4, 18.5, 12.5, 2.5, 10.5, .5, -6.5],// one slow push as the deterrent plays
+  [50.9, 8, 14.5, 12,    0, 1.2, 5],     // over the river
+  [53.2, -2.5, 9.5, 23,  -12.4, 1.6, 12.2],// the listening clearing, wide
+  [61.9, -2.5, 9.5, 23,  -12.4, 1.6, 12.2],// · hold — howls, reports
+  [78,   50, 27, 46,     -5, 9, -2],     // one pull home — lands on the opening frame
+];
+function crv(p0, p1, p2, p3, u) {
+  const u2 = u * u, u3 = u2 * u;
+  return .5 * ((2 * p1) + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 + (-p0 + 3 * p1 - 3 * p2 + p3) * u3);
+}
+const camP = { x: 50, y: 27, z: 46 }, camL = { x: -5, y: 9, z: -2 };
+function sampleCam(T) {
+  const n = CAMKEYS.length;
+  let i = 0;
+  while (i < n - 2 && T >= CAMKEYS[i + 1][0]) i++;
+  const a = CAMKEYS[Math.max(0, i - 1)], b = CAMKEYS[i], c = CAMKEYS[i + 1], d = CAMKEYS[Math.min(n - 1, i + 2)];
+  let u = (T - b[0]) / Math.max(.001, c[0] - b[0]);
+  u = Math.min(1, Math.max(0, u));
+  u = u * u * u * (u * (u * 6 - 15) + 10);                           // quintic — zero accel at holds
+  for (let k = 0; k < 3; k++) {
+    const kk = 'xyz'[k];
+    camP[kk] = crv(a[1 + k], b[1 + k], c[1 + k], d[1 + k], u);
+    camL[kk] = crv(a[4 + k], b[4 + k], c[4 + k], d[4 + k], u);
+  }
+}
 
 scene.add(new THREE.HemisphereLight(0xaec4d4, 0x2f2a1c, .8));
 scene.add(new THREE.AmbientLight(0x2c3a30, .5));
@@ -1126,6 +1169,19 @@ function sensorSnap(from, look, { ir = false, boxes = [] } = {}) {
   x.fillStyle = '#ff5a4d'; x.beginPath(); x.arc(W - 14, H - 12, 4, 0, 7); x.fill();
   return c;
 }
+// detection AT RANGE: a thin beam snaps from the subject back to the sensor,
+// the wedge flashes, the LED wakes — seeing happens across distance
+function triggerBeam(fromX, fromZ, sensX, sensZ, hue) {
+  const from = V3(fromX, heightAt(fromX, fromZ) + 1, fromZ);
+  const to = V3(sensX, heightAt(sensX, sensZ) + 1.3, sensZ);
+  const line = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([from, to]),
+    new THREE.LineBasicMaterial({ color: hue, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  scene.add(line);
+  gsap.to(line.material, { opacity: .95, duration: .12, ease: 'power2.in' });
+  gsap.to(line.material, { opacity: 0, duration: .7, delay: .35, onComplete: () => scene.remove(line) });
+  flashAt(to, 0xd9ffe4);
+}
 const boxFor = (obj, height, ar, col, tag) => {
   const w = new THREE.Vector3(); obj.getWorldPosition(w);
   return { top: w.clone().setY(w.y + height), bot: w.clone().setY(w.y + .02), ar, col, tag };
@@ -1236,23 +1292,16 @@ function clockStr() {
 
 const tl = gsap.timeline({ repeat: -1, paused: true });
 const CH = { overview: 0, intrusion: 10, response: 24, coexist: 34, listening: 50, network: 62 };
-const cam = (t, p, l, dur, ease = 'power2.inOut') => {
-  tl.to(camP, { x: p[0], y: p[1], z: p[2], duration: dur, ease }, t);
-  tl.to(camL, { x: l[0], y: l[1], z: l[2], duration: dur, ease }, t);
-};
 
 // ── overview 0–10 · one continuous establishing move, high and oblique
 tl.call(() => {
   gsap.fromTo('#title', { opacity: 0 }, { opacity: 1, duration: 1.4, delay: .4, overwrite: true });
   gsap.to('#title', { opacity: 0, duration: 1.1, delay: 7.4, overwrite: false });
 }, null, .01);
-cam(0, [50, 27, 46], [-5, 9, -2], .01, 'none');
-cam(.02, [24, 19, 34], [-4, .5, 0], 9.8, 'sine.inOut');
 tl.call(() => fireUplink(), null, 1.2);
 tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station', 'Cameras at the chokepoints, three ears in the forest, a gateway on the ridge — the brain above headquarters.', 6.5), null, 2.6);
 
 // ── intrusion 10–24 · the report comes first, then the cameras confirm
-cam(10, [31.5, 7.5, 24.5], [25.5, 1, 15.8], 3, 'sine.inOut');
 tl.call(() => $('#phone').classList.add('on'), null, 10.3);         // the phone arrives with the story
 tl.call(() => {
   flashAt(V3(26.5, heightAt(26.5, 16.6) + 1.2, 16.6), 0xcfe8ff);      // the phone takes its photo
@@ -1264,33 +1313,28 @@ tl.call(() => {
 }, null, 11.2);
 tl.call(() => caption(HUES.report, 'To report · Human in the loop', 'The first sensor is a person', 'An informant’s photo reaches HQ before the men are inside. The cameras are already waiting.', 6.2), null, 11.6);
 tl.to(poach, { u: .52, duration: 6.4, ease: 'none' }, 13.2);
-cam(14.6, [13, 7.5, 17.5], [5.5, 1, 8.5], 3.6, 'sine.inOut');       // oblique over the chokepoint, ridge on the horizon
-tl.call(() => {                                                     // DETECTION 1
-  flashAt(V3(6.8, heightAt(6.8, 10.2) + 1.6, 10.2), 0xd9ffe4);
+tl.call(() => {                                                     // DETECTION 1 — at the wedge edge, seven units out
   const pp = trail.getPoint(poach.u);
-  ringAt(pp.x, pp.z, HUES.see, 3.4);
-  gsap.fromTo(fovSer1, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', fieldCard('people-walk'), 3.2);
-}, null, 19);
-tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Serengeti-01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128)); }, null, 19.9);
-tl.call(() => fireUplink(), null, 21.2);
-tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 22);
+  triggerBeam(pp.x, pp.z, 6.8, 10.2, HUES.see);
+  ringAt(pp.x, pp.z, HUES.see, 2.6);
+  gsap.fromTo(fovSer1, { opacity: .4 }, { opacity: .1, duration: 1.8 });
+  popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · detected at 40 m · 200 ms to image', fieldCard('people-walk'), 3.2);
+}, null, 17.4);
+tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Serengeti-01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128)); }, null, 18.3);
+tl.call(() => fireUplink(), null, 19.6);
+tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 20.8);
 tl.to(poach, { u: .74, duration: 12, ease: 'none' }, 19.5);
 
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
-cam(22.8, [20, 13, 8], [10, 1, -4], 1.9, 'power1.in');              // crane up out of the trail
-cam(24.7, [24, 8, -2], [17, 1.2, -12.3], 2.6, 'power2.out');        // settle on HQ
 tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. A patrol is rolling in under a minute.', 5), null, 24.6);
 tl.call(() => { jeepState.on = true; jeep.visible = true; feed(HUES.brain, 'HQ · dispatch', 'Patrol unit 2 rolling · intercept set at the ford'); }, null, 25.2);
 tl.to(jeepState, { u: 1, duration: 7.6, ease: 'power1.inOut' }, 25.6);
-cam(26.6, [6, 9, -12], [-2, .8, -2], 4.4, 'sine.inOut');            // high side-track on the jeep
 tl.call(() => {                                                     // second camera confirms the track
   flashAt(V3(-4.5, heightAt(-4.5, 5.6) + 1.6, 5.6), 0xd9ffe4);
   gsap.fromTo(fovSer2, { opacity: .3 }, { opacity: .1, duration: 1.4 });
   stSer2Gate.play(2);
   feed(HUES.see, 'Serengeti-02 · confirm', 'Track confirmed heading for the ford');
 }, null, 28.2);
-cam(30.4, [1.6, 5.8, 10.6], [-3, 1, 4.6], 3.4, 'sine.inOut');        // one committed move down to the ford — hold for the arrest
 tl.call(() => {                                                     // INTERCEPT — the jeep halts short
   placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
   placeOnCurve(jeep, road, Math.max(jeepState.u, .96), 0, 1);
@@ -1326,27 +1370,25 @@ tl.call(() => {
 }, null, 33.9);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
-cam(36.6, [8, 15, 4], [10, 0, -5.5], 1.9, 'power1.in');             // crane up from the ford — the arrest gets its beat
-cam(38.5, [21, 15.5, 5.5], [9.5, 0, -6.5], 2.8, 'power2.out');      // broad overhead: herd path, crops, village — full context
 tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 5.5), null, 38.8);
 tl.call(() => { herd.visible = true; }, null, 36.5);
 tl.to(herdState, { u: .78, duration: 6.2, ease: 'none' }, 36.4);
 tl.to(herdState, { u: 1, duration: 2.2, ease: 'none' }, 42.7);
-tl.call(() => {                                                     // DETECTION 2
-  flashAt(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), 0xffe9bd);
-  ringAt(12.4, -6.4, HUES.guard, 3.2);
-  gsap.fromTo(fovVG, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · alert < 1 KB · direct-to-cell', fieldCard('elephant-walk'), 2.2);
+tl.call(() => {                                                     // DETECTION 2 — the herd crosses into the wedge
+  const hp = herdIn.getPoint(herdState.u);
+  triggerBeam(hp.x, hp.z, 12.9, -8.6, HUES.guard);
+  ringAt(hp.x, hp.z, HUES.guard, 2.6);
+  gsap.fromTo(fovVG, { opacity: .4 }, { opacity: .1, duration: 1.8 });
+  popup(V3(0, 0, 0), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · detected at 60 m · alert < 1 KB', fieldCard('elephant-walk'), 2.4);
   stVGHQ.play(2.2);
   feedPhoto(HUES.guard, 'VillageGuard-04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-walk', 128));
-}, null, 44.9);
-cam(44.6, [18.5, 12.5, 2.5], [10.5, .5, -6.5], 4.2, 'sine.inOut');  // one slow push-in as the deterrent plays
+}, null, 42.0);
 tl.call(() => {
   gsap.to(lampMat, { emissiveIntensity: 2.6, duration: .4 });
   gsap.to(villageLight, { intensity: 16, duration: .4 });
   guard1.visible = guard2.visible = true;
-}, null, 45.7);
-tl.to(guardState, { u: 1, duration: 5.2, ease: 'none' }, 45.9);
+}, null, 43.8);
+tl.to(guardState, { u: 1, duration: 5.2, ease: 'none' }, 44.1);
 tl.call(() => {
   popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGEGUARD-04 · every class on the list in a single detector', fieldCard('multi-class'), 2.2);
   feed(HUES.guard, 'VillageGuard-04 · multi-class', 'Elephant and person in the same frame · one detector');
@@ -1360,8 +1402,6 @@ tl.to(herdState, { u: 0, duration: 5.4, ease: 'sine.inOut' }, 48);
 tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, people out, and the herd drifts back to the treeline. No crops lost, no retaliation.', 5), null, 47);
 
 // ── listening 50–62 · wolves howl, birds call, the array breathes it in
-cam(50, [16, 13, 2], [-11, 1, 11], 2, 'power1.in');                 // crane over the river
-cam(52, [-2.5, 9.5, 23], [-12.4, 1.6, 12.2], 2.8, 'power2.out');    // settle wide — pack, all three units, the bird overhead
 tl.call(() => gsap.to(packLight, { intensity: 20, duration: 2 }), null, 50.5);
 tl.call(() => gsap.to(packLight, { intensity: 0, duration: 2.5 }), null, 60.5);
 tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Three Wolf units breathe the forest in. Every call becomes a bearing; three bearings become a place.', 6), null, 52);
@@ -1413,7 +1453,6 @@ tl.call(() => { fireUplink(); stSatHQ.play(2.6); }, null, 73.2);
 tl.call(() => fireUplink(), null, 75.2);
 tl.call(() => fireUplink(), null, 77.3);
 tl.call(() => feed(HUES.brain, 'Landseed AI · report', 'Daily summary compiled · Earth Credits registry updated'), null, 69);
-cam(62, [50, 27, 46], [-5, 9, -2], 16, 'sine.inOut');               // ONE continuous pull, listening frame to the whole system + satellite — lands on the opening frame
 tl.call(() => {}, null, 78);
 
 const endcta = document.createElement('div');
@@ -1632,6 +1671,7 @@ function tick(dt, t) {
   sun.intensity = 2.75 + .18 * Math.sin(t * .13) + .1 * noise(t * .05, 3.3);       // living light
   grade.uniforms.uTime.value = t;
 
+  sampleCam(tl.time());
   camera.position.set(camP.x, camP.y, camP.z);
   camera.lookAt(camL.x, camL.y, camL.z);
 
