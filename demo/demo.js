@@ -167,20 +167,21 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // neighbours keeps velocity continuous, so arrivals decelerate and departures
 // build — no per-move starts.
 const CAMKEYS = TWIN ? [
-  [0,    70, 42, 55,    0, 3, 2],          // the sector, wide (loop frame)
-  [10.2, -17, 9.5, -10.5, -31.5, 1, -23.5],// the NW boundary: farmland, the watcher, the men
-  [14.2, -17, 9.5, -10.5, -31.5, 1, -23.5],
-  [17.6, -34, 10, -23,  -20.5, 2, -11.5],  // the climb — massif rising ahead of the men
-  [21.8, -34, 10, -23,  -20.5, 2, -11.5],
-  [24.6, -27.5, 8, -19.5, -38.5, .5, -29.8],// headquarters below on the farm flat
-  [26.6, -27.5, 8, -19.5, -38.5, .5, -29.8],
-  [32.4, -1, 9.5, -8.5,  -9.5, 2.2, 3],    // the crossing, ravine country
-  [36.8, -1, 9.5, -8.5,  -9.5, 2.2, 3],
-  [40.6, 52.9, 10, 28.9, 38, 1, 13.8],     // across the park: the eastern fields
-  [46.2, 52.9, 10, 28.9, 38, 1, 13.8],
-  [53.4, 3, 14.5, -7,   -21, 3, 12],       // the meadow — the peak face carries the frame
-  [62,   3, 14.5, -7,   -21, 3, 12],
-  [78,   70, 42, 55,    0, 3, 2],          // one pull home
+// one constant SE-overhead viewing vector — transits are pure glides, never through terrain
+  [0, 36.8, 73.3, 34.2,   0, 2, 2],
+  [10.2, -15.0, 32.0, -9.5,   -31, 1, -23.5],
+  [14.2, -15.0, 32.0, -9.5,   -31, 1, -23.5],
+  [17.6, -4.0, 33.0, 3.0,   -20, 2, -11],
+  [21.8, -4.0, 33.0, 3.0,   -20, 2, -11],
+  [24.6, -22.0, 31.5, -15.5,   -38, 0.5, -29.5],
+  [26.6, -22.0, 31.5, -15.5,   -38, 0.5, -29.5],
+  [32.4, 6.5, 33.0, 17.0,   -9.5, 2, 3],
+  [36.8, 6.5, 33.0, 17.0,   -9.5, 2, 3],
+  [40.6, 54.0, 32.0, 28.0,   38, 1, 14],
+  [46.2, 54.0, 32.0, 28.0,   38, 1, 14],
+  [53.4, -5.0, 34.0, 26.0,   -21, 3, 12],
+  [62, -5.0, 34.0, 26.0,   -21, 3, 12],
+  [78, 36.8, 73.3, 34.2,   0, 2, 2],
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
@@ -726,7 +727,7 @@ const sat = new THREE.Group();
   stalk.position.y = .82;
   sat.add(body, rim, halo, stalk);
   sat.scale.setScalar(1.9);
-  sat.position.set(-8, 21.5, -4);
+  sat.position.set(-8, TWIN ? 47 : 21.5, -4);
   scene.add(sat);
 }
 
