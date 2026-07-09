@@ -316,7 +316,7 @@ for (const d of DEVICES) {
   el.className = 'dlabel';
   el.style.setProperty('--fa', hex(d.hue));
   const plateName = d.id === 'ai' ? d.name : d.name.replace('Landseed ', '');
-  el.innerHTML = `<span class="dn">${plateName}</span><span class="dd">${d.desc}</span><span class="dp">${d.price}</span>`;
+  el.innerHTML = `<span class="dn">${plateName}</span><span class="dp">${d.price}</span>`;
   el.addEventListener('click', () => goView(d.id));
   // plate anchor: the front edge of the plinth, so the plate reads BELOW the
   // unit — except Landseed AI, whose plate floats ABOVE the brain in clear sky
@@ -360,51 +360,37 @@ world.onTick = () => {
       plates.push({ t, sx, sy, ly: sy, hw: t.el.offsetWidth / 2 + 8, h: t.el.offsetHeight + 6 });
     }
   }
-  // plates trace the same semicircle as the devices: every label sits at its
-  // device's projected spot, and overlaps resolve by nudging neighbours APART
-  // along x — never downward, so the arc stays unbroken
+  // every name sits centred under ITS device — x is never moved. The arc is
+  // pure y: an even half-sine by device order, with just enough sag that
+  // adjacent plates clear each other diagonally.
   plates.sort((a, b) => a.sx - b.sx);
   let cramped = false;
-  for (let pass = 0; pass < 6; pass++) {
-    let moved = false;
-    for (let i = 1; i < plates.length; i++) {
-      const a = plates[i - 1], b = plates[i];
-      const need = a.hw + b.hw + 6;
-      const gap = b.sx - a.sx;
-      if (gap < need) {
-        const shift = (need - gap) / 2 + 1;
-        a.sx -= shift; b.sx += shift;
-        moved = true;
-      }
-    }
-    if (!moved) break;
-    if (pass === 5) cramped = true;                    // still colliding — drop to slim plates
-  }
-  // the caption card owns the lower-left: wall the first plate past it, then
-  // sweep once left-to-right so the chain stays evenly spaced
-  if (plates.length) {
-    const wall = 486;
-    plates[0].sx = Math.max(plates[0].sx, wall + plates[0].hw);
-    for (let i = 1; i < plates.length; i++) {
-      const a = plates[i - 1], b = plates[i];
-      const need = a.hw + b.hw + 6;
-      if (b.sx - a.sx < need) b.sx = a.sx + need;
-    }
-  }
-  // names ride one clean semicircle under the device fan: ends high, centre
-  // sagging smoothly — y is computed from x, not from per-model anchor height
   const arc = plates.filter(pp => pp.t.dev.id !== 'ai');
-  if (arc.length > 2) {
-    const minX = arc[0].sx, maxX = arc[arc.length - 1].sx;
+  if (arc.length > 1) {
     const endY = Math.min(arc[0].sy, arc[arc.length - 1].sy);
-    const sag = Math.min(118, innerHeight * .15);
-    for (const pp of arc) {
-      const u = (pp.sx - minX) / Math.max(1, maxX - minX);
-      pp.ly = endY + sag * Math.sin(Math.PI * u);
+    const spread = arc[arc.length - 1].sx - arc[0].sx;
+    const sag = Math.min(Math.max(spread * .13, 54), 112);
+    const base = Math.min(endY, innerHeight - 168 - sag);   // the whole arc shifts UP to fit — never shears flat
+    arc.forEach((pp, i) => {
+      const u = i / (arc.length - 1);
+      pp.ly = base + sag * Math.sin(Math.PI * u);
+    });
+    if (innerHeight < 700) cramped = true;
+    // the centre pair shares the arc's lowest tier — if their plates kiss,
+    // micro-nudge them apart (bounded, so device alignment stays honest)
+    for (let i = 1; i < arc.length; i++) {
+      const a = arc[i - 1], b = arc[i];
+      if (Math.abs(a.ly - b.ly) < Math.max(a.h, b.h) * .8) {
+        const need = a.hw + b.hw + 8, gap = b.sx - a.sx;
+        if (gap < need) {
+          const shift = Math.min(34, (need - gap) / 2);
+          a.sx -= shift; b.sx += shift;
+        }
+      }
     }
   }
   for (const p of plates) {
-    p.sx = Math.max(p.hw + 12, Math.min(innerWidth - p.hw - 12, p.sx));
+    p.sx = Math.max(p.hw + 10, Math.min(innerWidth - p.hw - 10, p.sx));
     p.ly = Math.min(p.ly ?? p.sy, innerHeight - 150);
     p.t.el.style.left = p.sx + 'px'; p.t.el.style.top = p.ly + 'px';
   }
