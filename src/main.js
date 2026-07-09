@@ -360,9 +360,11 @@ world.onTick = () => {
       plates.push({ t, sx, sy, ly: sy, hw: t.el.offsetWidth / 2 + 8, h: t.el.offsetHeight + 6 });
     }
   }
-  // plates: if two would overlap, the later one steps below its neighbour —
-  // an organic second row that only appears when space demands it
+  // plates: a deliberate two-row rhythm — alternating tiers by x-order, sized
+  // to the tallest plate so the safety declutter below never re-cascades
   plates.sort((a, b) => a.sx - b.sx);
+  const tierH = Math.max(58, ...plates.map(pp => pp.h)) + 12;
+  plates.forEach((pp, i) => { pp.ly = pp.sy + (i % 2) * tierH; });
   const placed = [];
   let cramped = false;
   for (const p of plates) {
