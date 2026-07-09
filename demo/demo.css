@@ -140,3 +140,4 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .twin-icon.pulse .ti-ic::after{animation:twinPulse 1.1s ease-out 2}
 .twin-icon.pulse-big .ti-ic::after{animation:twinPulseBig 1.3s ease-out 3}
 .twin-icon.nolabel .ti-tag{display:none}
+.twin-icon.pill-only .ti-ic{display:none}

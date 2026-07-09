@@ -164,19 +164,20 @@ const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500
 // neighbours keeps velocity continuous, so arrivals decelerate and departures
 // build — no per-move starts.
 const CAMKEYS = TWIN ? [
-  [0.0, 1.0, 33, 54.1,   23, 1, 7],
-  [6.5, 27.5, 33, 58.8,   23, 1, 7],
-  [13.0, 52.8, 33, 49.6,   23, 1, 7],
-  [19.5, 70.1, 33, 29.0,   23, 1, 7],
-  [26.0, 74.8, 33, 2.5,   23, 1, 7],
-  [32.5, 65.6, 33, -22.8,   23, 1, 7],
-  [39.0, 45.0, 33, -40.1,   23, 1, 7],
-  [45.5, 18.5, 33, -44.8,   23, 1, 7],
-  [52.0, -6.8, 33, -35.6,   23, 1, 7],
-  [58.5, -24.1, 33, -15.0,   23, 1, 7],
-  [65.0, -28.8, 33, 11.5,   23, 1, 7],
-  [71.5, -19.6, 33, 36.8,   23, 1, 7],
-  [78.0, 1.0, 33, 54.1,   23, 1, 7],
+  [0,    74, 42, 50,   16, 2, 8],         // the sector, wide (loop frame)
+  [10.2, 58.6, 17, 21,  44.8, 1, 5.6],    // the boundary track — horizon in frame
+  [14.2, 58.6, 17, 21,  44.8, 1, 5.6],
+  [17.6, 35.1, 16, 23.3, 15.5, 1, 6.8],   // the chokepoint canopy
+  [21.8, 35.1, 16, 23.3, 15.5, 1, 6.8],
+  [24.6, 59.5, 16, 22.6, 46, 1.5, 12.6],  // headquarters on the farm belt
+  [26.6, 59.5, 16, 22.6, 46, 1.5, 12.6],
+  [32.4, 16.6, 14.5, 18.7, 2.6, 1, 4.5],  // the crossing
+  [36.8, 16.6, 14.5, 18.7, 2.6, 1, 4.5],
+  [40.6, 52.9, 17, 28.9, 38, 1, 13.8],    // the fields
+  [46.2, 52.9, 17, 28.9, 38, 1, 13.8],
+  [53.4, 34.9, 17, 10.6, 20, 1, -3.2],    // the meadow
+  [62,   34.9, 17, 10.6, 20, 1, -3.2],
+  [78,   74, 42, 50,   16, 2, 8],         // one pull home
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
@@ -253,7 +254,7 @@ function setKey(i) {
 
 scene.add(new THREE.HemisphereLight(0xaec4d4, 0x2f2a1c, .8));
 scene.add(new THREE.AmbientLight(0x2c3a30, .5));
-const sun = new THREE.DirectionalLight(0xffc98f, 2.75);
+const sun = new THREE.DirectionalLight(0xffc98f, TWIN ? 3.5 : 2.75);   // twin leans on hillshading for depth
 sun.position.set(-40, 13, 12);                                       // low in the west — long dusk shadows
 sun.castShadow = true;
 sun.shadow.mapSize.set(LOW ? 1024 : 2048, LOW ? 1024 : 2048);
@@ -391,7 +392,7 @@ function nearCurve(curve, x, z, n = 60) {
     col[i * 3] *= s; col[i * 3 + 1] *= s; col[i * 3 + 2] *= s;
   }
   const ground = new THREE.Mesh(geo, (TWIN && satTex)
-    ? new THREE.MeshStandardMaterial({ map: satTex, emissive: 0xffffff, emissiveMap: satTex, emissiveIntensity: .52, roughness: .96, metalness: 0 })
+    ? new THREE.MeshStandardMaterial({ map: satTex, emissive: 0xffffff, emissiveMap: satTex, emissiveIntensity: .3, roughness: .96, metalness: 0 })
     : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .95, metalness: 0 }));
   ground.receiveShadow = true;
   scene.add(ground);
@@ -1640,11 +1641,15 @@ let mPoach, mTruck, mInformant, mJeep, mHerd, mPack, mGuards, mVillage;
 if (TWIN) {
   scene.remove(poachers, herd, jeep, pack, informant, guard1, guard2, villageGrp);
   if (window.__hqGrp) scene.remove(window.__hqGrp);
+  for (const rec of SENSORS) {                          // the hardware itself stands on the board — hero scale
+    rec.g.scale.multiplyScalar(1.45);
+    rec.g.position.y = heightAt(rec.g.position.x, rec.g.position.z);
+  }
   rangers.forEach(r => scene.remove(r));
   if (window.__pickup) scene.remove(window.__pickup);
   if (fireflies) scene.remove(fireflies);
   for (const cs of cloudShadows) scene.remove(cs.m);
-  for (const rec of SENSORS) scene.remove(rec.g);
+
 }
 
 /* ── icon entities: the twin's actors are tracked markers, not models ────── */
@@ -1658,9 +1663,9 @@ const GLYPHS = {
   bird: 'M4 12c3-.5 5-2.5 6-5 1 2 3 3 5.5 3L20 8.5 17.5 12c-1.5 2.5-4 4-7.5 4l-2 3-1-.5 1.4-2.9C6.5 15 5 13.8 4 12z',
   sensor: 'M12 4l7 4v8l-7 4-7-4V8l7-4zm0 2.4L7.4 9v6l4.6 2.6L16.6 15V9L12 6.4zm0 3a2.6 2.6 0 110 5.2 2.6 2.6 0 010-5.2z',
 };
-function iconEl(kind, hue, label, count) {
+function iconEl(kind, hue, label, count, pillOnly) {
   const el = document.createElement('div');
-  el.className = 'twin-icon' + (kind === 'sensor' ? ' twin-sensor' : '');
+  el.className = 'twin-icon' + (kind === 'sensor' ? ' twin-sensor' : '') + (pillOnly ? ' pill-only' : '');
   el.style.setProperty('--ic', hex(hue));
   el.innerHTML = `<span class="ti-ic"><svg viewBox="0 0 24 24"><path d="${GLYPHS[kind] || GLYPHS.sensor}"/></svg></span>`
     + (label ? `<span class="ti-tag"><b>${label}</b>${count ? `<i>${count}</i>` : ''}</span>` : '');
@@ -1668,8 +1673,8 @@ function iconEl(kind, hue, label, count) {
   return el;
 }
 // a tracked entity: world position (optionally a moving group to follow)
-function marker(kind, hue, label, follow, count) {
-  const el = iconEl(kind, hue, label, count);
+function marker(kind, hue, label, follow, count, pillOnly) {
+  const el = iconEl(kind, hue, label, count, pillOnly);
   const rec = { el, kind, follow, pos: new THREE.Vector3(), on: true, pri: 2 };
   ICONS.push(rec);
   return rec;
@@ -1695,8 +1700,9 @@ if (TWIN) {
   let wolfN = 0, serN = 0;
   for (const rec of SENSORS) {
     const label = rec.id === 'wolf' ? ('Wolf ' + (++wolfN)) : rec.id === 'serengeti' ? ('Serengeti ' + (++serN)) : SHORT[rec.id];
-    const m = marker('sensor', HUE_BY[rec.id], label, rec.g);
+    const m = marker('sensor', HUE_BY[rec.id], label, rec.g, null, true);
     m.pri = 1;
+    m.lift = 4.4;
     m.el.addEventListener('click', () => { location.href = '/#' + rec.id; });
     m.el.title = 'View in the catalogue';
     if (RANGE[rec.id]) rangeRing(rec.g.position.x, rec.g.position.z, HUE_BY[rec.id], RANGE[rec.id]);
@@ -1979,7 +1985,7 @@ function tick(dt, t) {
   const shownPills = [];
   const byPri = [...ICONS].sort((a, b) => b.pri - a.pri);
   for (const ic of byPri) {
-    if (!ic.fixed && ic.follow) ic.pos.set(ic.follow.position.x, ic.follow.position.y + 1.2, ic.follow.position.z);
+    if (!ic.fixed && ic.follow) ic.pos.set(ic.follow.position.x, ic.follow.position.y + (ic.lift || 1.2), ic.follow.position.z);
     proj.copy(ic.pos).project(camera);
     const hidden = proj.z > 1 || (ic.follow && ic.follow.visible === false);
     ic.el.style.display = hidden ? 'none' : '';
