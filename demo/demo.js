@@ -32,12 +32,12 @@ const AN = TWIN ? {
   // west act: the intrusion CLIMBS from the NW boundary farmland (2,120 m)
   // into the massif's forest — HQ below at 2,000 m, crossing at 2,600 m,
   // the listening meadow at 2,730 m under the 4,170 m peak.
-  ser1: [-25, -14.5], ser2: [-34, -18], vg: [35, 12.2],
+  ser1: [-14, -10.5], ser2: [-6, -6.5], vg: [35, 12.2],
   w1: [0, -13], w2: [7, -19.5], jw: [10, -12],
   gate: [13.5, 16.2], ai: [12, -2], village: [43.5, 16], villages: [[43.5, 16]],
-  informant: [-33.5, -22.5], truck: [-31, -24],
-  trail: [[-14, -6], [-18, -9], [-23, -12], [-28, -16], [-33, -20], [-36, -23]],
-  road: [[12, -2], [4, -3.5], [-4, -6.5], [-12, -10.5], [-20, -15], [-28, -19], [-33, -21.5], [-35.5, -22.6]],
+  informant: [-33.5, -22.5], truck: [-27.5, -15.5],
+  trail: [[-25, -14], [-21, -11], [-17, -8], [-12, -5.5], [-7, -4], [-2, -3.5]],
+  road: [[12, -2], [8, -2.4], [4, -2.9], [0, -3.2], [-2, -3.5]],
   herdIn: [[24, 8.5], [27.5, 9.8], [30.2, 10.8], [32, 11.4], [33, 11.8]],
   herdOut: [[33, 11.8], [30, 10.5], [27, 9.2], [24, 8], [21, 7]],
   guard: [[43.5, 16], [40, 14.4], [36.8, 12.9]],
@@ -170,8 +170,8 @@ const CAMKEYS = TWIN ? [
   // Mission control: ONE fixed command view of the whole board for all 78 s.
   // The only motion is a near-imperceptible push-in plus the drone sway.
   // Every scene plays as events lighting up across a stationary map.
-  [0,  -52, 31, -4,   -22, 7, -13],
-  [78, -57, 38.5, 30.5, 4, 3, -2],
+  [0,  -34, 36, -36,  -10, 8, -5],
+  [78, -36, 48, -46,  0, 2, 2],
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
@@ -673,8 +673,8 @@ function fovWedge(x, z, ang, hue, R = 8, spread = .5) {
 }
 // aim each wedge from the sensor toward its approach (twin uses real anchors)
 const aimAt = (from, to) => Math.atan2(to[0] - from[0], to[1] - from[1]);
-const fovSer1 = fovWedge(AN.ser1[0], AN.ser1[1], TWIN ? aimAt(AN.ser1, [-18, -9]) : 1.39, HUES.see, TWIN ? 6.5 : 8.5, .42);
-const fovSer2 = fovWedge(AN.ser2[0], AN.ser2[1], TWIN ? aimAt(AN.ser2, [-28, -16]) : 1.23, HUES.see, TWIN ? 5.5 : 7.5, .42);
+const fovSer1 = fovWedge(AN.ser1[0], AN.ser1[1], TWIN ? aimAt(AN.ser1, [-17, -8]) : 1.39, HUES.see, TWIN ? 6.5 : 8.5, .42);
+const fovSer2 = fovWedge(AN.ser2[0], AN.ser2[1], TWIN ? aimAt(AN.ser2, [-9, -4.5]) : 1.23, HUES.see, TWIN ? 5.5 : 7.5, .42);
 const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [27.5, 9.8]) : -.38, HUES.guard, TWIN ? 5.5 : 8, .52);
 
 /* ── satellite ──────────────────────────────────────────────────────────── */
@@ -1456,13 +1456,13 @@ tl.to(poach, { u: .95, duration: 16.6, ease: 'none' }, 15.6);
 
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
 tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. The patrol is rolling before they clear the hill.', 5.5), null, 18.8);
-tl.call(() => { jeepState.on = true; jeep.visible = true; feed(HUES.brain, 'HQ · dispatch', 'Patrol unit 2 rolling · intercept set at the boundary'); }, null, 18.6);
-tl.to(jeepState, { u: 1, duration: 13.4, ease: 'power1.inOut' }, 19);
+tl.call(() => { jeepState.on = true; jeep.visible = true; feed(HUES.brain, 'HQ · dispatch', 'Patrol unit 2 rolling · intercept set on the track below'); }, null, 18.6);
+tl.to(jeepState, { u: 1, duration: 10.9, ease: 'power1.inOut' }, 21.5);
 tl.call(() => {                                                     // second camera confirms the track
   flashAt(V3(AN.ser2[0], heightAt(AN.ser2[0], AN.ser2[1]) + 1.6, AN.ser2[1]), 0xd9ffe4);
   gsap.fromTo(fovSer2, { opacity: .3 }, { opacity: .1, duration: 1.4 });
   stSer2Gate.play(2);
-  feed(HUES.see, 'AI camera 02 · confirm', 'Track confirmed \u00b7 descending to the boundary');
+  feed(HUES.see, 'AI camera 02 · confirm', 'Track confirmed \u00b7 descending toward the village');
 }, null, 24.5);
 tl.call(() => {                                                     // INTERCEPT — the jeep halts short
   placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
