@@ -112,17 +112,18 @@ const CAMKEYS = [
   [9,    36, 20, 34,     4, 2, 6],        // drifting in over the river
   [10.8, 30, 13, 26,    25.5, .5, 15.8],  // the informant's corner, high oblique
   [13.4, 30, 13, 26,    25.5, .5, 15.8],  // · hold — the report goes out
-  [16.4, 14, 12, 18,     5.5, .5, 8.5],   // chokepoint from altitude
+  [15,   22, 12.5, 21.5, 13, 1, 11],      // transit — damps the spline's curl
+  [16.6, 14, 12, 18,     5.5, .5, 8.5],   // chokepoint from altitude
   [21,   14, 12, 18,     5.5, .5, 8.5],   // · hold — detection at range, relay
   [22.6, 20, 15, 7,     12, .5, -6],      // over the forest
   [24.4, 25, 11, -1,    17, .8, -12.3],   // HQ
   [26.2, 25, 11, -1,    17, .8, -12.3],   // · hold — dispatch
-  [29.2, 8, 13, -10,    -1, .5, -2],      // tracking the jeep west
+  [29.4, 12, 12, -3,     2, .6, 1],       // riding behind the jeep
   [32.2, 2.5, 11.5, 10.5, -3, .6, 4.4],   // the ford, birds-eye
   [36.6, 2.5, 11.5, 10.5, -3, .6, 4.4],   // · hold — the arrest plays, nothing hides it
   [38.4, 11, 18, 6,      9, 0, -5],       // crane over the forest
   [40.4, 22, 17, 6,      9.5, 0, -6.5],   // coexistence board view
-  [44.6, 22, 17, 6,      9.5, 0, -6.5],   // · hold — detection at range
+  [45.8, 22, 17, 6,      9.5, 0, -6.5],   // · hold — detection, guards emerge, a breath
   [49.4, 19, 14, 3,     10.5, .3, -6.5],  // one slow push as the deterrent plays
   [50.9, 7, 16, 12,     -1, .8, 5],       // over the river
   [53.2, -2, 12, 24,    -12.2, 1, 12.2],  // the listening clearing from altitude
@@ -383,7 +384,7 @@ let fireflies;
 
 /* ── vegetation & rocks (instanced, three species) ──────────────────────── */
 
-const SPOTS = [[6.8, 10.2], [-4.5, 5.6], [12.9, -8.6], [-12, 10.5], [-8.5, 15.5], [-15.5, 14.5], [-3, 14.5], [-21.5, -3.5], [-12.8, 12.6], [-11.5, 13.5], [-9.8, 14.2], [-7.8, 16], [-6.5, 17.5], [-2.8, 5.3], [-1, 3.5], [-5, 3.8], [0, 6.5]];
+const SPOTS = [[6.8, 10.2], [-4.5, 5.6], [12.9, -8.6], [-12, 10.5], [-8.5, 15.5], [-17, 11.5], [-3, 14.5], [-21.5, -3.5], [-12.8, 12.6], [-11.5, 13.5], [-9.8, 14.2], [-7.8, 16], [-6.5, 17.5], [-2.8, 5.3], [-1, 3.5], [-5, 3.8], [0, 6.5]];
 function scatterOK(x, z, h) {
   if (h < -.2 || h > 3.6) return false;
   if (Math.abs(z - riverZ(x)) < 2.4) return false;
@@ -568,7 +569,7 @@ function placeS(id, x, z, ry, sc) { const g = place(id, x, z, ry, sc); SENSORS.p
 placeS('serengeti', 6.8, 10.2, 1.4, 1.9);
 placeS('serengeti', -4.5, 5.6, 1.25, 1.9);
 placeS('villageguard', 12.9, -8.6, -.4, 1.9);
-const wolves = [placeS('wolf', -12, 10.5, .6, 2.1), placeS('wolf', -8.5, 15.5, 0, 2.1), placeS('wolf', -15.5, 14.5, 1, 2.1)];
+const wolves = [placeS('wolf', -12, 10.5, .6, 2.1), placeS('wolf', -8.5, 15.5, 0, 2.1), placeS('wolf', -17, 11.5, 1, 2.1)];
 placeS('junglewallah', -3, 14.5, 2.4, 1.9);
 placeS('gateway', -21.5, -3.5, 1.1, 2.6);
 const sAI = placeS('ai', 17, -12.3, 0, .85);
@@ -712,7 +713,7 @@ const rifle = new THREE.Mesh(new THREE.CylinderGeometry(.022, .022, .9, 5), new 
 rifle.rotation.z = 1.12; rifle.position.set(-.2, .85, -.12);
 pFigs[0].add(rifle);
 scene.add(poachers);
-const poach = { u: 0.02, stopped: false };
+const poach = { u: 0.02, lastU: 0.02, stopped: false };
 
 // the poachers' pickup, left at the north track — the thing the informant photographs
 {
@@ -727,8 +728,8 @@ const poach = { u: 0.02, stopped: false };
     const w = new THREE.Mesh(wG, wM); w.position.set(wx, .2, wz); truck.add(w);
   }
   truck.add(bed, cab);
-  truck.position.set(28.8, heightAt(28.8, 17.9), 17.9);
-  truck.rotation.y = 2.1;
+  truck.position.set(26.2, heightAt(26.2, 19.4), 19.4);
+  truck.rotation.y = 2.4;
   scene.add(truck);
   window.__pickup = truck;
 }
@@ -1080,7 +1081,7 @@ const stWolfGate = stream(V3(-12, heightAt(-12, 10.5) + 1.4, 10.5), GATE_TOP, HU
 const stJWGate = stream(V3(-3, heightAt(-3, 14.5) + 1.4, 14.5), GATE_TOP, HUES.link, 4.2);
 const stSatHQ = stream(V3(-8, 21.5, -4), HQ_TOP, HUES.brain, -4);
 const stWolf2Gate = stream(V3(-8.5, heightAt(-8.5, 15.5) + 1.4, 15.5), GATE_TOP, HUES.listen, 4.2);
-const stWolf3Gate = stream(V3(-15.5, heightAt(-15.5, 14.5) + 1.4, 14.5), GATE_TOP, HUES.listen, 3);
+const stWolf3Gate = stream(V3(-17, heightAt(-17, 11.5) + 1.4, 11.5), GATE_TOP, HUES.listen, 3);
 const stHQPatrol = stream(HQ_TOP, V3(-2.8, heightAt(-2.8, 5.3) + 1, 5.3), HUES.brain, 3.4);
 const stMobHQ = stream(V3(26.5, heightAt(26.5, 16.6) + 1.4, 16.6), HQ_TOP, HUES.report, 4.5);
 let uplink = null;
@@ -1225,10 +1226,10 @@ for (const k of ['people-walk', 'people-close', 'elephant-walk', 'multi-class'])
   im.src = `./assets/field/${k}.jpg`;
   FIELD[k] = im;
 }
-function fieldCard(key, maxH = 236) {
+function fieldCard(key, maxH = 300) {
   const im = FIELD[key];
   const c = document.createElement('canvas');
-  const W = 392, natW = im.naturalWidth || 400, natH = im.naturalHeight || 220;
+  const W = 504, natW = im.naturalWidth || 400, natH = im.naturalHeight || 220;
   let H = Math.round(W * natH / natW), sy = 0, sh = natH;
   if (H > maxH) {                                       // cover-crop tall frames, keep faces high
     H = maxH;
@@ -1238,10 +1239,10 @@ function fieldCard(key, maxH = 236) {
   c.width = W; c.height = H;
   const x = c.getContext('2d');
   x.drawImage(im, 0, sy, natW, sh, 0, 0, W, H);
-  x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 22, W, 22);
-  x.fillStyle = '#e8efe6'; x.font = "700 12px 'Hanken Grotesk'";
-  x.fillText(clockStr() + ' · field capture', 9, H - 7);
-  x.fillStyle = '#ff5a4d'; x.beginPath(); x.arc(W - 14, H - 12, 4, 0, 7); x.fill();
+  x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 27, W, 27);
+  x.fillStyle = '#e8efe6'; x.font = "700 14.5px 'Hanken Grotesk'";
+  x.fillText(clockStr() + ' · field capture', 11, H - 9);
+  x.fillStyle = '#ff5a4d'; x.beginPath(); x.arc(W - 17, H - 14, 5, 0, 7); x.fill();
   return c;
 }
 // the acoustic card is a spectrogram — a listening sensor shows sound, not pictures
@@ -1336,7 +1337,7 @@ tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station'
 tl.call(() => $('#phone').classList.add('on'), null, 10.3);         // the phone arrives with the story
 tl.call(() => {
   flashAt(V3(26.5, heightAt(26.5, 16.6) + 1.2, 16.6), 0xcfe8ff);      // the phone takes its photo
-  const shot = sensorSnap(V3(26.9, heightAt(26.5, 16.6) + 1.15, 16.9), V3(28.8, heightAt(28.8, 17.9) + .7, 17.9),
+  const shot = sensorSnap(V3(26.8, heightAt(26.5, 16.6) + 1.15, 17.1), V3(26.2, heightAt(26.2, 19.4) + .7, 19.4),
     { boxes: [boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] });
   popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', shot, 2.9);
   stMobHQ.play(2.4);
@@ -1457,23 +1458,23 @@ tl.call(() => {                                                     // …and a 
     const wp = new THREE.Vector3(); storks[0].b.getWorldPosition(wp);
     wolves.forEach((w, i) => setTimeout(() => soundWave(wp.clone(), w, { freq: 16, amp: .26, hue: 0xc9a4ff, dur: 1.1 }), i * 220));
   }
-}, null, 55.5);
-tl.call(() => bearings(-12.8, 12.6), null, 56.6);
+}, null, 58.6);
+tl.call(() => bearings(-12.8, 12.6), null, 55.7);
 tl.call(() => {
   popup(V3(-12.8, heightAt(-12.8, 12.6) + 2.3, 12.6), HUES.listen, 'Howl · wolves', '0.97', 'WOLF-02 · 3 bearings agree · pack located on the map', spectroCard(), 2.8);
   stWolfGate.play(2.4);
   feedPhoto(HUES.listen, 'Wolf array · fix', 'Wolf pack located · 3 bearings agree', spectroCard());
-}, null, 58.6);
+}, null, 56.4);
 tl.call(() => {
-  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 2.2);
+  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 1.9);
   feed(HUES.listen, 'Wolf array \u00b7 chorus', 'Bird calls overhead indexed \u00b7 14 species tonight');
-}, null, 55.8);
+}, null, 59.7);
 tl.call(() => {
 
   ringAt(-3, 14.5, 0xFF8C42, 2);
   feed(0xFF8C42, 'Jungle-Wallah · survey', 'Offloaded on patrol pass · two individuals re-identified');
-}, null, 60.2);
-tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 4.8), null, 60.2);
+}, null, 61.1);
+tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 4.4), null, 60.6);
 
 // ── network 62–78 · one continuous pull to the whole board
 
@@ -1630,7 +1631,9 @@ function tick(dt, t) {
 
   // actors
   if (!poach.stopped) placeOnCurve(poachers, trail, poach.u, t * 7, .015);
-  pFigs.forEach(f => setGait(f, poach.stopped ? 'Idle' : 'Walk'));
+  const marching = !poach.stopped && Math.abs(poach.u - poach.lastU) > 1e-5;
+  poach.lastU = poach.u;
+  pFigs.forEach(f => setGait(f, marching ? 'Walk' : 'Idle'));
   if (!herdState.turning) {
     const hc = herdState.curve === 'in' ? herdIn : herdOut;
     placeOnCurve(herd, hc, herdState.curve === 'in' ? herdState.u : 1 - herdState.u, t * 2.2, .02, true);
@@ -1709,6 +1712,16 @@ function tick(dt, t) {
   grade.uniforms.uTime.value = t;
 
   sampleCam(tl.time());
+  {
+    const T = tl.time();
+    if (jeep.visible && T > 26.4 && T < 32.6) {                     // the camera's eye rides the truck
+      const wIn = Math.min(1, (T - 26.4) / 1.2), wOut = Math.min(1, (32.6 - T) / 1.2);
+      const w = Math.min(wIn, wOut) * .85;
+      camL.x += (jeep.position.x - camL.x) * w;
+      camL.y += (jeep.position.y + .6 - camL.y) * w;
+      camL.z += (jeep.position.z - camL.z) * w;
+    }
+  }
   camera.position.set(camP.x, camP.y, camP.z);
   camera.lookAt(camL.x, camL.y, camL.z);
 
