@@ -83,11 +83,11 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .tg-who{flex:1;min-width:0}
 .tg-who b{display:block;font-size:14px;color:#fff;letter-spacing:0}
 .tg-who span{display:block;font-size:11px;color:#6c7883;margin-top:1px}
-.tg-body{flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:7px;padding:12px 12px 10px;background:#0e1621}
-.tg-msg{max-width:94%;align-self:flex-start;background:#182533;border-radius:14px 14px 14px 5px;padding:7px 11px 6px;position:relative}
-.tg-msg b{display:block;font-size:12.5px;font-weight:700;color:#fff;letter-spacing:0}
-.tg-msg span{display:block;font-size:12px;line-height:1.4;color:#dbe2e9;margin-top:2px;padding-right:36px}
-.tg-msg em{position:absolute;right:9px;bottom:6px;font-style:normal;font-size:10px;color:#6c7883;font-variant-numeric:tabular-nums}
+.tg-body{flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:9px;padding:12px 12px 12px;background:#0e1621}
+.tg-msg{max-width:96%;align-self:flex-start;background:#182533;border-radius:15px 15px 15px 5px;padding:9px 13px 8px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.tg-msg b{display:block;font-size:13.5px;font-weight:700;color:#fff;letter-spacing:0}
+.tg-msg span{display:block;font-size:13px;line-height:1.45;color:#dbe2e9;margin-top:3px;padding-right:38px}
+.tg-msg em{position:absolute;right:10px;bottom:7px;font-style:normal;font-size:10.5px;color:#6c7883;font-variant-numeric:tabular-nums}
 .tg-input{display:flex;align-items:center;justify-content:space-between;margin:0 10px 14px;padding:9px 15px;border-radius:20px;background:#17212b;color:#6c7883;font-size:13px}
 .tg-input i{font-style:normal;font-size:14px}
 

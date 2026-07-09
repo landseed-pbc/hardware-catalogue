@@ -1035,8 +1035,8 @@ function feed(hue, title, text) {
   el.innerHTML = `<b>${em} ${title}</b><span>${text}</span><em>${clockStr()}</em>`;
   const list = $('#feed-list');
   list.appendChild(el);
-  gsap.fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .55, ease: 'power2.out' });
-  while (list.children.length > 7) {
+  gsap.fromTo(el, { opacity: 0, y: 20, scale: .97 }, { opacity: 1, y: 0, scale: 1, duration: .75, ease: 'power3.out' });
+  while (list.children.length > 5) {
     const first = list.querySelector('.tg-msg');
     if (!first) break;
     list.removeChild(first);
@@ -1195,6 +1195,11 @@ function popup(world, hue, title, conf, sub, kind, hold = 6.5, dx = 0) {
   $('#pops').appendChild(el);
   const rec = { el, world, dx };
   pops.push(rec);
+  while (pops.length > 2) {                             // two cards max on screen — kill the oldest outright
+    const old = pops.shift();
+    gsap.killTweensOf(old.el);
+    old.el.remove();
+  }
   gsap.fromTo(el, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: .5 });
   gsap.to(el, { opacity: 0, delay: hold, duration: .6, onComplete: () => { el.remove(); pops.splice(pops.indexOf(rec), 1); } });
 }
@@ -1244,8 +1249,8 @@ tl.call(() => {                                                     // DETECTION
   popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', fieldCard('people-walk'), 5.5, 160);
 }, null, 19);
 tl.call(() => { stSer1Gate.play(2.6); feed(HUES.see, 'Serengeti-01 · alert', 'Human ×4 at the chokepoint · image → Gateway over LoRa'); }, null, 19.9);
-tl.call(() => { fireUplink(); feed(HUES.link, 'Gateway · uplink', 'Woke from deep sleep · relayed by satellite — no cell inside the park'); }, null, 21.2);
-tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ · Landseed AI', 'Alert on rangers’ phones · 28 s after trigger'); }, null, 22.4);
+tl.call(() => fireUplink(), null, 21.2);
+tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 22);
 tl.to(poach, { u: .74, duration: 12, ease: 'none' }, 19.5);
 
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
@@ -1288,13 +1293,12 @@ tl.call(() => {                                                     // INTERCEPT
 }, null, 32.6);
 tl.call(() => {                                                     // lamp down, cuffs on — quiet close
   pFigs[0].traverse(o => { if (o.isSpotLight) gsap.to(o, { intensity: 0, duration: .8 }); });
-  feed(HUES.see, 'Patrol · on site', 'Four detained at the ford · rifles seized');
+  feed(HUES.see, 'Patrol \u00b7 on site', 'Four detained at the ford \u00b7 rifles seized \u00b7 evidence packaged, chain of custody logged');
 }, null, 34);
 tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
 tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Rangers reach the ford before the group does. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 5.6), null, 33.4);
 tl.call(() => {
   popup(V3(-2.8, heightAt(-2.8, 5.3) + 2.2, 5.3), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 4.4, 165);
-  feed(HUES.see, 'Patrol \u00b7 evidence', 'Capture imagery packaged \u00b7 chain of custody logged');
 }, null, 34.4);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
@@ -1310,14 +1314,13 @@ tl.call(() => {                                                     // DETECTION
   gsap.fromTo(fovVG, { opacity: .34 }, { opacity: .1, duration: 1.6 });
   popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · alert < 1 KB · direct-to-cell', fieldCard('elephant-walk'), 5, -150);
   stVGHQ.play(2.2);
-  feed(HUES.guard, 'VillageGuard-04 · alert', 'Elephant ×3 approaching the fields');
+  feed(HUES.guard, 'VillageGuard-04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 deterrence lights on \u00b7 protection unit walking out');
 }, null, 44.9);
 cam(44.6, [18.5, 12.5, 2.5], [10.5, .5, -6.5], 4.2, 'sine.inOut');  // one slow push-in as the deterrent plays
 tl.call(() => {
   gsap.to(lampMat, { emissiveIntensity: 2.6, duration: .4 });
   gsap.to(villageLight, { intensity: 16, duration: .4 });
   guard1.visible = guard2.visible = true;
-  feed(HUES.guard, 'Village · early warning', 'Deterrence lights on · protection unit walking out');
 }, null, 45.7);
 tl.to(guardState, { u: 1, duration: 5.2, ease: 'none' }, 45.9);
 tl.call(() => {
@@ -1363,18 +1366,18 @@ tl.call(() => {
   feed(HUES.listen, 'Wolf array · fix', 'Wolf pack located · 3 bearings agree');
 }, null, 57.4);
 tl.call(() => {
-  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 3.6, 155);
+  popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 3.4, 190);
   feed(HUES.listen, 'Wolf array \u00b7 chorus', 'Bird calls overhead indexed \u00b7 14 species tonight');
 }, null, 56.1);
 tl.call(() => {
   popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · offloaded on patrol pass · density updated', 'reid', 4, 140);
   ringAt(-3, 14.5, 0xFF8C42, 2);
   feed(0xFF8C42, 'Jungle-Wallah · survey', 'Offloaded on patrol pass · two individuals re-identified');
-}, null, 59.4);
+}, null, 60.2);
 tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 4.8), null, 60.2);
 
 // ── network 62–78 · one continuous pull to the whole board
-cam(62, [-2, 25, 29], [-2, 0, -2], 5.2, 'sine.inOut');
+
 tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landscape, reporting', 'See, listen, connect, report — every detection lands in Landseed AI, and the record writes itself.', 9), null, 63.5);
 tl.call(() => { stSer1Gate.play(3); stSer2Gate.play(3); stMobHQ.play(3); }, null, 65);
 tl.call(() => { stWolfGate.play(3); stWolf2Gate.play(3.4); stWolf3Gate.play(3.2); stJWGate.play(3.4); }, null, 65.9);
@@ -1613,7 +1616,7 @@ function tick(dt, t) {
     if (proj.z > 1 || Math.abs(proj.x) > 1.08 || Math.abs(proj.y) > 1.08) { rec.el.style.display = 'none'; continue; }
     rec.el.style.display = '';
     const px2 = Math.max(260, Math.min(innerWidth - 300, (proj.x * .5 + .5) * innerWidth + (rec.dx || 0)));
-    const py2 = Math.max(230, Math.min(innerHeight - 185, (-proj.y * .5 + .5) * innerHeight));
+    const py2 = Math.max(rec.el.offsetHeight * 1.16 + 64, Math.min(innerHeight - 185, (-proj.y * .5 + .5) * innerHeight));
     rec.el.style.left = px2 + 'px';
     rec.el.style.top = py2 + 'px';
   }

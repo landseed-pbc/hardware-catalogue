@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./css/styles.css?v=5" />
+<link rel="stylesheet" href="./css/styles.css?v=6" />
 <!-- discover the big three.js module early so it downloads in parallel with the app code -->
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 </head>
@@ -84,16 +84,9 @@
 </div>
 
 <!-- chapter navigation (replaces scrolling) -->
-<nav id="chapters" aria-label="devices">
+<nav id="chapters" aria-label="pages">
   <button class="chip on" data-go="catalogue">Catalogue</button>
-  <button class="chip" data-go="serengeti">Serengeti</button>
-  <button class="chip" data-go="villageguard">VillageGuard</button>
-  <button class="chip" data-go="gateway">Gateway</button>
-  <button class="chip" data-go="junglewallah">Jungle-Wallah</button>
-  <button class="chip" data-go="wolf">Wolf</button>
-  <button class="chip" data-go="mobile">Mobile</button>
-  <span class="chip-div" aria-hidden="true"></span>
-  <button class="chip dive" data-go="ai">Landseed AI ↗</button>
+  <a class="chip" href="/demo/">Demo</a>
 </nav>
 
 <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
