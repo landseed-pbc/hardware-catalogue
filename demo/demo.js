@@ -21,13 +21,15 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 /* ── optional real terrain (AWS Terrain Tiles, public domain data) ─────────
    /demo/?terrain=real&lat=..&lon=..  — same simulation, real topography. */
 const qs = new URLSearchParams(location.search);
-const REAL = qs.get('terrain') === 'real';
+const TWIN = qs.get('terrain') === 'virunga';
+const REAL = TWIN || qs.get('terrain') === 'real';
 const LOW = innerWidth < 760 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
+let satTex = null;
 let dem = null;   // {grid: Float32Array, n, base}
 async function loadDEM() {
-  const lat = parseFloat(qs.get('lat') || '-1.32');
-  const lon = parseFloat(qs.get('lon') || '35.12');
-  const z = 12;
+  const lat = parseFloat(qs.get('lat') || (TWIN ? '-1.43' : '-1.32'));
+  const lon = parseFloat(qs.get('lon') || (TWIN ? '29.45' : '35.12'));
+  const z = TWIN ? 13 : 12;
   const n = Math.pow(2, z);
   const xt = Math.floor((lon + 180) / 360 * n);
   const yt = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n);
@@ -54,10 +56,38 @@ async function loadDEM() {
 const soldierFetch = new Promise((res) => {
   new GLTFLoader().load('./assets/soldier.glb', (g) => res(g), undefined, () => res(null));
 });
-if (REAL) { try { await Promise.race([loadDEM(), new Promise((_, r) => setTimeout(r, 8000))]); } catch (e) { dem = null; console.warn('DEM unavailable — procedural terrain', e); } }
+if (REAL) { try { await Promise.race([Promise.all([loadDEM(), TWIN ? loadSat() : Promise.resolve()]), new Promise((_, r) => setTimeout(r, 12000))]); } catch (e) { dem = null; satTex = null; console.warn('DEM unavailable — procedural terrain', e); } }
+async function loadSat() {
+  const lat = parseFloat(qs.get('lat') || '-1.43');
+  const lon = parseFloat(qs.get('lon') || '29.45');
+  const z13 = 13, n13 = Math.pow(2, z13);
+  const xt = Math.floor((lon + 180) / 360 * n13);
+  const yt = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n13);
+  const x0 = (xt - 1) * 2, y0 = (yt - 1) * 2;                        // z14 covers 2x per z13 tile
+  const cv = document.createElement('canvas'); cv.width = cv.height = 1536;
+  const cx = cv.getContext('2d');
+  const jobs = [];
+  for (let dy = 0; dy < 6; dy++) for (let dx = 0; dx < 6; dx++) {
+    jobs.push(new Promise((res) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => { cx.drawImage(img, dx * 256, dy * 256); res(); };
+      img.onerror = () => res();
+      img.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/14/${y0 + dy}/${x0 + dx}`;
+    }));
+  }
+  await Promise.all(jobs);
+  cx.globalCompositeOperation = 'multiply';                          // a whisper of our palette, nothing more
+  cx.fillStyle = '#cdd8c8'; cx.fillRect(0, 0, 1536, 1536);
+  cx.globalCompositeOperation = 'source-over';
+  satTex = new THREE.CanvasTexture(cv);
+  satTex.colorSpace = THREE.SRGBColorSpace;
+  satTex.anisotropy = 8;
+}
 function demAt(x, z) {
-  // world 76×56 → central window of the 512² DEM
-  const u = (x + 38) / 76 * 645 + 61, v = (z + 28) / 56 * 474 + 147;
+  // twin drapes the full plane; fictional keeps its central window
+  const u = TWIN ? (x + 55) / 110 * 766 : (x + 38) / 76 * 645 + 61;
+  const v = TWIN ? (z + 42) / 84 * 766 : (z + 28) / 56 * 474 + 147;
   const i0 = Math.floor(u), j0 = Math.floor(v), fu = u - i0, fv = v - j0;
   const g = dem.grid, n = dem.n;
   const a = g[j0 * n + i0], b = g[j0 * n + i0 + 1], c = g[(j0 + 1) * n + i0], d2 = g[(j0 + 1) * n + i0 + 1];
@@ -320,7 +350,9 @@ function nearCurve(curve, x, z, n = 60) {
     const s = 1 - Math.min(.45, (1 - nor.getY(i)) * 1.3);
     col[i * 3] *= s; col[i * 3 + 1] *= s; col[i * 3 + 2] *= s;
   }
-  const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .95, metalness: 0 }));
+  const ground = new THREE.Mesh(geo, (TWIN && satTex)
+    ? new THREE.MeshStandardMaterial({ map: satTex, emissive: 0xffffff, emissiveMap: satTex, emissiveIntensity: .38, roughness: .96, metalness: 0 })
+    : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .95, metalness: 0 }));
   ground.receiveShadow = true;
   scene.add(ground);
 }
@@ -345,6 +377,7 @@ const water = new THREE.Mesh(
   new THREE.PlaneGeometry(110, 84).rotateX(-Math.PI / 2),
   new THREE.MeshStandardMaterial({ map: waterTex, color: 0xaac9d6, roughness: .22, metalness: .22, transparent: true, opacity: .92 }));
 water.position.y = dem ? -.15 : -.35;
+if (TWIN && satTex) water.visible = false;
 scene.add(water);
 
 // soft clouds in the sky (their shadows live in the breathing sunlight)
@@ -407,7 +440,7 @@ function scatterOK(x, z, h) {
   const blobTopG = new THREE.SphereGeometry(.5, 8, 6);
   const accG = new THREE.SphereGeometry(1, 9, 6);
   const leafM = () => new THREE.MeshStandardMaterial({ roughness: .95 });
-  const NT = LOW ? 380 : 620;
+  const NT = (TWIN && satTex) ? 0 : (LOW ? 380 : 620);
   const trunks = new THREE.InstancedMesh(trunkG, trunkM, NT);
   const cons = new THREE.InstancedMesh(conG, leafM(), NT);
   const blobs = new THREE.InstancedMesh(blobG, leafM(), NT);
@@ -458,7 +491,7 @@ function scatterOK(x, z, h) {
   while ((nB < 220 || nR < 90) && guard++ < 9000) {
     const x = (rnd() - .5) * 72, z = (rnd() - .5) * 52;
     const h = heightAt(x, z);
-    if (!scatterOK(x, z, h)) continue;
+    if ((TWIN && satTex) || !scatterOK(x, z, h)) continue;
     if (nB < 220 && rnd() > .35) {
       const sc = .5 + rnd() * .9;
       pv.set(x, h + .22 * sc, z); q.identity(); sv.set(sc, sc * .7, sc);
@@ -475,10 +508,10 @@ function scatterOK(x, z, h) {
 
   // grass tufts — small, everywhere the story walks
   const tuftG = new THREE.ConeGeometry(.09, .42, 4);
-  const tufts = new THREE.InstancedMesh(tuftG, leafM(), LOW ? 320 : 900);
+  const tufts = new THREE.InstancedMesh(tuftG, leafM(), (TWIN && satTex) ? 1 : (LOW ? 320 : 900));
   let nG = 0; guard = 0;
   const GT1 = new THREE.Color(0x5d7a42), GT2 = new THREE.Color(0x6d8449);
-  while (nG < (LOW ? 320 : 900) && guard++ < 12000) {
+  while (nG < ((TWIN && satTex) ? 0 : (LOW ? 320 : 900)) && guard++ < 12000) {
     const x = (rnd() - .5) * 70, z = (rnd() - .5) * 50;
     const h = heightAt(x, z);
     if (h < -.1 || h > 2.6) continue;
