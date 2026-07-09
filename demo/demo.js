@@ -523,12 +523,45 @@ const fovVG = fovWedge(12.9, -8.6, -.38, HUES.guard, 8, .52);
 
 const sat = new THREE.Group();
 {
-  const body = new THREE.Mesh(new THREE.BoxGeometry(.7, .5, .5), new THREE.MeshStandardMaterial({ color: 0xc4ccd0, metalness: .8, roughness: .3 }));
-  const pm = new THREE.MeshStandardMaterial({ color: 0x1e4a8a, metalness: .5, roughness: .4 });
-  const p1 = new THREE.Mesh(new THREE.BoxGeometry(2.2, .05, .8), pm); p1.position.x = 1.6;
-  const p2 = p1.clone(); p2.position.x = -1.6;
-  sat.add(body, p1, p2);
-  sat.position.set(-2, 27, -2);
+  // body — dark rounded slab with the Landseed AI lockup facing the land
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, .42),
+    new THREE.MeshStandardMaterial({ color: 0x0b120c, roughness: .5, metalness: .35 }));
+  const rim = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.12, 1.12, .44)),
+    new THREE.LineBasicMaterial({ color: 0x59F5A0, transparent: true, opacity: .85 }));
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(.92, .92),
+    new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/public/landseed-ai-lockup.png'), transparent: true }));
+  face.position.z = .222;
+  // solar wings — two cell panels per side, vertical green cells
+  const cellTex = (() => {
+    const c = document.createElement('canvas'); c.width = 128; c.height = 96;
+    const x = c.getContext('2d');
+    x.fillStyle = '#0d1a10'; x.fillRect(0, 0, 128, 96);
+    x.strokeStyle = '#2ee87e'; x.lineWidth = 3;
+    for (let i = 10; i < 128; i += 17) { x.beginPath(); x.moveTo(i, 6); x.lineTo(i, 90); x.stroke(); }
+    x.strokeStyle = 'rgba(46,232,126,.65)'; x.strokeRect(2, 2, 124, 92);
+    return new THREE.CanvasTexture(c);
+  })();
+  const panelM = new THREE.MeshStandardMaterial({ map: cellTex, emissive: 0x1a5c38, emissiveMap: cellTex, emissiveIntensity: .8, roughness: .6 });
+  for (const side of [1, -1]) {
+    const boom = new THREE.Mesh(new THREE.BoxGeometry(.5, .05, .05),
+      new THREE.MeshStandardMaterial({ color: 0x59F5A0, emissive: 0x2ee87e, emissiveIntensity: .5 }));
+    boom.position.x = side * .8;
+    sat.add(boom);
+    for (let i = 0; i < 2; i++) {
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(.78, .78, .04), panelM);
+      panel.position.x = side * (1.5 + i * .86);
+      sat.add(panel);
+    }
+  }
+  // antenna halo
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(.3, .022, 8, 20, Math.PI),
+    new THREE.MeshStandardMaterial({ color: 0x59F5A0, emissive: 0x2ee87e, emissiveIntensity: .7 }));
+  halo.position.y = .72;
+  const stalk = new THREE.Mesh(new THREE.CylinderGeometry(.02, .02, .22, 6), halo.material);
+  stalk.position.y = .62;
+  sat.add(body, rim, face, halo, stalk);
+  sat.scale.setScalar(1.9);
+  sat.position.set(-8, 21.5, -4);
   scene.add(sat);
 }
 
@@ -654,12 +687,10 @@ function elephant(sc = 1) {
   // head — domed crown, cheeks, mouth
   const head = new THREE.Group();
   const skull = new THREE.Mesh(new THREE.SphereGeometry(.42, 12, 10), hide);
-  skull.scale.set(.92, 1, .84);
-  const crown = new THREE.Mesh(new THREE.SphereGeometry(.3, 10, 8), hide);
-  crown.position.set(-.05, .3, 0);
+  skull.scale.set(.92, 1.08, .84);                               // taller dome, one mass
   const jaw = new THREE.Mesh(new THREE.SphereGeometry(.2, 8, 7), hideD);
   jaw.position.set(.22, -.28, 0);
-  head.add(skull, crown, jaw);
+  head.add(skull, jaw);
   head.position.set(1.32, 1.6, 0);
   // ears — big hinged discs, pivoted at the front edge
   const ears = [];
@@ -820,10 +851,10 @@ function soundPulse(from, unit) {
   const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(24)),
     new THREE.LineBasicMaterial({ color: 0xf0c8ec, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   const dot = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: 0xf6def4, transparent: true, opacity: .95, depthWrite: false }));
-  dot.scale.setScalar(.5);
+  dot.scale.setScalar(.32);
   scene.add(line, dot);
   const st = { u: 0 };
-  gsap.to(line.material, { opacity: .4, duration: .2 });
+  gsap.to(line.material, { opacity: .26, duration: .2 });
   gsap.to(st, {
     u: 1, duration: .8, ease: 'sine.in',
     onUpdate: () => dot.position.copy(curve.getPoint(st.u)),
@@ -839,10 +870,10 @@ function intakeAt(x, z) {
   const m = new THREE.Mesh(new THREE.TorusGeometry(1, .04, 8, 48).rotateX(Math.PI / 2),
     new THREE.MeshBasicMaterial({ color: 0xf2d9f2, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   m.position.set(x, heightAt(x, z) + 1.1, z);
-  m.scale.setScalar(3.4);
+  m.scale.setScalar(2.1);
   scene.add(m);
   gsap.to(m.scale, { x: .4, y: .4, z: .4, duration: .9, ease: 'power2.in' });
-  gsap.to(m.material, { opacity: .9, duration: .45, ease: 'power1.in' });
+  gsap.to(m.material, { opacity: .5, duration: .45, ease: 'power1.in' });
   gsap.to(m.material, { opacity: 0, duration: .3, delay: .62, onComplete: () => scene.remove(m) });
 }
 
@@ -883,7 +914,7 @@ const jeep = new THREE.Group();
   const hlSp = new THREE.SpotLight(0xffedc4, 26, 14, .5, .65, 1.6);
   hlSp.position.set(.8, .6, 0);
   const hlTgt = new THREE.Object3D(); hlTgt.position.set(7, -.6, 0);
-  jeep.add(hlTgt); hlSp.target = hlTgt;
+  jeep.add(hlTgt); hlSp.target = hlTgt; jeep.userData.hlTgt = hlTgt;
   jeep.add(hlSp);
   const lb1 = new THREE.Mesh(new THREE.BoxGeometry(.1, .07, .16), new THREE.MeshStandardMaterial({ color: 0x140b0b, emissive: 0xff3333, emissiveIntensity: 0 }));
   lb1.position.set(-.2, 1.2, .14);
@@ -895,6 +926,10 @@ const jeep = new THREE.Group();
 jeep.visible = false;
 scene.add(jeep);
 const jeepState = { u: 0, on: false, arrived: false };
+const rangers = [figure(0x2e4634, .85), figure(0x35503c, .85)];
+rangers.forEach(r => { r.visible = false; scene.add(r); });
+const arrestLight = new THREE.PointLight(0xdfe8dd, 0, 12);
+scene.add(arrestLight);
 
 /* ── FX ─────────────────────────────────────────────────────────────────── */
 
@@ -970,6 +1005,8 @@ let uplink = null;
 function fireUplink() {
   if (uplink) { scene.remove(uplink.line, uplink.pts); streams.splice(streams.indexOf(uplink), 1); }
   uplink = stream(GATE_TOP.clone(), sat.position.clone(), HUES.link, 2);
+  if (uplink.line) uplink.line.material.opacity = Math.min(1, (uplink.line.material.opacity || .3) * 1.8);
+  if (uplink.pts) uplink.pts.material.size = (uplink.pts.material.size || .5) * 1.6;
   uplink.play(2.6);
   ringAt(-21.5, -3.5, HUES.link, 2.4);                             // the Gateway visibly wakes
   flashAt(GATE_TOP.clone(), 0xbfe9ff);
@@ -1186,8 +1223,9 @@ tl.call(() => {
   gsap.fromTo('#title', { opacity: 0 }, { opacity: 1, duration: 1.4, delay: .4, overwrite: true });
   gsap.to('#title', { opacity: 0, duration: 1, delay: 6.2, overwrite: false });
 }, null, .01);
-cam(0, [40, 22, 38], [-4, 0, -2], .01, 'none');
+cam(0, [50, 27, 46], [-5, 9, -2], .01, 'none');
 cam(.02, [24, 19, 34], [-4, .5, 0], 9.8, 'sine.inOut');
+tl.call(() => fireUplink(), null, 1.2);
 tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station', 'Cameras at the chokepoints, three ears in the forest, a gateway on the ridge — the brain above headquarters.', 6.5), null, 2.6);
 
 // ── intrusion 10–24 · the report comes first, then the cameras confirm
@@ -1200,9 +1238,9 @@ tl.call(() => {
   stMobHQ.play(2.4);
   feed(HUES.report, 'Mobile-07 · report', 'Vehicle at the north track · direct-to-cell · photo at HQ');
 }, null, 11.2);
-tl.call(() => caption(HUES.report, 'To report · Human in the loop', 'The first sensor is a person', 'An informant’s photo reaches HQ before the men are inside. The cameras are already waiting.', 5.5), null, 11.6);
-tl.to(poach, { u: .52, duration: 6.5, ease: 'none' }, 12.5);
-cam(13.4, [13, 7.5, 17.5], [5.5, 1, 8.5], 4.2, 'sine.inOut');       // oblique over the chokepoint, ridge on the horizon
+tl.call(() => caption(HUES.report, 'To report · Human in the loop', 'The first sensor is a person', 'An informant’s photo reaches HQ before the men are inside. The cameras are already waiting.', 6.2), null, 11.6);
+tl.to(poach, { u: .52, duration: 5.6, ease: 'none' }, 13.8);
+cam(14.6, [13, 7.5, 17.5], [5.5, 1, 8.5], 3.6, 'sine.inOut');       // oblique over the chokepoint, ridge on the horizon
 tl.call(() => {                                                     // DETECTION 1
   flashAt(V3(6.8, heightAt(6.8, 10.2) + 1.6, 10.2), 0xd9ffe4);
   const pp = trail.getPoint(poach.u);
@@ -1213,7 +1251,7 @@ tl.call(() => {                                                     // DETECTION
 tl.call(() => { stSer1Gate.play(2.6); feed(HUES.see, 'Serengeti-01 · alert', 'Human ×4 at the chokepoint · image → Gateway over LoRa'); }, null, 19.9);
 tl.call(() => { fireUplink(); feed(HUES.link, 'Gateway · uplink', 'Woke from deep sleep · relayed by satellite — no cell inside the park'); }, null, 21.2);
 tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ · Landseed AI', 'Alert on rangers’ phones · 28 s after trigger'); }, null, 22.4);
-tl.to(poach, { u: .74, duration: 12, ease: 'none' }, 19.2);
+tl.to(poach, { u: .74, duration: 12, ease: 'none' }, 19.5);
 
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
 cam(22.8, [20, 13, 8], [10, 1, -4], 1.6, 'power1.in');              // crane up out of the trail
@@ -1228,23 +1266,45 @@ tl.call(() => {                                                     // second ca
   stSer2Gate.play(2);
   feed(HUES.see, 'Serengeti-02 · confirm', 'Track confirmed heading for the ford');
 }, null, 28.2);
-cam(30.6, [3.5, 12, -1], [-6, .8, 2.3], 1.6, 'power1.in');           // arc toward the ford — one continuous sweep
-cam(32.2, [-1.5, 10.5, 8], [-6.2, .8, 2.2], 1.9, 'power2.out');
-tl.call(() => {                                                     // INTERCEPT
+cam(30.6, [4.5, 11, 1.5], [-2.8, .8, 5], 1.6, 'power1.in');          // arc toward the ford — one continuous sweep
+cam(32.2, [1.6, 5.8, 10.6], [-3, 1, 4.6], 1.9, 'power2.out');        // low tactical hold — close enough to see hands go up
+tl.call(() => {                                                     // INTERCEPT — the jeep halts short
+  placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
+  placeOnCurve(jeep, road, Math.max(jeepState.u, .96), 0, 1);
   poach.stopped = true;
   jeepState.arrived = true;
   const pp = trail.getPoint(poach.u);
-  ringAt(pp.x, pp.z, HUES.see, 3);
-  feed(HUES.see, 'Patrol · on site', 'Four detained at the ford · rifles seized');
+  const py = heightAt(pp.x, pp.z);
+  ringAt(pp.x, pp.z, HUES.see, 2.4);
+  const hl = jeep.userData.hlTgt;
+  if (hl) { const lp = jeep.worldToLocal(V3(pp.x, py + .6, pp.z)); gsap.to(hl.position, { x: lp.x, y: lp.y, z: lp.z, duration: .9, ease: 'sine.inOut' }); }
+  arrestLight.position.set(pp.x, py + 4, pp.z);
+  gsap.to(arrestLight, { intensity: 14, duration: .9 });
+  rangers.forEach((r, i) => {                                       // two rangers step out and walk over
+    r.position.set(jeep.position.x + (i ? .6 : -.4), jeep.position.y, jeep.position.z + (i ? -.5 : .7));
+    r.lookAt(pp.x, r.position.y, pp.z);
+    r.visible = true;
+    setGait(r, 'Walk');
+    gsap.to(r.position, {
+      x: pp.x + (i ? 1.1 : -1.1), y: py, z: pp.z + (i ? .5 : -.6),
+      duration: 2.6, delay: .3 + i * .25, ease: 'none',
+      onComplete: () => { setGait(r, 'Idle'); r.lookAt(pp.x, r.position.y, pp.z); },
+    });
+  });
 }, null, 32.6);
-tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Like the 20 arrests across 13 gangs that earlier versions made possible, beginning in the Serengeti.', 4.5), null, 33);
+tl.call(() => {                                                     // lamp down, cuffs on — quiet close
+  pFigs[0].traverse(o => { if (o.isSpotLight) gsap.to(o, { intensity: 0, duration: .8 }); });
+  feed(HUES.see, 'Patrol · on site', 'Four detained at the ford · rifles seized');
+}, null, 34);
+tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
+tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Like the 20 arrests across 13 gangs that earlier versions made possible, beginning in the Serengeti.', 4.5), null, 33.4);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
-cam(34.4, [8, 13, 3.5], [10, 1, -5], 1.8, 'power1.in');             // crane up from the ford
-cam(36.2, [19.5, 7.5, 1], [11, 1, -6.5], 2.4, 'power2.out');        // settle over the crop edge
-tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 5.5), null, 36.4);
-tl.call(() => { herd.visible = true; }, null, 34.3);
-tl.to(herdState, { u: .78, duration: 7.2, ease: 'none' }, 34.4);
+cam(35.4, [8, 13, 3.5], [10, 1, -5], 1.6, 'power1.in');             // crane up from the ford
+cam(37, [19.5, 7.5, 1], [11, 1, -6.5], 2.2, 'power2.out');          // settle over the crop edge
+tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A VillageGuard on the field edge runs one model with every species on the conflict list.', 5.5), null, 37.2);
+tl.call(() => { herd.visible = true; }, null, 35.3);
+tl.to(herdState, { u: .78, duration: 6.4, ease: 'none' }, 35.4);
 cam(39.2, [14.5, 5.4, -9.8], [11, 1.2, -4.4], 1.7, 'power1.in');    // orbit the crops in one direction…
 cam(40.9, [5.8, 4.4, -10.8], [10.8, 1.1, -3.2], 1.9, 'power2.out'); // …and settle low — no counter-rotation
 tl.to(herdState, { u: 1, duration: 3.2, ease: 'none' }, 41.6);
@@ -1322,32 +1382,45 @@ tl.call(() => { stSer1Gate.play(3); stSer2Gate.play(3); stMobHQ.play(3); }, null
 tl.call(() => { stWolfGate.play(3); }, null, 65.9);
 tl.call(() => { fireUplink(); stVGHQ.play(3); }, null, 66.9);
 tl.call(() => { stSatHQ.play(3); }, null, 68);
+tl.call(() => fireUplink(), null, 70);
+tl.call(() => { fireUplink(); stSatHQ.play(2.6); }, null, 73.2);
+tl.call(() => fireUplink(), null, 75.2);
+tl.call(() => fireUplink(), null, 77.3);
 tl.call(() => feed(HUES.brain, 'Landseed AI · report', 'Daily summary compiled · Earth Credits registry updated'), null, 69);
-cam(66.5, [40, 22, 38], [-4, 0, -2], 11.5, 'sine.inOut');           // land exactly on the opening frame — the loop is invisible
+cam(66.5, [50, 27, 46], [-5, 9, -2], 11.5, 'sine.inOut');           // pull wide to gateway + satellite — lands exactly on the opening frame
 tl.call(() => {}, null, 78);
 
+const endcta = document.createElement('a');
+endcta.id = 'endcta';
+endcta.href = '/';
+endcta.textContent = 'View Landseed\u2019s devices \u2192';
+document.body.appendChild(endcta);
+tl.call(() => endcta.classList.add('on'), null, 70.5);
+
 tl.eventCallback('onRepeat', () => {
+  endcta.classList.remove('on');
   poach.u = .02; poach.stopped = false;
   herdState.u = 0; herdState.curve = 'in'; herdState.turning = false; herd.visible = false;
   jeepState.u = 0; jeepState.on = false; jeepState.arrived = false;
   jeep.visible = false;
   jeep.userData.lights.forEach(m => m.emissiveIntensity = 0);
   guard1.visible = guard2.visible = false; guardState.u = 0;
+  rangers.forEach(r => { r.visible = false; setGait(r, 'Idle'); });
   gsap.set(lampMat, { emissiveIntensity: 0 }); gsap.set(villageLight, { intensity: 0 });
   $('#feed-list').innerHTML = '';
 });
 
 /* ── persistent infrastructure labels — the Gateway and HQ always read ──── */
 const wlabels = [];
-function worldLabel(text, pos, hue) {
+function worldLabel(text, pos, hue, show) {
   const el = document.createElement('div');
   el.style.cssText = `position:fixed;z-index:23;transform:translate(-50%,-100%);padding:4px 9px;border-radius:6px;background:rgba(7,15,7,.62);border:1px solid rgba(240,240,234,.14);border-left:2px solid ${hex(hue)};font:700 10.5px 'Hanken Grotesk',sans-serif;letter-spacing:.08em;color:rgba(240,240,234,.85);pointer-events:none;white-space:nowrap`;
   el.textContent = text;
   document.body.appendChild(el);
-  wlabels.push({ el, pos });
+  wlabels.push({ el, pos, show });
 }
-worldLabel('GATEWAY · RIDGE RELAY', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link);
-worldLabel('HQ · LANDSEED AI', V3(17, heightAt(17, -12.3) + 4.4, -12.3), HUES.brain);
+worldLabel('GATEWAY · RIDGE RELAY', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link, (T) => (T > 18.5 && T < 25) || T > 62 || T < 9.5);
+worldLabel('HQ · LANDSEED AI', V3(17, heightAt(17, -12.3) + 4.4, -12.3), HUES.brain, (T) => (T > 21.5 && T < 34) || T > 62 || T < 9.5);
 
 /* ── the funnel: every sensor is a doorway into the catalogue ───────────── */
 
@@ -1473,7 +1546,8 @@ function tick(dt, t) {
     st.b.position.set(-11 + Math.cos(a) * 3.6, 3.5 + Math.sin(t * .55 + st.ph) * .35, 12.6 + Math.sin(a) * 3.2);
     st.b.rotation.y = -a - Math.PI / 2;
   }
-  sat.position.x = -2 + Math.sin(t * .05) * 5;
+  sat.position.x = -8 + Math.sin(t * .05) * 3;
+  sat.rotation.y = .5 + Math.sin(t * .07) * .25;
   sat.position.z = -2 + Math.cos(t * .05) * 5;
   sat.rotation.y = t * .1;
 
@@ -1522,9 +1596,10 @@ function tick(dt, t) {
     rec.el.style.left = px2 + 'px';
     rec.el.style.top = py2 + 'px';
   }
+  const TT = tl.time();
   for (const wl of wlabels) {
     proj.copy(wl.pos).project(camera);
-    const off = proj.z > 1;
+    const off = proj.z > 1 || (wl.show && !wl.show(TT));
     wl.el.style.display = off ? 'none' : '';
     if (!off) {
       wl.el.style.left = ((proj.x * .5 + .5) * innerWidth) + 'px';
@@ -1554,6 +1629,15 @@ if (terr) {
 }
 
 window.__demo = {
+  dbg() {
+    const v = new THREE.Vector3(), out = {};
+    poachers.getWorldPosition(v); out.poachers = v.toArray().map(n => +n.toFixed(1));
+    out.jeep = jeep.position.toArray().map(n => +n.toFixed(1));
+    rangers[0].getWorldPosition(v); out.ranger0 = v.toArray().map(n => +n.toFixed(1));
+    out.rangersVisible = rangers.map(r => r.visible);
+    out.trail74 = trail.getPoint(.74).toArray().map(n => +n.toFixed(1));
+    return out;
+  },
   tl, camera, camP, camL, CH,
   // manual frame-step for automation: render an exact timeline moment even
   // when the tab is backgrounded and requestAnimationFrame is paused

@@ -81,3 +81,7 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #feed,bo
 .bar{height:52px}
 .hud{top:52px}
 #feed{top:112px}
+/* closing CTA */
+#endcta{position:fixed;left:50%;bottom:118px;transform:translateX(-50%) translateY(8px);z-index:31;padding:13px 26px;border-radius:999px;background:var(--accent);color:var(--deep);font:700 15px var(--sans);text-decoration:none;letter-spacing:.01em;box-shadow:0 10px 34px rgba(0,190,90,.35);opacity:0;pointer-events:none;transition:opacity .9s ease,transform .9s ease}
+#endcta.on{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+#endcta:hover{background:var(--alive)}
