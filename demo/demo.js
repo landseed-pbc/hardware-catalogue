@@ -1258,7 +1258,7 @@ tl.call(() => {
   flashAt(V3(26.5, heightAt(26.5, 16.6) + 1.2, 16.6), 0xcfe8ff);      // the phone takes its photo
   const shot = sensorSnap(V3(26.9, heightAt(26.5, 16.6) + 1.15, 16.9), V3(28.8, heightAt(28.8, 17.9) + .7, 17.9),
     { boxes: [boxFor(window.__pickup, 1.25, 1.9, '#4da3ff', 'VEHICLE')] });
-  popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', shot, 4.6);
+  popup(V3(26.5, heightAt(26.5, 16.6) + 2.8, 16.6), HUES.report, 'Human report', 'Mobile-07', 'Vehicle at the north track — an informant’s $50 Landseed Mobile', shot, 2.9);
   stMobHQ.play(2.4);
   feed(HUES.report, 'Mobile-07 · report', 'Vehicle at the north track · direct-to-cell · photo at HQ');
 }, null, 11.2);
@@ -1270,7 +1270,7 @@ tl.call(() => {                                                     // DETECTION
   const pp = trail.getPoint(poach.u);
   ringAt(pp.x, pp.z, HUES.see, 3.4);
   gsap.fromTo(fovSer1, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', fieldCard('people-walk'), 3.8);
+  popup(V3(pp.x, heightAt(pp.x, pp.z) + 1.9, pp.z), HUES.see, 'Human ×4', '0.96', 'SERENGETI-01 · 200 ms to image · cropped on the edge', fieldCard('people-walk'), 3.2);
 }, null, 19);
 tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Serengeti-01 \u00b7 alert', 'Human \u00d74 at the chokepoint \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128)); }, null, 19.9);
 tl.call(() => fireUplink(), null, 21.2);
@@ -1322,8 +1322,8 @@ tl.call(() => {                                                     // lamp down
 tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
 tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'Rangers reach the ford before the group does. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 5.6), null, 33.4);
 tl.call(() => {
-  popup(V3(-2.8, heightAt(-2.8, 5.3) + 2.2, 5.3), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 2.8);
-}, null, 34.4);
+  popup(V3(-2.8, heightAt(-2.8, 5.3) + 2.2, 5.3), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 2.1);
+}, null, 33.9);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
 cam(36.6, [8, 15, 4], [10, 0, -5.5], 1.9, 'power1.in');             // crane up from the ford — the arrest gets its beat
@@ -1336,7 +1336,7 @@ tl.call(() => {                                                     // DETECTION
   flashAt(V3(12.9, heightAt(12.9, -8.6) + 1.6, -8.6), 0xffe9bd);
   ringAt(12.4, -6.4, HUES.guard, 3.2);
   gsap.fromTo(fovVG, { opacity: .34 }, { opacity: .1, duration: 1.6 });
-  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · alert < 1 KB · direct-to-cell', fieldCard('elephant-walk'), 4.4);
+  popup(V3(12.4, heightAt(12.4, -6.4) + 2.4, -6.4), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD-04 · alert < 1 KB · direct-to-cell', fieldCard('elephant-walk'), 2.2);
   stVGHQ.play(2.2);
   feedPhoto(HUES.guard, 'VillageGuard-04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-walk', 128));
 }, null, 44.9);
@@ -1348,9 +1348,9 @@ tl.call(() => {
 }, null, 45.7);
 tl.to(guardState, { u: 1, duration: 5.2, ease: 'none' }, 45.9);
 tl.call(() => {
-  popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGEGUARD-04 · every class on the list in a single detector', fieldCard('multi-class'), 3);
+  popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGEGUARD-04 · every class on the list in a single detector', fieldCard('multi-class'), 2.2);
   feed(HUES.guard, 'VillageGuard-04 · multi-class', 'Elephant and person in the same frame · one detector');
-}, null, 47.6);
+}, null, 47.4);
 tl.call(() => {                                                     // the herd actually turns
   herdState.turning = true;
   gsap.to(herd.rotation, { y: '+=2.9', duration: 2.3, ease: 'sine.inOut',
@@ -1385,16 +1385,16 @@ tl.call(() => {                                                     // …and a 
 }, null, 55.5);
 tl.call(() => bearings(-12.8, 12.6), null, 56.6);
 tl.call(() => {
-  popup(V3(-12.8, heightAt(-12.8, 12.6) + 2.3, 12.6), HUES.listen, 'Howl · wolves', '0.97', 'WOLF-02 · 3 bearings agree · pack located on the map', spectroCard(), 5.5, 150);
+  popup(V3(-12.8, heightAt(-12.8, 12.6) + 2.3, 12.6), HUES.listen, 'Howl · wolves', '0.97', 'WOLF-02 · 3 bearings agree · pack located on the map', spectroCard(), 2.8);
   stWolfGate.play(2.4);
-  feed(HUES.listen, 'Wolf array · fix', 'Wolf pack located · 3 bearings agree');
-}, null, 57.4);
+  feedPhoto(HUES.listen, 'Wolf array · fix', 'Wolf pack located · 3 bearings agree', spectroCard());
+}, null, 58.6);
 tl.call(() => {
   popup(V3(-8.5, heightAt(-8.5, 15.5) + 2.4, 15.5), HUES.listen, 'Birdsong \u00b7 14 species', '0.93', 'WOLF-03 \u00b7 chorus indexed \u00b7 diversity trend updated', spectroCard('bird'), 2.2);
   feed(HUES.listen, 'Wolf array \u00b7 chorus', 'Bird calls overhead indexed \u00b7 14 species tonight');
 }, null, 55.8);
 tl.call(() => {
-  popup(V3(-3, heightAt(-3, 14.5) + 2.2, 14.5), 0xFF8C42, 'Re-identified ×2', 'survey', 'JUNGLE-WALLAH · offloaded on patrol pass · density updated', 'reid', 4, 140);
+
   ringAt(-3, 14.5, 0xFF8C42, 2);
   feed(0xFF8C42, 'Jungle-Wallah · survey', 'Offloaded on patrol pass · two individuals re-identified');
 }, null, 60.2);
@@ -1413,7 +1413,7 @@ tl.call(() => { fireUplink(); stSatHQ.play(2.6); }, null, 73.2);
 tl.call(() => fireUplink(), null, 75.2);
 tl.call(() => fireUplink(), null, 77.3);
 tl.call(() => feed(HUES.brain, 'Landseed AI · report', 'Daily summary compiled · Earth Credits registry updated'), null, 69);
-cam(66.5, [50, 27, 46], [-5, 9, -2], 11.5, 'sine.inOut');           // pull wide to gateway + satellite — lands exactly on the opening frame
+cam(62, [50, 27, 46], [-5, 9, -2], 16, 'sine.inOut');               // ONE continuous pull, listening frame to the whole system + satellite — lands on the opening frame
 tl.call(() => {}, null, 78);
 
 const endcta = document.createElement('div');
