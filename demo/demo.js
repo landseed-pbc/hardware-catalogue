@@ -643,13 +643,13 @@ function place(id, x, z, ry, sc = 2) {
 
 const SENSORS = [];
 function placeS(id, x, z, ry, sc) { const g = place(id, x, z, ry, sc); SENSORS.push({ id, g }); return g; }
-placeS('serengeti', AN.ser1[0], AN.ser1[1], 1.4, 1.9);
-placeS('serengeti', AN.ser2[0], AN.ser2[1], 1.25, 1.9);
-placeS('villageguard', AN.vg[0], AN.vg[1], -.4, 1.9);
-const wolves = [placeS('wolf', AN.w1[0], AN.w1[1], .6, 2.1), placeS('wolf', AN.w2[0], AN.w2[1], 0, 2.1)];
-placeS('junglewallah', AN.jw[0], AN.jw[1], 2.4, 1.9);
-placeS('gateway', AN.gate[0], AN.gate[1], 1.1, 2.6);
-const sAI = placeS('ai', AN.ai[0], AN.ai[1], 0, .85);
+placeS('serengeti', AN.ser1[0], AN.ser1[1], 1.4, 2.6);
+placeS('serengeti', AN.ser2[0], AN.ser2[1], 1.25, 2.6);
+placeS('villageguard', AN.vg[0], AN.vg[1], -.4, 2.6);
+const wolves = [placeS('wolf', AN.w1[0], AN.w1[1], .6, 2.8), placeS('wolf', AN.w2[0], AN.w2[1], 0, 2.8)];
+placeS('junglewallah', AN.jw[0], AN.jw[1], 2.4, 2.6);
+placeS('gateway', AN.gate[0], AN.gate[1], 1.1, 3.3);
+const sAI = placeS('ai', AN.ai[0], AN.ai[1], 0, 1.1);
 sAI.position.y = heightAt(17, -12.3) + 2.6;
 sAI.userData.baseY = sAI.position.y;
 
@@ -1400,9 +1400,9 @@ function spectroCard(mode) {
 }
 
 const pops = [];
-function popup(world, hue, title, conf, sub, kind, hold = 6.5, dx = 0) {
+function popup(world, hue, title, conf, sub, kind, hold = 6.5, dx = 0, hero = false) {
   const el = document.createElement('div');
-  el.className = 'pop';
+  el.className = hero ? 'pop hero' : 'pop';
   el.style.setProperty('--fa', hex(hue));
   el.appendChild(kind instanceof HTMLCanvasElement ? kind : thumb(kind));
   const b = document.createElement('div'); b.className = 'p-b';
@@ -1428,6 +1428,20 @@ function clockStr() {
 
 const tl = gsap.timeline({ repeat: -1, paused: true });
 const CH = { overview: 0, intrusion: 10, response: 18.5, coexist: 34, listening: 50, network: 62 };
+const sceneLight = new THREE.PointLight(0xffd9a8, 0, 36, 1.7);
+scene.add(sceneLight);
+function lightOn(x, z, i = 5.5, d = 2.2) {
+  gsap.to(sceneLight.position, { x, y: heightAt(x, z) + 9, z, duration: d, ease: 'sine.inOut' });
+  gsap.to(sceneLight, { intensity: i, duration: d, ease: 'sine.inOut' });
+}
+if (TWIN) {
+  tl.call(() => lightOn(-17, -8, 5), null, 10.2);
+  tl.call(() => lightOn(-2, -3.5, 5.5), null, 19);
+  tl.call(() => lightOn(15, 7, 5.5), null, 34.4);
+  tl.call(() => lightOn(3, -16, 4.5), null, 50.4);
+  tl.call(() => lightOn(12, -2, 4), null, 62.4);
+  tl.call(() => gsap.to(sceneLight, { intensity: 2, duration: 4 }), null, 71);
+}
 
 // ── overview 0–10 · one continuous establishing move, high and oblique
 tl.call(() => {
@@ -1447,7 +1461,7 @@ tl.call(() => {                                                     // DETECTION
   if (mPoach) markerPulse(mPoach, true);
   ringAt(pp.x, pp.z, HUES.see, 2.6);
   gsap.fromTo(fovSer1, { opacity: .4 }, { opacity: .1, duration: 1.8 });
-  popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'AI CAMERA 01 · detected on approach · 200 ms to image', fieldCard('people-walk'), 3.2);
+  popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'AI CAMERA 01 · detected on approach · 200 ms to image', fieldCard('people-walk'), 4.2, 0, true);
 }, null, 14.6);
 tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'AI camera 01 \u00b7 alert', 'Human \u00d74 on the crest \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 15.5);
 tl.call(() => fireUplink(), null, 16.7);
@@ -1457,7 +1471,7 @@ tl.to(poach, { u: .95, duration: 16.6, ease: 'none' }, 15.6);
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
 tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. The patrol is rolling before they clear the hill.', 5.5), null, 18.8);
 tl.call(() => { jeepState.on = true; jeep.visible = true; feed(HUES.brain, 'HQ · dispatch', 'Patrol unit 2 rolling · intercept set on the track below'); }, null, 18.6);
-tl.to(jeepState, { u: 1, duration: 10.9, ease: 'power1.inOut' }, 21.5);
+tl.to(jeepState, { u: .7, duration: 10.9, ease: 'power1.inOut' }, 21.5);
 tl.call(() => {                                                     // second camera confirms the track
   flashAt(V3(AN.ser2[0], heightAt(AN.ser2[0], AN.ser2[1]) + 1.6, AN.ser2[1]), 0xd9ffe4);
   gsap.fromTo(fovSer2, { opacity: .3 }, { opacity: .1, duration: 1.4 });
@@ -1466,7 +1480,7 @@ tl.call(() => {                                                     // second ca
 }, null, 24.5);
 tl.call(() => {                                                     // INTERCEPT — the jeep halts short
   placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
-  placeOnCurve(jeep, road, Math.max(jeepState.u, .96), 0, .05, true);
+  placeOnCurve(jeep, road, Math.min(Math.max(jeepState.u, .68), .7), 0, .05, true);
   poach.stopped = true;
   jeepState.arrived = true;
   const pp = trail.getPoint(poach.u);
@@ -1501,7 +1515,7 @@ tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
 tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'The patrol is waiting at the bottom of the hill. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 5.6), null, 33.4);
 tl.call(() => {
   const ap = trail.getPoint(poach.u);
-  popup(V3(ap.x, heightAt(ap.x, ap.z) + 2.2, ap.z), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 2.1);
+  popup(V3(ap.x, heightAt(ap.x, ap.z) + 2.2, ap.z), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 3, 0, true);
 }, null, 33.9);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
@@ -1515,7 +1529,7 @@ tl.call(() => {                                                     // DETECTION
   if (mHerd) markerPulse(mHerd, true);
   ringAt(hp.x, hp.z, HUES.guard, 2.6);
   gsap.fromTo(fovVG, { opacity: .4 }, { opacity: .1, duration: 1.8 });
-  popup(V3(0, 0, 0), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGE CAMERA 04 · detected at the treeline · alert < 1 KB', fieldCard('elephant-walk'), 2.4);
+  popup(V3(0, 0, 0), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGE CAMERA 04 · detected at the treeline · alert < 1 KB', fieldCard('elephant-walk'), 3.4, 0, true);
   stVGHQ.play(2.2);
   feedPhoto(HUES.guard, 'Village camera 04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-bull', 128));
 }, null, 42.0);
@@ -1717,6 +1731,11 @@ if (TWIN) {
     m.el.addEventListener('click', () => { location.href = '/#' + rec.id; });
     m.el.title = 'View in the catalogue';
     if (RANGE[rec.id]) m.ring = rangeRing(rec.g.position.x, rec.g.position.z, HUE_BY[rec.id], RANGE[rec.id]);
+    const led = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: HUE_BY[rec.id], transparent: true, opacity: .9, depthWrite: false }));
+    led.scale.setScalar(1.35);
+    led.position.set(rec.g.position.x, rec.g.position.y + 3.1, rec.g.position.z);
+    scene.add(led);
+    gsap.to(led.material, { opacity: .35, duration: 1.3 + Math.abs(rec.g.position.x % 1) * .7, yoyo: true, repeat: -1, ease: 'sine.inOut' });
   }
   mPoach = marker('human', 0xff5a4d, 'Intruders', poachers, 4);
   mPoach.key = 'intruders';
@@ -1827,8 +1846,8 @@ const setupSettled = () => {
   poachers.visible = true;
   poach.u = .95; poach.lastU = .95; poach.stopped = true;
   placeOnCurve(poachers, trail, .95, 0, .05);
-  jeepState.on = true; jeepState.arrived = true; jeep.visible = true;
-  placeOnCurve(jeep, road, .96, 0, .05, true);
+  jeepState.on = true; jeepState.arrived = true; jeep.visible = true; jeepState.u = .7;
+  placeOnCurve(jeep, road, .7, 0, .05, true);
 };
 const CHSETUP = {
   overview() {},
