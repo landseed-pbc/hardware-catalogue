@@ -39,6 +39,7 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 #cap-k::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--fa,var(--alive));box-shadow:0 0 8px var(--fa,var(--alive));flex:none}
 #cap-t{font-size:clamp(28px,2.7vw,35px);font-weight:800;letter-spacing:-.014em;line-height:1.12;text-shadow:0 2px 16px rgba(0,0,0,.85)}
 #cap-l{margin-top:8px;font-size:16px;line-height:1.5;color:rgba(240,240,234,.9);text-shadow:0 1px 8px rgba(0,0,0,.9)}
+#cap-m{margin-top:12px;padding-top:10px;border-top:1px solid rgba(240,240,234,.12);font-size:11px;font-weight:800;letter-spacing:.14em;color:color-mix(in srgb,var(--fa,var(--alive)) 75%,#F0F0EA);text-shadow:0 1px 6px rgba(0,0,0,.9)}
 
 /* ops feed container (telegram body uses #feed-list) */
 
@@ -136,6 +137,8 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .twin-icon::after{content:"";position:absolute;left:50%;top:100%;width:1.5px;height:12px;background:linear-gradient(180deg,var(--ic),transparent)}
 .twin-icon.below{transform:translate(-50%,18px)}
 .twin-icon.below.deep{transform:translate(-50%,44px)}
+.twin-icon.stack{flex-direction:column;gap:3px}
+.twin-icon.stack .ti-ic{justify-content:center}
 .twin-icon.below::after{top:auto;bottom:100%;background:linear-gradient(0deg,var(--ic),transparent)}
 .ti-ic{position:relative;height:40px;flex:none;display:flex;align-items:center}
 .ti-ic svg{width:36px;height:36px;display:block;fill:color-mix(in srgb,var(--ic) 74%,#ded9cc);filter:drop-shadow(0 0 1.5px rgba(4,9,5,.95)) drop-shadow(0 1px 2.5px rgba(0,0,0,.95))}
