@@ -348,16 +348,27 @@ export function buildJungleWallah(hue) {
   const pir = pirDome(.044); pir.position.set(0, H * .3 + .07, D / 2 + .012);
   g.add(pir);
 
-  // the listening pod — grille cylinder on a stalk, angled skyward
+  // the listening pod — the Listener unit itself, strapped on and angled
+  // skyward: same base, grille, glow core, cap, mic port and hanging ring
   const pod = new THREE.Group();
-  pod.add(mesh(CYL(.07, .07, .13, 20), new THREE.MeshStandardMaterial({ map: grilleTex(), roughness: .7, metalness: .25 })));
-  pod.add(mesh(CYL(.074, .074, .02, 20), M.body(0x272d27), 0, .075, 0));
-  pod.add(mesh(CYL(.074, .074, .02, 20), M.body(0x272d27), 0, -.075, 0));
-  const podGlow = mesh(new THREE.SphereGeometry(.028, 10, 10), M.led(hue, 1.6), 0, .1, 0);
-  pod.add(podGlow);
-  pod.position.set(W / 2 + .1, H + .16, -.02); pod.rotation.z = -.35;
+  {
+    const pr = .055, ph = .18;
+    pod.add(mesh(CYL(pr, pr * 1.06, .075, 24), M.rubber(0x1c211c), 0, -ph * .38, 0));
+    const pgr = mesh(CYL(pr * .98, pr * .98, ph * .62, 24),
+      new THREE.MeshStandardMaterial({ map: grilleTex(), roughness: .68, metalness: .3 }), 0, 0, 0);
+    pgr.material.map = grilleTex().clone();
+    pgr.material.map.repeat.set(3, 1.4);
+    pod.add(pgr);
+    const pcore = mesh(CYL(pr * .82, pr * .82, ph * .56, 20), M.led(hue, .55), 0, 0, 0);
+    pcore.castShadow = false;
+    pod.add(pcore);
+    pod.add(mesh(CYL(pr * 1.04, pr, .045, 24), M.body(0x272d27), 0, ph * .34, 0));
+    pod.add(mesh(CYL(.015, .015, .026, 14), M.steel(0x596260), 0, ph * .34 + .025, 0));
+    pod.add(mesh(new THREE.TorusGeometry(.021, .005, 8, 18), M.steel(0x6a7370), 0, ph * .34 + .062, 0));
+  }
+  pod.position.set(W / 2 + .08, H + .1, -.02); pod.rotation.z = -.35;
   g.add(pod);
-  const stalk = mesh(CYL(.014, .018, .22, 8), M.steel(0x4a5350), W / 2 + .06, H + .04, -.02);
+  const stalk = mesh(CYL(.012, .016, .16, 8), M.steel(0x4a5350), W / 2 + .05, H, -.02);
   stalk.rotation.z = -.3;
   g.add(stalk);
 
@@ -371,7 +382,7 @@ export function buildJungleWallah(hue) {
 
   g.userData.anchors = {
     lens:  V3(0, H * .62 + .07, D / 2 + .1),
-    pod:   V3(W / 2 + .16, H + .28, -.02),
+    pod:   V3(W / 2 + .11, H + .18, -.02),
     ir:    V3(0, H * .9 + .07, D / 2 + .05),
     ai:    V3(-W / 2 - .04, H * .5 + .07, 0),
     wifi:  V3(-W / 2 + .05, H + .4, 0),
