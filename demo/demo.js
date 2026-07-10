@@ -176,8 +176,8 @@ const CAMKEYS = TWIN ? [
 ] : [
   [0,    50, 27, 46,    -5, 9, -2],       // the whole system (loop frame)
   [9,    33, 16, 30,     10, 2, 9],       // drifting in over the river
-  [10.8, 30, 13, 26,    27.4, .7, 19.4],  // the stakeout: watcher, cover, men at the truck
-  [13.4, 30, 13, 26,    27.4, .7, 19.4],  // · hold — the report goes out
+  [10.8, 30, 13, 26,    22, 1, 14.6],     // the trail head — the men enter from the bottom of frame
+  [13.4, 30, 13, 26,    22, 1, 14.6],     // · hold — first strides up the path
   [15,   23, 11, 21,    13, 1, 11],       // transit — damps the spline's curl
   [16.6, 16.5, 8.5, 15.5, 4.5, .8, 7.5],  // behind the group, sensor ahead
   [21.4, 16.5, 8.5, 15.5, 4.5, .8, 7.5],  // · hold — detection at range, relay
@@ -822,7 +822,7 @@ if (TWIN) poachers.visible = false;
 const informant = figure(0x4e5a66, .82);
 informant.position.set(AN.informant[0], heightAt(AN.informant[0], AN.informant[1]), AN.informant[1]);
 informant.lookAt(AN.truck[0], informant.position.y, AN.truck[1]);
-if (TWIN) informant.visible = false;
+informant.visible = false;                           // the human-report example is retired in both modes
 const stakeLight = new THREE.PointLight(0xbfd9ff, 0, 7);
 stakeLight.position.set(AN.informant[0], heightAt(AN.informant[0], AN.informant[1]) + 2.4, AN.informant[1]);
 scene.add(stakeLight);
@@ -1652,7 +1652,7 @@ tl.call(() => tl.pause(), null, 77.9);                              // hold on t
 function resetWorld() {
   poach.u = .02; poach.stopped = false;
   herdState.u = 0; herdState.curve = 'in'; herdState.turning = false; herd.visible = false;
-  if (TWIN) { poachers.visible = false; informant.visible = false; pack.visible = false; storks.forEach(st => st.b.visible = false); }
+  poachers.visible = false; informant.visible = false; pack.visible = false; storks.forEach(st => st.b.visible = false);
   if (mPoach) { mPoach.el.classList.remove('nolabel'); mPoach.el.style.setProperty('--ic', hex(0xff5a4d)); mPoach.el.querySelectorAll('svg').forEach(v => { v.style.display = ''; }); }
   jeepState.u = 0; jeepState.on = false; jeepState.arrived = false;
   jeep.visible = false;
