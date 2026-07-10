@@ -19,7 +19,13 @@ keep the two sites' design language aligned.
 4. **Materials are per-device instances** — builders create fresh materials so `dimTo`
    can fade devices independently (color, envMapIntensity, emissive base, and additive
    opacity are all captured in `d.mats` at assembly time).
-5. **No secrets, ever.**
+5. **Callout plates are settle-then-freeze.** Device callouts lay out ONCE when
+   the camera flight completes (`flyTo` fires the `onSettle` hook →
+   `revealCallouts` → `layoutCallouts`), then the plates stay put; only the
+   anchor dots and leader lines track the part per frame. Never reintroduce
+   per-frame plate layout — text dragging across the screen during flights is
+   the exact bug this replaced.
+6. **No secrets, ever.**
 
 ## Verifying a change
 

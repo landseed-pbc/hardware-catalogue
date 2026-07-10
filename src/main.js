@@ -352,10 +352,13 @@ world.onTick = () => {
     if (behind) { if (t.line) { t.line.style.opacity = '0'; t.dot.style.opacity = '0'; } continue; }
     const sx = (proj.x * .5 + .5) * innerWidth, sy = (-proj.y * .5 + .5) * innerHeight;
     if (t.kind === 'callout') {
-      proj.copy(t.dev.group.position).setY(t.dev.group.position.y + .5).project(camera);
-      const cx = (proj.x * .5 + .5) * innerWidth;
-      const right = sx >= cx;
-      (right ? cols.R : cols.L).push({ t, sx, sy, ly: sy });
+      // the plate is frozen where layoutCallouts put it — only the anchor
+      // dot and the leader line follow the part through the frame
+      if (t.fx == null) { t.el.style.display = 'none'; if (t.line) { t.line.style.opacity = '0'; t.dot.style.opacity = '0'; } continue; }
+      t.dot.setAttribute('cx', sx); t.dot.setAttribute('cy', sy);
+      t.line.setAttribute('x1', sx); t.line.setAttribute('y1', sy);
+      const op = getComputedStyle(t.el).opacity;
+      t.line.style.opacity = op; t.dot.style.opacity = op;
     } else {
       plates.push({ t, sx, sy, ly: sy, hw: t.el.offsetWidth / 2 + 8, h: t.el.offsetHeight + 6 });
     }
@@ -397,10 +400,26 @@ world.onTick = () => {
   // not enough vertical room for stacked plates with descriptions —
   // drop to name + price everywhere and let the rows breathe
   if (cramped) document.body.classList.add('slim-plates');
+};
+
+// ── …and becomes a one-shot: computed once when the camera settles, so the
+// plates never drag across the screen during a flight. Dots keep tracking.
+function layoutCallouts(d) {
+  const pv = new THREE.Vector3();
+  pv.copy(d.group.position).setY(d.group.position.y + .5).project(camera);
+  const cx = (pv.x * .5 + .5) * innerWidth;
+  const cols = { L: [], R: [] };
+  for (const t of tracked) {
+    if (t.kind !== 'callout' || t.dev !== d) continue;
+    pv.copy(t.getPos()).project(camera);
+    if (pv.z > 1) { t.fx = null; continue; }
+    const sx = (pv.x * .5 + .5) * innerWidth, sy = (-pv.y * .5 + .5) * innerHeight;
+    (sx >= cx ? cols.R : cols.L).push({ t, sx, sy, ly: sy });
+  }
   const off = Math.min(185, innerWidth * .135), GAP = 72;
   for (const side of ['L', 'R']) {
     const list = cols[side].sort((a, b) => a.sy - b.sy);
-    for (const c of list) c.ly = Math.max(96, Math.min(innerHeight - 130, c.ly ?? c.sy));  // anchors above the frame still get an on-screen label
+    for (const c of list) c.ly = Math.max(96, Math.min(innerHeight - 130, c.ly));  // anchors above the frame still get an on-screen label
     for (let i = 1; i < list.length; i++)
       if (list[i].ly - list[i - 1].ly < GAP) list[i].ly = list[i - 1].ly + GAP;
     for (const c of list) {
@@ -409,18 +428,23 @@ world.onTick = () => {
       const panelW = Math.min(356, innerWidth * .26) + 40;
       const lx = Math.max(panelW + 135, Math.min(innerWidth - panelW - 135, c.sx + (right ? off : -off)));
       c.t.el.classList.toggle('kr', !right);
+      c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = c.ly + 'px';
-      if (c.t.line) {
-        const w = c.t.el.offsetWidth;
-        c.t.line.setAttribute('x1', c.sx); c.t.line.setAttribute('y1', c.sy);
-        c.t.line.setAttribute('x2', lx + (right ? -w / 2 - 6 : w / 2 + 6)); c.t.line.setAttribute('y2', c.ly);
-        c.t.line.style.opacity = c.t.el.style.opacity;
-        c.t.dot.setAttribute('cx', c.sx); c.t.dot.setAttribute('cy', c.sy);
-        c.t.dot.style.opacity = c.t.el.style.opacity;
-      }
+      const w = c.t.el.offsetWidth;
+      c.t.line.setAttribute('x2', lx + (right ? -w / 2 - 6 : w / 2 + 6));
+      c.t.line.setAttribute('y2', c.ly);
+      c.t.fx = lx; c.t.fy = c.ly;
     }
   }
-};
+}
+function revealCallouts(d) {
+  layoutCallouts(d);
+  d.calloutEls.forEach((k, i) => {
+    k.style.transition = 'none';                        // gsap owns the entrance
+    gsap.fromTo(k, { opacity: 0, xPercent: -50, yPercent: -50, y: 10 },
+      { opacity: 1, y: 0, xPercent: -50, yPercent: -50, duration: .55, delay: .1 + .09 * i, ease: 'power2.out', overwrite: true });
+  });
+}
 
 /* ── the disappearing act — non-focused units leave the stage entirely ──────── */
 
@@ -490,14 +514,14 @@ function deviceFrame(d) {
   return { pos, tgt: new THREE.Vector3(x, ty, z) };
 }
 
-let current = 'catalogue', busy = false;
+let current = 'catalogue', busy = false, onSettle = null;
 
 function flyTo(pos, tgt, dur = 1.6, ease = 'power3.inOut') {
   busy = true;
   gsap.to(camera.position, { x: pos.x, y: pos.y, z: pos.z, duration: dur, ease, overwrite: true });
   gsap.to(controls.target, {
     x: tgt.x, y: tgt.y, z: tgt.z, duration: dur, ease, overwrite: true,
-    onComplete: () => { busy = false; },
+    onComplete: () => { busy = false; if (onSettle) { const f = onSettle; onSettle = null; f(); } },
   });
 }
 
@@ -556,7 +580,7 @@ function fitPanels() {
   fit($('#specs'), () => innerHeight - 96);
 }
 addEventListener('resize', () => {
-  if (current !== 'catalogue') { fitPanels(); return; }
+  if (current !== 'catalogue') { fitPanels(); if (!busy && byId[current]) layoutCallouts(byId[current]); return; }
   document.body.classList.remove('slim-plates');       // re-earn descriptions if room returns
   const f = fitCatalogue();
   flyTo(f.pos, f.tgt, .8);
@@ -580,7 +604,8 @@ function goView(id, force = false) {
     for (const d of DEVICES) fadeDevice(d, true);
     world.setStreamsVisible(true);
     world.setGridDim(false);
-    for (const t of tracked) t.el.style.opacity = t.kind === 'plate' ? '' : '0';
+    onSettle = null;
+    for (const t of tracked) { if (t.kind === 'plate') t.el.style.opacity = ''; else { t.el.style.opacity = '0'; t.fx = null; gsap.killTweensOf(t.el); } }
     $('#plegend').classList.add('show');
     $('#specs').classList.remove('show');
     $('#howto').classList.remove('show');
@@ -608,8 +633,9 @@ function goView(id, force = false) {
   verb.classList.add('show');
   for (const t of tracked) {
     if (t.kind === 'plate') t.el.style.opacity = '0';
-    else t.el.style.opacity = (t.dev === d) ? '' : '0';
+    else { t.el.style.opacity = '0'; t.fx = null; gsap.killTweensOf(t.el); }
   }
+  onSettle = () => revealCallouts(d);
   $('#plegend').classList.remove('show');
   $('#specs').classList.add('show');
   $('#howto').classList.add('show');
