@@ -46,8 +46,8 @@ const DEVICES = [
       ['lens', 'Optics', 'Low-light sensor · 200 ms to first image'],
       ['ir', 'IR illuminator', 'Sees at night, shows nothing'],
       ['antenna', 'Long-range radio', 'LoRa · LTE · satellite backhaul'],
-      ['pir', 'PIR trigger', '5–10 µA asleep · re-trigger < 1 s'],
-      ['battery', 'Battery pack', 'External, expandable · > 12 months'],
+      ['pir', 'PIR trigger', '5–10 µA asleep · re-trigger < 1 s', -230, 10],
+      ['battery', 'Battery pack', 'External, expandable · > 12 months', 30, 85],
       ['shell', 'Camo shell', 'IP67+ · tested underwater'],
     ],
   },
@@ -80,10 +80,10 @@ const DEVICES = [
     ],
     callouts: [
       ['lens', 'Optics', '2 MP sensor · 15 m range'],
-      ['ir', 'Dual IR array', 'Night work at the village edge'],
+      ['ir', 'Dual IR array', 'Night work at the village edge', 95, -60],
       ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge'],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
-      ['battery', 'Battery pack', 'External, expandable · > 12 months'],
+      ['battery', 'Battery pack', 'External, expandable · > 12 months', 160, 90],
     ],
   },
   {
@@ -141,8 +141,8 @@ const DEVICES = [
     ],
     callouts: [
       ['lens', 'Optics', 'VillageGuard 2 MP platform'],
-      ['pod', 'Acoustic pod', 'The listening half of the survey'],
-      ['ai', 'Bespoke models', 'The key species of your landscape'],
+      ['pod', 'Acoustic pod', 'The listening half of the survey', 110, -75],
+      ['ai', 'Bespoke models', 'The key species of your landscape', 170, -50],
       ['wifi', 'Wi-Fi offload', 'No airtime required'],
     ],
   },
@@ -198,7 +198,7 @@ const DEVICES = [
       ['Why $50', 'nothing on board that a person replaces'],
     ],
     callouts: [
-      ['screen', 'Report screen', 'Frame, confirm, transmit'],
+      ['screen', 'Report screen', 'Frame, confirm, transmit', 140, 0],
       ['eye', 'Daylight camera', 'No IR, no meter — $50 stays $50'],
       ['shutter', 'One key', 'Usable under pressure'],
       ['body', 'Rugged slab', 'Pocketable, unremarkable'],
@@ -229,7 +229,7 @@ const DEVICES = [
       ['Roadmap', 'monocular distance · acoustic triangulation'],
     ],
     callouts: [
-      ['core', 'The brain', 'CTDAMS — every sensor, one aggregator'],
+      ['core', 'The brain', 'CTDAMS — every sensor, one aggregator', 160, 0],
       ['shells', 'Fusion layers', 'Optical · acoustic · satellite'],
       ['rings', 'Analytics', 'Occupancy, density, abundance'],
       ['swarm', 'Detections', 'Live from the field network'],
@@ -326,12 +326,13 @@ for (const d of DEVICES) {
   else p = new THREE.Vector3(d.x, 0, z + .68);
   addLabel(el, () => p, d, 'plate');
 
-  d.calloutEls = d.callouts.map(([a, n, s]) => {
+  d.calloutEls = d.callouts.map(([a, n, s, ox, oy]) => {
     const k = document.createElement('div');
     k.className = 'klabel';
     k.style.setProperty('--fa', hex(d.hue));
     k.style.opacity = '0';
     k.innerHTML = `<span class="kn">${n}</span><span class="ks">${s}</span>`;
+    k.__off = [ox || 0, oy || 0];                       // hand-tuned nudge, applied after auto-layout
     const anchor = d.group.userData.anchors[a] ?? new THREE.Vector3();
     const getPos = () => _v.copy(anchor).applyMatrix4(d.group.matrixWorld);
     addLabel(k, getPos, d, 'callout', true);
@@ -426,14 +427,16 @@ function layoutCallouts(d) {
       const right = side === 'R';
       // keep plates out from under the side panels and screen edges
       const panelW = Math.min(356, innerWidth * .26) + 40;
-      const lx = Math.max(panelW + 135, Math.min(innerWidth - panelW - 135, c.sx + (right ? off : -off)));
+      const [odx, ody] = c.t.el.__off || [0, 0];
+      const lx = Math.max(panelW + 135, Math.min(innerWidth - panelW - 135, c.sx + (right ? off : -off))) + odx;
+      const ly = c.ly + ody;
       c.t.el.classList.toggle('kr', !right);
       c.t.el.style.display = '';
-      c.t.el.style.left = lx + 'px'; c.t.el.style.top = c.ly + 'px';
+      c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
       const w = c.t.el.offsetWidth;
       c.t.line.setAttribute('x2', lx + (right ? -w / 2 - 6 : w / 2 + 6));
-      c.t.line.setAttribute('y2', c.ly);
-      c.t.fx = lx; c.t.fy = c.ly;
+      c.t.line.setAttribute('y2', ly);
+      c.t.fx = lx; c.t.fy = ly;
     }
   }
 }
