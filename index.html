@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./css/styles.css?v=9" />
+<link rel="stylesheet" href="./css/styles.css?v=10" />
 <!-- discover the big three.js module early so it downloads in parallel with the app code -->
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 <link rel="prefetch" href="/demo/demo.js?v=41" />
@@ -42,9 +42,9 @@
 <div id="loader"><img class="loader-word" src="./public/landseed-wordmark.svg" alt="Landseed" /><span>assembling the hardware bay</span></div>
 
 <header class="hud">
-  <div class="brand">
+  <a class="brand" id="brand-home" href="./" title="Back to the catalogue">
     <img class="b-word" src="./public/landseed-wordmark.svg" alt="Landseed" />
-  </div>
+  </a>
   <div class="hud-right"><span class="hud-tag">Technology Ecosystem · Product Line</span></div>
 </header>
 
@@ -94,6 +94,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./src/main.js?v=15"></script>
+<script type="module" src="./src/main.js?v=17"></script>
 </body>
 </html>

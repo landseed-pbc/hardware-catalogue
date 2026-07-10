@@ -22,6 +22,8 @@ body.booting .hud,body.booting #chapters,body.booting #labels,body.booting #lead
 
 /* HUD */
 .hud{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:18px 24px;pointer-events:none}
+a.brand{pointer-events:auto;cursor:pointer;display:block}
+a.brand:hover .b-word{opacity:1}
 .hud>*{pointer-events:auto}
 .brand .b-word{height:22px;width:auto;display:block;opacity:.95}
 

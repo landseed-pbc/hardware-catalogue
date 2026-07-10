@@ -563,7 +563,8 @@ addEventListener('resize', () => {
 
 const CAT_LINE = 'Poaching, illegal logging and human-wildlife conflict drive the loss of the wild — and the tools meant to stop them have been expensive, blind, or disconnected. Landseed builds cameras that think before they transmit, a network that reaches any sky, and prices that deploy in numbers — all reporting to one brain.';
 
-function goView(id) {
+function goView(id, force = false) {
+  if (force) busy = false;                              // the wordmark always brings you home
   if (busy && current !== id) return;
   if (!byId[id] && id !== 'catalogue') return;
   const prev = current; current = id;
@@ -673,6 +674,9 @@ addEventListener('keydown', (e) => {
 /* ── boot: loader off, opening flight, chrome in ────────────────────────────── */
 
 // debug/automation handle (same convention as the virunga viz's __virunga)
+const brandHome = document.getElementById('brand-home');
+if (brandHome) brandHome.addEventListener('click', (e) => { e.preventDefault(); goView('catalogue', true); });
+
 window.__hw = { world, camera, controls, goView, DEVICES, get current() { return current; } };
 
 world.start();
