@@ -33,12 +33,12 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 #title p{margin-top:15px;font-size:16.5px;color:var(--dim);letter-spacing:.02em;text-shadow:0 1px 10px rgba(0,0,0,.9)}
 
 /* chapter caption */
-#cap{position:fixed;left:34px;bottom:118px;z-index:25;max-width:520px;pointer-events:none;opacity:0}
+#cap{position:fixed;left:34px;top:56%;bottom:auto;z-index:25;max-width:320px;padding:18px 22px 20px;border-radius:16px;background:linear-gradient(180deg,rgba(6,12,8,.74),rgba(6,12,8,.58));border:1px solid rgba(240,240,234,.12);border-left:3px solid var(--fa,var(--alive));backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);box-shadow:0 16px 48px rgba(0,0,0,.45);pointer-events:none;opacity:0}
 #cap.on{opacity:1}
 #cap-k{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--fa,var(--alive));margin-bottom:7px;text-shadow:0 1px 8px rgba(0,0,0,.9)}
 #cap-k::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--fa,var(--alive));box-shadow:0 0 8px var(--fa,var(--alive));flex:none}
-#cap-t{font-size:clamp(28px,3vw,38px);font-weight:800;letter-spacing:-.015em;line-height:1.1;text-shadow:0 2px 16px rgba(0,0,0,.85)}
-#cap-l{margin-top:9px;font-size:17px;line-height:1.55;color:rgba(240,240,234,.85);text-shadow:0 1px 8px rgba(0,0,0,.9);max-width:44ch}
+#cap-t{font-size:clamp(23px,2.2vw,28px);font-weight:800;letter-spacing:-.012em;line-height:1.16;text-shadow:0 2px 16px rgba(0,0,0,.85)}
+#cap-l{margin-top:8px;font-size:14.5px;line-height:1.55;color:rgba(240,240,234,.88);text-shadow:0 1px 8px rgba(0,0,0,.9)}
 
 /* ops feed container (telegram body uses #feed-list) */
 
@@ -64,7 +64,7 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 
 @media(max-width:900px){
   #phone{display:none}
-  #cap{left:16px;bottom:104px;max-width:70vw}
+  #cap{left:16px;top:auto;bottom:104px;max-width:70vw}
   #chapters{bottom:50px;overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
 }
 
@@ -75,7 +75,7 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 
 /* ── the rangers' phone — Telegram, dark ─────────────────────────────────── */
 #phone{position:fixed;right:26px;top:94px;z-index:25;width:292px;height:min(492px,calc(100vh - 220px));border-radius:44px;background:#000;border:3px solid #2c2c30;box-shadow:0 24px 70px rgba(0,0,0,.6),inset 0 0 0 2px #000;overflow:hidden;display:flex;flex-direction:column;pointer-events:none;opacity:0;transform:translateX(26px) scale(.98);transition:opacity .9s ease,transform .9s cubic-bezier(.22,1,.36,1)}
-#phone.on{opacity:1;transform:none}
+#phone.on{opacity:1;transform:none;pointer-events:auto}
 .ph-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:92px;height:26px;border-radius:14px;background:#000;z-index:3;box-shadow:0 0 0 2px #0a0a0a}
 .ph-status{display:flex;justify-content:space-between;align-items:center;padding:14px 26px 6px;background:#0e1621;color:#fff;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
 .ph-icons{font-size:9.5px;letter-spacing:.06em;color:#cfd6dd}
@@ -84,7 +84,10 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .tg-who{flex:1;min-width:0}
 .tg-who b{display:block;font-size:14px;color:#fff;letter-spacing:0}
 .tg-who span{display:block;font-size:11px;color:#6c7883;margin-top:1px}
-.tg-body{flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:9px;padding:12px 12px 12px;background:#0e1621}
+.tg-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:12px 12px 12px;background:#0e1621;scrollbar-width:thin;scrollbar-color:rgba(240,240,234,.18) transparent}
+.tg-body>:first-child{margin-top:auto}
+.tg-body::-webkit-scrollbar{width:5px}
+.tg-body::-webkit-scrollbar-thumb{background:rgba(240,240,234,.16);border-radius:99px}
 .tg-msg{max-width:96%;align-self:flex-start;background:#182533;border-radius:15px 15px 15px 5px;padding:9px 13px 8px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .tg-msg b{display:block;font-size:13.5px;font-weight:700;color:#fff;letter-spacing:0}
 .tg-msg span{display:block;font-size:13px;line-height:1.45;color:#dbe2e9;margin-top:3px;padding-right:38px}
@@ -163,6 +166,6 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .bar{display:none}
 .hud{top:14px}
 #phone{top:74px;height:min(520px,calc(100vh - 200px))}
-#cap{bottom:104px}
+#cap{top:54%}
 #chapters{bottom:34px}
 #endcta{bottom:112px}

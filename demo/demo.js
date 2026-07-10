@@ -33,7 +33,7 @@ const AN = TWIN ? {
   // into the massif's forest — HQ below at 2,000 m, crossing at 2,600 m,
   // the listening meadow at 2,730 m under the 4,170 m peak.
   ser1: [-14, -10.5], ser2: [-6, -6.5], vg: [17.5, 9],
-  w1: [0, -13], w2: [7, -19.5], jw: [10, -12],
+  w1: [0, -13], w2: [5.5, -20.5], jw: [10, -12],
   gate: [13.5, 16.2], ai: [12, -2], village: [28, 8.5], villages: [[28, 8.5]],
   informant: [-33.5, -22.5], truck: [-27.5, -15.5],
   trail: [[-25, -14], [-21, -11], [-17, -8], [-12, -5.5], [-7, -4], [-2, -3.5]],
@@ -1220,7 +1220,8 @@ function feedPhoto(hue, title, text, cnv) {
   const list = $('#feed-list');
   list.appendChild(el);
   gsap.fromTo(el, { opacity: 0, y: 20, scale: .97 }, { opacity: 1, y: 0, scale: 1, duration: .75, ease: 'power3.out' });
-  while (list.children.length > 4) {
+  list.scrollTop = list.scrollHeight;
+  while (list.children.length > 40) {
     const first = list.querySelector('.tg-msg');
     if (!first) break;
     list.removeChild(first);
@@ -1234,7 +1235,8 @@ function feed(hue, title, text) {
   const list = $('#feed-list');
   list.appendChild(el);
   gsap.fromTo(el, { opacity: 0, y: 20, scale: .97 }, { opacity: 1, y: 0, scale: 1, duration: .75, ease: 'power3.out' });
-  while (list.children.length > 4) {
+  list.scrollTop = list.scrollHeight;
+  while (list.children.length > 40) {
     const first = list.querySelector('.tg-msg');
     if (!first) break;
     list.removeChild(first);
@@ -1430,16 +1432,26 @@ const tl = gsap.timeline({ repeat: -1, paused: true });
 const CH = { overview: 0, intrusion: 10, response: 18.5, coexist: 34, listening: 50, network: 62 };
 const sceneLight = new THREE.PointLight(0xffd9a8, 0, 36, 1.7);
 scene.add(sceneLight);
+const STAGES = TWIN ? {
+  intrusion: rangeRing(-16, -9, 0xEDE4C8, 11),
+  response: rangeRing(0, -3, 0xEDE4C8, 8),
+  coexist: rangeRing(21, 8.5, 0xEDE4C8, 9),
+  listening: rangeRing(3.5, -16, 0xEDE4C8, 10),
+} : {};
+for (const k in STAGES) STAGES[k].material.opacity = 0;
+function stage(name, d = 1.6) {
+  for (const k in STAGES) gsap.to(STAGES[k].material, { opacity: k === name ? .3 : 0, duration: d, ease: 'sine.inOut' });
+}
 function lightOn(x, z, i = 5.5, d = 2.2) {
   gsap.to(sceneLight.position, { x, y: heightAt(x, z) + 9, z, duration: d, ease: 'sine.inOut' });
   gsap.to(sceneLight, { intensity: i, duration: d, ease: 'sine.inOut' });
 }
 if (TWIN) {
-  tl.call(() => lightOn(-17, -8, 5), null, 10.2);
-  tl.call(() => lightOn(-2, -3.5, 5.5), null, 19);
-  tl.call(() => lightOn(15, 7, 5.5), null, 34.4);
-  tl.call(() => lightOn(3, -16, 4.5), null, 50.4);
-  tl.call(() => lightOn(12, -2, 4), null, 62.4);
+  tl.call(() => { lightOn(-17, -8, 5); stage('intrusion'); }, null, 10.2);
+  tl.call(() => { lightOn(-2, -3.5, 5.5); stage('response'); }, null, 19);
+  tl.call(() => { lightOn(15, 7, 5.5); stage('coexist'); }, null, 34.4);
+  tl.call(() => { lightOn(3, -16, 4.5); stage('listening'); }, null, 50.4);
+  tl.call(() => { lightOn(12, -2, 4); stage('none'); }, null, 62.4);
   tl.call(() => gsap.to(sceneLight, { intensity: 2, duration: 4 }), null, 71);
 }
 
@@ -1512,7 +1524,7 @@ tl.call(() => {                                                     // lamp down
   if (mPoach) { mPoach.el.classList.add('nolabel'); mPoach.el.style.setProperty('--ic', '#98a29a'); }
 }, null, 34);
 tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
-tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'The patrol is waiting at the bottom of the hill. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 5.6), null, 33.4);
+tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'The patrol is waiting at the bottom of the hill. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 4.4), null, 33.2);
 tl.call(() => {
   const ap = trail.getPoint(poach.u);
   popup(V3(ap.x, heightAt(ap.x, ap.z) + 2.2, ap.z), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 3, 0, true);
@@ -1586,11 +1598,11 @@ tl.call(() => {
   ringAt(AN.jw[0], AN.jw[1], 0xFF8C42, 2);
   feed(0xFF8C42, 'Survey unit · archive', 'Offloaded on patrol pass · two individuals re-identified');
 }, null, 61.3);
-tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 4.2), null, 61.6);
+tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 3.4), null, 60.8);
 
 // ── network 62–78 · one continuous pull to the whole board
 
-tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landscape, reporting', 'See, listen, connect, report — every detection lands in Landseed AI, and the record writes itself.', 9), null, 63.5);
+tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landscape, reporting', 'See, listen, connect, report — every detection lands in Landseed AI, and the record writes itself.', 6.4), null, 66);
 tl.call(() => { stSer1Gate.play(3); stSer2Gate.play(3); }, null, 65);
 tl.call(() => { stWolfGate.play(3); stWolf2Gate.play(3.4); stJWGate.play(3.4); }, null, 65.9);
 tl.call(() => { fireUplink(); stVGHQ.play(3); stHQPatrol.play(3); }, null, 66.9);
@@ -1656,6 +1668,24 @@ if (TWIN) {
     new THREE.MeshStandardMaterial({ color: 0x9aa39b, metalness: .8, roughness: .35 }));
   mast2.position.set(12.8, heightAt(12.8, -2.4) + 2.2, -2.4);
   scene.add(mast2);
+  // the village proper: a hamlet worth defending, and the fields the herd wants
+  const vx = AN.village[0], vz = AN.village[1];
+  for (const [ox, oz, hs] of [[0, 0, 1.35], [1.9, .9, 1.1], [-1.7, 1.2, 1.15], [1.2, -1.6, 1.05], [-1.9, -1.1, 1.2], [.2, 2.1, .95], [3, -.4, 1]]) {
+    const hh2 = heightAt(vx + ox, vz + oz);
+    const w2 = new THREE.Mesh(new THREE.CylinderGeometry(.85 * hs, .95 * hs, 1.05 * hs, 8), hutW);
+    w2.position.set(vx + ox, hh2 + .52 * hs, vz + oz); w2.castShadow = true;
+    const r2 = new THREE.Mesh(new THREE.ConeGeometry(1.25 * hs, .9 * hs, 8), hutR);
+    r2.position.set(vx + ox, hh2 + 1.42 * hs, vz + oz); r2.castShadow = true;
+    scene.add(w2, r2);
+  }
+  for (const [fx, fz, fw, fd, fc] of [[20.5, 8, 3.6, 2.4, 0x8f9a52], [23.2, 9.6, 3.2, 2.2, 0xa89b58], [21.8, 6.2, 2.8, 2, 0x7d8c4a], [24.8, 7.2, 2.6, 2.1, 0x9aa15a]]) {
+    const f = new THREE.Mesh(new THREE.PlaneGeometry(fw, fd),
+      new THREE.MeshStandardMaterial({ color: fc, roughness: .95, transparent: true, opacity: .85 }));
+    f.rotation.x = -Math.PI / 2;
+    f.rotation.z = (fx + fz) % 1.2;
+    f.position.set(fx, heightAt(fx, fz) + .14, fz);
+    scene.add(f);
+  }
 }
 if (TWIN) {
   scene.remove(poachers, herd, jeep, pack, informant, guard1, guard2, villageGrp);
@@ -1746,6 +1776,7 @@ if (TWIN) {
   mJeep = marker('vehicle', 0x59F5A0, 'Patrol', jeep, 2);
   mJeep.key = 'patrol';
   mJeep.pri = 2.5;
+  mJeep.el.classList.add('below');
   trailFrom(mJeep, 0x59F5A0);
   mHerd = marker('elephant', HUES.guard, 'Elephants', herd, 3);
   mHerd.key = 'herd';
@@ -1790,6 +1821,12 @@ function worldLabel(text, pos, hue, show) {
   el.textContent = text;
   document.body.appendChild(el);
   wlabels.push({ el, pos, show });
+}
+if (TWIN) {
+  worldLabel('PARK INTERIOR', V3(-21, heightAt(-21, -11) + 4, -11), HUES.see, (T) => T < 9.5 || T > 62);
+  worldLabel('PATROL TRACK', V3(5, heightAt(5, -2.8) + 3.4, -2.8), 0x59F5A0, (T) => (T >= 18.5 && T < 33) || T > 62);
+  worldLabel('VILLAGE · FIELDS', V3(23, heightAt(23, 11) + 4, 11), HUES.guard, (T) => T < 9.5 || (T >= 34 && T < 50) || T > 62);
+  worldLabel('WOLF TERRITORY', V3(3, heightAt(3, -19.5) + 4, -19.5), HUES.listen, (T) => T < 9.5 || (T >= 50 && T < 62) || T > 62);
 }
 if (!TWIN) worldLabel('GATEWAY · RIDGE RELAY', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link, (T) => (T > 18.5 && T < 25) || T > 62);
 if (!TWIN) worldLabel('HQ · LANDSEED AI', V3(17, heightAt(17, -12.3) + 4.4, -12.3), HUES.brain, (T) => (T > 21.5 && T < 34) || T > 62 || T < 9.5);
