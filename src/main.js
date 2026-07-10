@@ -67,7 +67,7 @@ const DEVICES = [
       ['Respond', 'The village knows before the elephant arrives.'],
     ],
     key: [
-      ['VPU', 'STM32N6'],
+      ['VPU', 'dedicated vision NPU'],
       ['Sensor', '2 MP · IR illuminated'],
       ['Speed', '200 ms capture · < 1 s re-trigger'],
       ['Range', 'up to 15 m'],
@@ -81,7 +81,7 @@ const DEVICES = [
     callouts: [
       ['lens', 'Optics', '2 MP sensor · 15 m range'],
       ['ir', 'Dual IR array', 'Night work at the village edge'],
-      ['vpu', 'STM32N6 VPU', '8–10 classes on the edge'],
+      ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge'],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
       ['battery', 'Battery pack', 'External, expandable · > 12 months'],
     ],
