@@ -23,6 +23,8 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 /* HUD */
 .hud{position:fixed;top:44px;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:16px 26px;pointer-events:none}
 .hud>*{pointer-events:auto}
+a.brand{pointer-events:auto;cursor:pointer;display:block}
+a.brand:hover .b-word{opacity:1}
 .brand .b-word{height:21px;width:auto;display:block;opacity:.95}
 .hud-tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
