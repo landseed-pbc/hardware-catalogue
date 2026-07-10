@@ -30,7 +30,7 @@ const DEVICES = [
       ['Respond', 'Rangers move before the loss, not after.'],
     ],
     key: [
-      ['VPU', 'Himax'],
+      ['VPU', 'ultra-low-power vision NPU'],
       ['Sensor', 'sub-megapixel · IR illuminated'],
       ['Speed', '200 ms capture · < 1 s re-trigger'],
       ['Range', 'up to 9 m'],
@@ -400,6 +400,7 @@ world.onTick = () => {
   const off = Math.min(185, innerWidth * .135), GAP = 72;
   for (const side of ['L', 'R']) {
     const list = cols[side].sort((a, b) => a.sy - b.sy);
+    for (const c of list) c.ly = Math.max(96, Math.min(innerHeight - 130, c.ly ?? c.sy));  // anchors above the frame still get an on-screen label
     for (let i = 1; i < list.length; i++)
       if (list[i].ly - list[i - 1].ly < GAP) list[i].ly = list[i - 1].ly + GAP;
     for (const c of list) {
