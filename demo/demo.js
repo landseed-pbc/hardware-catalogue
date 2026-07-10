@@ -621,7 +621,8 @@ scene.add(villageGrp);
   villageLight.position.set(17.5, lh + 2.4, -13.8);
   villageGrp.add(pole, bulb, villageLight);
 }
-const SAT_POS = V3(TWIN ? -2 : -8, TWIN ? 26.5 : 21.5, TWIN ? 0 : -4);
+const SAT_POS = V3(TWIN ? -10 : -8, TWIN ? 24.2 : 21.5, TWIN ? -10 : -4);
+const SAT_A = V3(-10, 24.2, -10), SAT_B = V3(-2, 26.5, 0);   // open -> close berths (twin)
 const HQ_TOP = V3(AN.ai[0], heightAt(AN.ai[0], AN.ai[1]) + 2.2, AN.ai[1]);
 
 /* ── sensors — the real product models + ground FOV wedges ──────────────── */
@@ -1179,7 +1180,12 @@ const stSer2Gate = stream(V3(AN.ser2[0], heightAt(AN.ser2[0], AN.ser2[1]) + 1.6,
 const stVGHQ = stream(V3(AN.vg[0], heightAt(AN.vg[0], AN.vg[1]) + 1.6, AN.vg[1]), HQ_TOP, HUES.guard, 2.4);
 const stWolfGate = stream(V3(AN.w1[0], heightAt(AN.w1[0], AN.w1[1]) + 1.4, AN.w1[1]), GATE_TOP, HUES.listen, 3.6);
 const stJWGate = stream(V3(AN.jw[0], heightAt(AN.jw[0], AN.jw[1]) + 1.4, AN.jw[1]), GATE_TOP, HUES.link, 4.2);
-const stSatHQ = stream(SAT_POS.clone(), HQ_TOP, HUES.brain, 2);
+let stSatHQ = null;
+function playSatHQ(sp) {                                // rebuilt each play — the satellite moves with the film
+  if (stSatHQ) { scene.remove(stSatHQ.line, stSatHQ.pts); streams.splice(streams.indexOf(stSatHQ), 1); }
+  stSatHQ = stream(SAT_POS.clone(), HQ_TOP, HUES.brain, 2);
+  stSatHQ.play(sp);
+}
 const stWolf2Gate = stream(V3(AN.w2[0], heightAt(AN.w2[0], AN.w2[1]) + 1.4, AN.w2[1]), GATE_TOP, HUES.listen, 4.2);
 
 const stHQPatrol = stream(HQ_TOP, V3(-2.8, heightAt(-2.8, 5.3) + 1, 5.3), HUES.brain, 3.4);
@@ -1474,11 +1480,11 @@ tl.call(() => {                                                     // DETECTION
   if (mPoach) markerPulse(mPoach, true);
   ringAt(pp.x, pp.z, HUES.see, 2.6);
   gsap.fromTo(fovSer1, { opacity: .4 }, { opacity: .1, duration: 1.8 });
-  popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'AI CAMERA 01 · detected on approach · 200 ms to image', fieldCard('people-walk'), 4.2, 0, true);
+  popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'MONITOR 01 · detected on approach · 200 ms to image', fieldCard('people-walk'), 4.2, 0, true);
 }, null, 14.6);
-tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'AI camera 01 \u00b7 alert', 'Human \u00d74 on the crest \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 15.5);
+tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Monitor 01 \u00b7 alert', 'Human \u00d74 on the crest \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 15.5);
 tl.call(() => fireUplink(), null, 16.7);
-tl.call(() => { stSatHQ.play(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 17.9);
+tl.call(() => { playSatHQ(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 17.9);
 tl.to(poach, { u: .95, duration: 16.6, ease: 'none' }, 15.6);
 
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
@@ -1493,7 +1499,7 @@ tl.call(() => {                                                     // second ca
   flashAt(V3(AN.ser2[0], heightAt(AN.ser2[0], AN.ser2[1]) + 1.6, AN.ser2[1]), 0xd9ffe4);
   gsap.fromTo(fovSer2, { opacity: .3 }, { opacity: .1, duration: 1.4 });
   stSer2Gate.play(2);
-  feed(HUES.see, 'AI camera 02 · confirm', 'Track confirmed \u00b7 descending toward the village');
+  feed(HUES.see, 'Monitor 02 · confirm', 'Track confirmed \u00b7 descending toward the village');
 }, null, 25.8);
 tl.call(() => {                                                     // INTERCEPT — the jeep halts short
   placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
@@ -1547,9 +1553,9 @@ tl.call(() => {                                                     // DETECTION
   if (mHerd) markerPulse(mHerd, true);
   ringAt(hp.x, hp.z, HUES.guard, 2.6);
   gsap.fromTo(fovVG, { opacity: .4 }, { opacity: .1, duration: 1.8 });
-  popup(V3(0, 0, 0), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGE CAMERA 04 · detected at the treeline · alert < 1 KB', fieldCard('elephant-walk'), 3.4, 0, true);
+  popup(V3(0, 0, 0), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGEGUARD 01 · detected at the treeline · alert < 1 KB', fieldCard('elephant-walk'), 3.4, 0, true);
   stVGHQ.play(2.2);
-  feedPhoto(HUES.guard, 'Village camera 04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-bull', 128));
+  feedPhoto(HUES.guard, 'VillageGuard 01 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-bull', 128));
 }, null, 45.4);
 tl.call(() => {
   gsap.to(lampMat, { emissiveIntensity: 2.6, duration: .4 });
@@ -1559,8 +1565,8 @@ tl.call(() => {
 }, null, 46.8);
 tl.to(guardState, { u: 1, duration: 3.8, ease: 'none' }, 47);
 tl.call(() => {
-  popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGE CAMERA 04 · every class on the list in a single detector', fieldCard('multi-class'), 2.2);
-  feed(HUES.guard, 'Village camera 04 · multi-class', 'Elephant and person in the same frame · one detector');
+  popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGEGUARD 01 · every class on the list in a single detector', fieldCard('multi-class'), 2.2);
+  feed(HUES.guard, 'VillageGuard 01 · multi-class', 'Elephant and person in the same frame · one detector');
 }, null, 49.7);
 tl.call(() => {                                                     // the herd actually turns
   herdState.turning = true;
@@ -1612,10 +1618,10 @@ tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landsc
 tl.call(() => { stSer1Gate.play(3); stSer2Gate.play(3); }, null, 65);
 tl.call(() => { stWolfGate.play(3); stWolf2Gate.play(3.4); stJWGate.play(3.4); }, null, 65.9);
 tl.call(() => { fireUplink(); stVGHQ.play(3); stHQPatrol.play(3); }, null, 66.9);
-tl.call(() => { stSatHQ.play(3); }, null, 68);
+tl.call(() => { playSatHQ(3); }, null, 68);
 tl.call(() => { stSer1Gate.play(4); stSer2Gate.play(4.4); stWolfGate.play(4); stWolf2Gate.play(4.6); stVGHQ.play(4); stJWGate.play(4.6); stHQPatrol.play(4.2); }, null, 71.5);
 tl.call(() => fireUplink(), null, 70);
-tl.call(() => { fireUplink(); stSatHQ.play(2.6); }, null, 73.2);
+tl.call(() => { fireUplink(); playSatHQ(2.6); }, null, 73.2);
 tl.call(() => fireUplink(), null, 75.2);
 tl.call(() => fireUplink(), null, 77.3);
 tl.call(() => feed(HUES.brain, 'Landseed AI · report', 'Daily summary compiled · Earth Credits registry updated'), null, 69);
@@ -1755,12 +1761,12 @@ function markerPulse(rec, big = false) {
   rec.el.classList.add(big ? 'pulse-big' : 'pulse');
 }
 if (TWIN) {
-  const SHORT = { serengeti: 'AI camera', villageguard: 'Village camera', gateway: 'Relay station', junglewallah: 'Survey unit', wolf: 'Listener', ai: 'HQ · Landseed AI' };
+  const SHORT = { serengeti: 'Monitor', villageguard: 'VillageGuard 1', gateway: 'Relay station', junglewallah: 'Survey unit', wolf: 'Listener', ai: 'HQ · Landseed AI' };
   const HUE_BY = { serengeti: HUES.see, villageguard: HUES.guard, gateway: HUES.link, junglewallah: 0xFF8C42, wolf: HUES.listen, ai: HUES.brain };
   const RANGE = { serengeti: 6.5, villageguard: 5.5, gateway: 9 };
   let wolfN = 0, serN = 0;
   for (const rec of SENSORS) {
-    const label = rec.id === 'wolf' ? ('Listener ' + (++wolfN)) : rec.id === 'serengeti' ? ('AI camera ' + (++serN)) : SHORT[rec.id];
+    const label = rec.id === 'wolf' ? ('Listener ' + (++wolfN)) : rec.id === 'serengeti' ? ('Monitor ' + (++serN)) : SHORT[rec.id];
     const m = marker('sensor', HUE_BY[rec.id], label, rec.g, null, true);
     m.pri = rec.id === 'ai' ? 3 : 1;                    // the hub never loses its name
     m.fixed = true;
@@ -1839,12 +1845,6 @@ function worldLabel(text, pos, hue, show) {
   el.textContent = text;
   document.body.appendChild(el);
   wlabels.push({ el, pos, show });
-}
-if (TWIN) {
-  worldLabel('PARK INTERIOR', V3(-21, heightAt(-21, -11) + 4, -11), HUES.see, (T) => T < 9.5 || T > 62);
-  worldLabel('PATROL TRACK', V3(0, heightAt(0, -7) + 1.2, -7), 0x59F5A0, (T) => (T >= 18.5 && T < 33) || T > 62);
-  worldLabel('VILLAGE · FIELDS', V3(23, heightAt(23, 11) + 4, 11), HUES.guard, (T) => T < 9.5 || (T >= 34 && T < 50) || T > 62);
-  worldLabel('WOLF TERRITORY', V3(3, heightAt(3, -19.5) + 4, -19.5), HUES.listen, (T) => T < 9.5 || (T >= 50 && T < 62) || T > 62);
 }
 if (!TWIN) worldLabel('GATEWAY · RIDGE RELAY', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link, (T) => (T > 18.5 && T < 25) || T > 62);
 if (!TWIN) worldLabel('HQ · LANDSEED AI', V3(17, heightAt(17, -12.3) + 4.4, -12.3), HUES.brain, (T) => (T > 21.5 && T < 34) || T > 62 || T < 9.5);
@@ -2011,9 +2011,10 @@ function tick(dt, t) {
     st.b.position.set(AN.pack[0] + Math.cos(a) * 3.8, 5 + Math.sin(t * .55 + st.ph) * .3, AN.pack[1] + .3 + Math.sin(a) * 3.4);
     st.b.rotation.y = -a - Math.PI / 2;
   }
+  if (TWIN) SAT_POS.lerpVectors(SAT_A, SAT_B, Math.min(1, tl.time() / 78));
   sat.position.x = SAT_POS.x + Math.sin(t * .05) * 3;
-  sat.rotation.y = .5 + Math.sin(t * .07) * .25;
-  sat.position.z = -2 + Math.cos(t * .05) * 5;
+  sat.position.y = SAT_POS.y;
+  sat.position.z = SAT_POS.z + Math.cos(t * .05) * 5;
   sat.rotation.y = t * .1;
 
   for (const s of streams) {

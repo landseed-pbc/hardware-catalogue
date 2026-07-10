@@ -111,12 +111,12 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 .tg-mic{font-style:normal;filter:grayscale(1) brightness(1.4);opacity:.75}
 
 /* closing overlay — a proper button row, weighted and aligned */
-#endcta{position:fixed;left:34px;bottom:126px;z-index:29;display:flex;align-items:center;gap:12px;opacity:0;pointer-events:none;transform:translateY(12px);transition:opacity 1s ease,transform 1s cubic-bezier(.22,1,.36,1)}
-#endcta.on{opacity:1;pointer-events:auto;transform:none}
-.end-primary{display:inline-flex;align-items:center;height:46px;padding:0 26px;border-radius:999px;background:#F0F0EA;color:#071007;font:600 14px var(--sans);letter-spacing:.01em;text-decoration:none;box-shadow:0 10px 32px rgba(0,0,0,.4);transition:.22s}
-.end-primary:hover{background:var(--alive);box-shadow:0 12px 38px rgba(0,255,100,.3)}
-.end-again{display:inline-flex;align-items:center;height:46px;padding:0 22px;border-radius:999px;background:rgba(7,15,7,.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.26);color:rgba(240,240,234,.88);font:600 13.5px var(--sans);letter-spacing:.02em;cursor:pointer;transition:.22s}
-.end-again:hover{border-color:rgba(240,240,234,.6);color:#fff}
+#endcta{position:fixed;left:34px;top:50%;transform:translateY(calc(-50% + 14px));z-index:29;display:flex;flex-direction:column;align-items:stretch;gap:13px;width:300px;opacity:0;pointer-events:none;transition:opacity 1s ease,transform 1s cubic-bezier(.22,1,.36,1)}
+#endcta.on{opacity:1;pointer-events:auto;transform:translateY(-50%)}
+.end-primary{display:flex;align-items:center;justify-content:center;height:54px;border-radius:999px;background:#F0F0EA;color:#071007;font:700 15.5px var(--sans);letter-spacing:.01em;text-decoration:none;box-shadow:0 14px 40px rgba(0,0,0,.45);transition:.24s}
+.end-primary:hover{background:var(--alive);transform:translateY(-2px);box-shadow:0 18px 46px rgba(0,255,100,.32)}
+.end-again{display:flex;align-items:center;justify-content:center;height:50px;border-radius:999px;background:rgba(7,15,7,.44);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.24);color:rgba(240,240,234,.9);font:600 14.5px var(--sans);letter-spacing:.02em;cursor:pointer;transition:.24s}
+.end-again:hover{border-color:rgba(240,240,234,.6);color:#fff;transform:translateY(-2px)}
 
 /* photo bubbles + hud link */
 .tg-photo img{display:block;width:100%;border-radius:9px;margin-top:7px}
@@ -177,4 +177,4 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 #phone{top:74px;height:min(520px,calc(100vh - 200px))}
 #cap{top:54%}
 #chapters{bottom:34px}
-#endcta{bottom:112px}
+#endcta{width:260px}
