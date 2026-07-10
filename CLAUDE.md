@@ -52,12 +52,17 @@ GitHub first, then forge. Conventional commits (`type(scope): why`).
 
 ## /demo — the field demonstration
 
-Standalone cinematic page (`demo/index.html` + `demo.js` + `demo.css`), not yet
-linked from the catalogue. A procedural low-poly protected landscape where the
-products are shown working: chaptered GSAP timeline (`window.__demo.tl`,
-chapters in `CH`), deterministic beats (detection → LoRa → Gateway → satellite
-→ HQ → patrol), reusing the real device models from `src/devices.js` (which is
-why that file's texture path is root-relative). Verify by seeking:
+Standalone cinematic page (`demo/index.html` + `demo.js` + `demo.css`), linked
+from the catalogue's chapter chips. A procedural low-poly protected landscape
+where the products are shown working: chaptered GSAP timeline
+(`window.__demo.tl`, chapters in `CH`), deterministic beats (detection → LoRa →
+Relay Station → satellite → HQ → patrol), reusing the real device models from
+`src/devices.js` (which is why that file's texture path is root-relative).
+**CONCEPT mode is the shipping default (2026-07-10). The digital twin stays in
+code behind `?terrain=twin`; its mode-toggle UI is commented out.** Device
+display names are the generic set (Monitor, VillageGuard, Relay Station, Survey
+Unit, Listener, HQ · Landseed AI) in both modes and the catalogue. Verify by
+seeking:
 `__demo.tl.pause(); __demo.tl.time(T); __demo.tl.play()` — callbacks re-fire on
 forward seeks only. Planned to become the default page, with the current
 catalogue moving to /catalogue, once perfected.
@@ -82,7 +87,7 @@ catalogue moving to /catalogue, once perfected.
   look-target rides - the camera is dead-still by user instruction (2026-07-09).
   Scene direction = events on the board (pulses, beams, streams, cards),
   never camera moves. Do not reintroduce stations.
-- TWIN (default): real DEM (z13) + ESRI imagery (z15, z14 on LOW) with ALL
+- TWIN (retired from UI, `?terrain=twin`): real DEM (z13) + ESRI imagery (z15, z14 on LOW) with ALL
   story anchors in the `AN` table, hand-picked from the imagery/DEM (grid
   overlay script in the session scratchpad). Fictional keeps its own AN set.
   Sim clock runs 17:35→19:23 (dusk truth). fovSer/fovVG are MATERIALS, not

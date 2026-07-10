@@ -1,9 +1,13 @@
-// ── demo.js v2 — the field demonstration ──────────────────────────────────
-// A simulated protected landscape with every Landseed product at work.
-// Cinematography doctrine: drone altitude, oblique 30–45° angles, camera in
-// the south-east looking north-west so the ridge, river and village keep the
-// viewer oriented; the sector map holds the whole board at all times.
-// Show, don't tell — every beat is a product doing its actual job.
+// ── demo.js — the field demonstration ─────────────────────────────────────
+// A 78 s looping film of every Landseed product doing its actual job in a
+// simulated protected landscape. Two modes share one GSAP timeline (`tl`,
+// chapters in `CH`): the CONCEPT diorama ships as the default; the DIGITAL
+// TWIN (real Virunga DEM + imagery, ONE fixed command camera, icon markers)
+// stays in code behind `?terrain=twin`. All geographic truth lives in the
+// per-mode `AN` anchor table. Labels: actor pills above their icons, device
+// pills below their units (deep tier clears icon rows), priority-aware
+// declutter with stable pill widths. Every generator is seeded — the world
+// is identical on every load. Show, don't tell.
 
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';

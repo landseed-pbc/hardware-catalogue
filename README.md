@@ -3,15 +3,18 @@
 An interactive 3D microsite for the **Landseed AI Technology Ecosystem product line** —
 seven products, each custom-rendered as procedural 3D hardware in a holographic bay:
 
-| Product | Role | Price |
-|---|---|---|
-| Serengeti | AI camera-alert · park protection | $199–225 |
-| VillageGuard | AI camera-alert · coexistence | $299 |
-| Jungle-Wallah | optical + acoustic · biodiversity | custom |
-| Wolf | bio-acoustic monitor | $100 target |
-| Gateway | LoRa → LTE/Starlink/Viasat hub | $150 target |
-| Mobile | human-in-the-loop camera | $50 target |
-| Shaman | analytics platform (CTDAMS) | subscription |
+| Product (display name) | Internal id | Role | Price |
+|---|---|---|---|
+| Monitor | `serengeti` | AI camera-alert · park protection | $199–225 |
+| VillageGuard | `villageguard` | AI camera-alert · coexistence | $299 |
+| Survey Unit | `junglewallah` | optical + acoustic · biodiversity | custom |
+| Listener | `wolf` | bio-acoustic monitor | $100 target |
+| Relay Station | `gateway` | LoRa → LTE/Starlink/Viasat hub | $150 target |
+| Mobile | `mobile` | human-in-the-loop camera | $50 target |
+| Landseed AI | `ai` | analytics platform (CTDAMS) | subscription |
+
+Display names are the simplified generic set (2026-07-10); internal ids, hash
+deep-links (`/#serengeti`) and `BUILDERS` keys keep the original codenames.
 
 The **catalogue is the landing page**: every device on a glowing plinth, data-stream
 packets flowing into the Shaman core — the Earth Credits measurement layer, at a glance.
