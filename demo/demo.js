@@ -21,7 +21,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 /* ── optional real terrain (AWS Terrain Tiles, public domain data) ─────────
    /demo/?terrain=real&lat=..&lon=..  — same simulation, real topography. */
 const qs = new URLSearchParams(location.search);
-const TWIN = qs.get('terrain') !== 'fictional' && qs.get('terrain') !== 'real';
+// const TWIN = qs.get('terrain') !== 'fictional' && qs.get('terrain') !== 'real';   // digital-twin default — disabled, concept ships
+const TWIN = qs.get('terrain') === 'twin';
 const REAL = TWIN || qs.get('terrain') === 'real';
 const LOW = innerWidth < 760 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
 let satTex = null;
@@ -1484,7 +1485,7 @@ tl.call(() => {                                                     // DETECTION
   gsap.fromTo(fovSer1, { opacity: .4 }, { opacity: .1, duration: 1.8 });
   popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'MONITOR 01 · detected on approach · 200 ms to image', fieldCard('people-walk'), 4.2, 0, true);
 }, null, 14.6);
-tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Monitor 01 \u00b7 alert', 'Human \u00d74 on the crest \u00b7 image \u2192 Gateway over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 15.5);
+tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Monitor 01 \u00b7 alert', 'Human \u00d74 on the crest \u00b7 image \u2192 Relay Station over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 15.5);
 tl.call(() => fireUplink(), null, 16.7);
 tl.call(() => { playSatHQ(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 17.9);
 tl.to(poach, { u: .95, duration: 16.6, ease: 'none' }, 15.6);
@@ -1854,7 +1855,7 @@ function worldLabel(text, pos, hue, show) {
   document.body.appendChild(el);
   wlabels.push({ el, pos, show });
 }
-if (!TWIN) worldLabel('GATEWAY · RIDGE RELAY', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link, (T) => (T > 18.5 && T < 25) || T > 62);
+if (!TWIN) worldLabel('RELAY STATION · RIDGE', V3(-21.5, heightAt(-21.5, -3.5) + 3.6, -3.5), HUES.link, (T) => (T > 18.5 && T < 25) || T > 62);
 if (!TWIN) worldLabel('HQ · LANDSEED AI', V3(17, heightAt(17, -12.3) + 4.4, -12.3), HUES.brain, (T) => (T > 21.5 && T < 34) || T > 62 || T < 9.5);
 
 /* ── the funnel: every sensor is a doorway into the catalogue ───────────── */
@@ -1865,7 +1866,7 @@ stip.style.cssText = 'position:fixed;z-index:32;padding:6px 11px;border-radius:8
 document.body.appendChild(stip);
 const sRay = new THREE.Raycaster();
 const sMouse = new THREE.Vector2();
-const NAMES = { serengeti: 'Serengeti', villageguard: 'VillageGuard', gateway: 'Gateway', junglewallah: 'Jungle-Wallah', wolf: 'Wolf', mobile: 'Mobile', ai: 'Landseed AI' };
+const NAMES = { serengeti: 'Monitor', villageguard: 'VillageGuard', gateway: 'Relay Station', junglewallah: 'Survey Unit', wolf: 'Listener', mobile: 'Mobile', ai: 'Landseed AI' };
 function pickSensor(e) {
   sMouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   sRay.setFromCamera(sMouse, camera);
@@ -2157,11 +2158,12 @@ addEventListener('resize', () => {
 
 const terr = $('#terr');
 const hudMode = $('#hud-mode');
-if (hudMode && !TWIN) hudMode.textContent = 'Field Demonstration · Concept Landscape';
+if (hudMode && !TWIN) hudMode.textContent = 'Field Demonstration';
 if (terr) {
-  if (TWIN) { terr.textContent = 'Concept mode ↗'; terr.href = './?terrain=fictional'; }
-  else { terr.textContent = 'Digital twin ↗'; terr.href = './'; }
-  if (TWIN && !dem) terr.textContent = 'Twin data unavailable';
+  terr.style.display = 'none';                          // the twin toggle is retired from the UI
+  // if (TWIN) { terr.textContent = 'Concept mode ↗'; terr.href = './?terrain=fictional'; }
+  // else { terr.textContent = 'Digital twin ↗'; terr.href = './'; }
+  // if (TWIN && !dem) terr.textContent = 'Twin data unavailable';
 }
 
 window.__demo = {

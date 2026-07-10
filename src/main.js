@@ -15,7 +15,7 @@ const $ = (s) => document.querySelector(s);
 
 const DEVICES = [
   {
-    id: 'serengeti', name: 'Landseed Serengeti', kicker: 'To see · Park protection',
+    id: 'serengeti', name: 'Landseed Monitor', kicker: 'To see · Park protection',
     hue: 0x00FF64, price: '$199–225', x: -3.75,
     desc: 'AI alert camera for park protection',
     line: 'The smallest, lowest-power AI camera-alert system on the market — built to be everywhere. Earlier versions put 20 poachers from 13 gangs under arrest, from the Serengeti outward to six more countries.',
@@ -26,7 +26,7 @@ const DEVICES = [
       ['Wake', 'Motion trigger; 200 ms to an image.'],
       ['Think', 'On-camera detector; false triggers die here.'],
       ['Shrink', 'Area of interest cropped and compressed.'],
-      ['Send', 'Cell in ~30 s, or LoRa → Gateway → satellite.'],
+      ['Send', 'Cell in ~30 s, or LoRa → Relay Station → satellite.'],
       ['Respond', 'Rangers move before the loss, not after.'],
     ],
     key: [
@@ -63,7 +63,7 @@ const DEVICES = [
       ['Wake', '200 ms wake · 2 MP low-light optics.'],
       ['Think', '8–10 species and threats in one model.'],
       ['Shrink', 'Alert image auto-encoded below 1 KB.'],
-      ['Send', 'LTE / direct-to-cell, or LoRa to a Gateway.'],
+      ['Send', 'LTE / direct-to-cell, or LoRa to a Relay Station.'],
       ['Respond', 'The village knows before the elephant arrives.'],
     ],
     key: [
@@ -87,19 +87,19 @@ const DEVICES = [
     ],
   },
   {
-    id: 'gateway', name: 'Landseed Gateway', kicker: 'To connect · The hub',
+    id: 'gateway', name: 'Landseed Relay Station', kicker: 'To connect · The hub',
     hue: 0x32C8FF, price: '$150 target', x: -.75,
     desc: 'Connects cameras where there is no cell signal',
-    line: 'Most protected areas have no cell signal. The Gateway takes long-range radio from many cameras and hands it to whatever sky is available — one airtime bill for the whole hill.',
+    line: 'Most protected areas have no cell signal. The Relay Station takes long-range radio from many cameras and hands it to whatever sky is available — one airtime bill for the whole hill.',
     stats: [['$150', 'target / unit'], ['1', 'hub, many cameras'], ['5', 'landscape scenarios'], ['>12 mo', 'battery + solar']],
     badges: ['$150 target', 'IP67+ field case', 'any sky'],
-    best: 'Anywhere beyond the towers. Cameras in cell range transmit direct and need no Gateway; everywhere else this is the bridge — in a village, on a ridge, on a tower, or under open sky.',
+    best: 'Anywhere beyond the towers. Cameras in cell range transmit direct and need no Relay Station; everywhere else this is the bridge — in a village, on a ridge, on a tower, or under open sky.',
     scenarios: [
-      { n: 'Reliable cell at the camera', d: 'Cameras transmit direct — no Gateway needed.', t: '~30 s' },
-      { n: 'Cell nearby, not at the camera', d: 'LoRa to a Gateway in a village or on a ridge; out by cell.', t: 'minutes' },
-      { n: 'A powered tower in the park', d: 'The Gateway joins the tower’s internet by Wi-Fi or ethernet.', t: 'minutes' },
+      { n: 'Reliable cell at the camera', d: 'Cameras transmit direct — no Relay Station needed.', t: '~30 s' },
+      { n: 'Cell nearby, not at the camera', d: 'LoRa to a Relay Station in a village or on a ridge; out by cell.', t: 'minutes' },
+      { n: 'A powered tower in the park', d: 'The Relay Station joins the tower’s internet by Wi-Fi or ethernet.', t: 'minutes' },
       { n: 'No cell, open terrain', d: 'Satellite uplink — Starlink Mini, Viasat, or direct-to-cell.', t: 'minutes' },
-      { n: 'No cell, closed canopy', d: 'LoRa hop to a Gateway placed under open sky; many cameras share it.', t: 'minutes' },
+      { n: 'No cell, closed canopy', d: 'LoRa hop to a Relay Station placed under open sky; many cameras share it.', t: 'minutes' },
     ],
     key: [
       ['Modems', 'LoRa · LTE / direct-to-cell'],
@@ -118,7 +118,7 @@ const DEVICES = [
     ],
   },
   {
-    id: 'junglewallah', name: 'Landseed Jungle-Wallah', kicker: 'To see & listen · Biodiversity',
+    id: 'junglewallah', name: 'Landseed Survey Unit', kicker: 'To see & listen · Biodiversity',
     hue: 0xFF8C42, price: 'custom', x: .75,
     desc: 'Camera + acoustic unit for biodiversity surveys',
     line: 'Pick the few species that tell you the most about a landscape, then watch and listen for exactly those — VillageGuard optics carrying bespoke species models, joined to an acoustic pod.',
@@ -134,7 +134,7 @@ const DEVICES = [
     key: [
       ['Platform', 'VillageGuard hardware'],
       ['AI', 'custom species models per landscape'],
-      ['Acoustics', 'companion pod / Landseed Wolf'],
+      ['Acoustics', 'companion pod / Landseed Listener'],
       ['Collection', 'Wi-Fi · microSD · optional radio'],
       ['Analytics', 're-ID + triangulation in Landseed AI'],
       ['Spec sheet', 'in development'],
@@ -147,10 +147,10 @@ const DEVICES = [
     ],
   },
   {
-    id: 'wolf', name: 'Landseed Wolf', kicker: 'To listen · Bio-acoustics',
+    id: 'wolf', name: 'Landseed Listener', kicker: 'To listen · Bio-acoustics',
     hue: 0xE682E6, price: '$100 target', x: 2.25,
     desc: 'Listens for vocalising wildlife',
-    line: 'The forest is louder than it looks. Wolf hears what cameras never frame — and with three units triangulating the same call: how far away, and how many.',
+    line: 'The forest is louder than it looks. The Listener hears what cameras never frame — and with three units triangulating the same call: how far away, and how many.',
     stats: [['$100', 'target / unit'], ['24/7', 'listening'], ['3+', 'units triangulate'], ['passive', 'no trigger']],
     badges: ['$100 target', 'single variant', 'spec sheet in development'],
     best: 'Vocal species and vast dark forests: presence and absence from call detection, distance and density from an array.',
@@ -164,7 +164,7 @@ const DEVICES = [
       ['Function', 'passive acoustic detection'],
       ['Output', 'presence / absence per species'],
       ['Array', '3+ units triangulate distance'],
-      ['Pairs with', 'Jungle-Wallah surveys'],
+      ['Pairs with', 'Survey Unit passes'],
       ['Analytics', 'Landseed AI'],
       ['Spec sheet', 'in development'],
     ],
@@ -193,7 +193,7 @@ const DEVICES = [
       ['Trigger', 'human operator'],
       ['AI', 'none — by design'],
       ['Optics', 'daylight · no IR · no light meter'],
-      ['Network', 'cell or Landseed Gateway'],
+      ['Network', 'cell or Landseed Relay Station'],
       ['Role', 'informants · guards · village early warning'],
       ['Why $50', 'nothing on board that a person replaces'],
     ],
@@ -586,7 +586,7 @@ function goView(id, force = false) {
     setCaption('The product line', 'Landseed Hardware',
       CAT_LINE,
       [['7', 'products'], ['$50–299', 'hardware'], ['30 s', 'fastest alert'], ['>12 mo', 'battery']],
-      [['Begin the tour → Serengeti', 'serengeti']], null);
+      [['Begin the tour → Monitor', 'serengeti']], null);
     requestAnimationFrame(() => {                       // measure cards, then frame the bay
       const f = fitCatalogue();
       flyTo(f.pos, f.tgt, prev === 'catalogue' ? 1.2 : 1.7);
