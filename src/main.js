@@ -140,7 +140,7 @@ const DEVICES = [
       ['Spec sheet', 'in development'],
     ],
     callouts: [
-      ['lens', 'Optics', 'VillageGuard 2 MP platform', 35, 60],
+      ['lens', 'Optics', 'VillageGuard 2 MP platform', 75, 60],
       ['pod', 'Acoustic pod', 'The listening half of the survey', -90, 30],
       ['ai', 'Bespoke models', 'The key species of your landscape', 85, -90],
       ['wifi', 'Wi-Fi offload', 'No airtime required'],
@@ -342,6 +342,7 @@ for (const d of DEVICES) {
 
 const proj = new THREE.Vector3();
 world.onTick = () => {
+  if (!calloutsLive && !busy && current !== 'catalogue' && byId[current]) revealCallouts(byId[current]);
   const cols = { L: [], R: [] };     // visible callouts, decluttered per side
   const plates = [];                 // visible plates, decluttered by overlap
   for (const t of tracked) {
@@ -433,14 +434,22 @@ function layoutCallouts(d) {
       c.t.el.classList.toggle('kr', !right);
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
-      const w = c.t.el.offsetWidth;
-      c.t.line.setAttribute('x2', lx + (right ? -w / 2 - 6 : w / 2 + 6));
-      c.t.line.setAttribute('y2', ly);
+      const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;
+      // the leader leaves whichever edge faces the anchor: side for lateral
+      // runs, top/bottom-centre when the anchor sits mostly above or below
+      if (Math.abs(c.sy - ly) > Math.abs(c.sx - lx)) {
+        c.t.line.setAttribute('x2', lx);
+        c.t.line.setAttribute('y2', ly + (c.sy > ly ? h / 2 + 8 : -h / 2 - 8));
+      } else {
+        c.t.line.setAttribute('x2', lx + (right ? -w / 2 - 6 : w / 2 + 6));
+        c.t.line.setAttribute('y2', ly);
+      }
       c.t.fx = lx; c.t.fy = ly;
     }
   }
 }
 function revealCallouts(d) {
+  calloutsLive = true;
   layoutCallouts(d);
   d.calloutEls.forEach((k, i) => {
     k.style.transition = 'none';                        // gsap owns the entrance
@@ -517,7 +526,7 @@ function deviceFrame(d) {
   return { pos, tgt: new THREE.Vector3(x, ty, z) };
 }
 
-let current = 'catalogue', busy = false, onSettle = null;
+let current = 'catalogue', busy = false, onSettle = null, calloutsLive = true;
 
 function flyTo(pos, tgt, dur = 1.6, ease = 'power3.inOut') {
   busy = true;
@@ -607,7 +616,7 @@ function goView(id, force = false) {
     for (const d of DEVICES) fadeDevice(d, true);
     world.setStreamsVisible(true);
     world.setGridDim(false);
-    onSettle = null;
+    onSettle = null; calloutsLive = true;
     for (const t of tracked) { if (t.kind === 'plate') t.el.style.opacity = ''; else { t.el.style.opacity = '0'; t.fx = null; gsap.killTweensOf(t.el); } }
     $('#plegend').classList.add('show');
     $('#specs').classList.remove('show');
@@ -638,7 +647,7 @@ function goView(id, force = false) {
     if (t.kind === 'plate') t.el.style.opacity = '0';
     else { t.el.style.opacity = '0'; t.fx = null; gsap.killTweensOf(t.el); }
   }
-  onSettle = () => revealCallouts(d);
+  calloutsLive = false;                                 // the tick reveals once the flight has settled
   $('#plegend').classList.remove('show');
   $('#specs').classList.add('show');
   $('#howto').classList.add('show');
@@ -707,7 +716,7 @@ addEventListener('keydown', (e) => {
 const brandHome = document.getElementById('brand-home');
 if (brandHome) brandHome.addEventListener('click', (e) => { e.preventDefault(); goView('catalogue', true); });
 
-window.__hw = { world, camera, controls, goView, DEVICES, get current() { return current; } };
+window.__hw = { world, camera, controls, goView, DEVICES, layoutCallouts, revealCallouts, get current() { return current; } };
 
 world.start();
 
