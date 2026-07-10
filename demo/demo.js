@@ -162,7 +162,7 @@ scene.fog = new THREE.FogExp2(0x2e3833, 0.0096);
   scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xcfe0ee, size: .5, transparent: true, opacity: .5, fog: false })));
 }
 
-const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, .1, 500);
+const camera = new THREE.PerspectiveCamera(TWIN ? 41 : 44, innerWidth / innerHeight, .1, 500);
 // One continuous 78 s flight. Duplicate keys are holds; Catmull-Rom through
 // neighbours keeps velocity continuous, so arrivals decelerate and departures
 // build — no per-move starts.
@@ -621,7 +621,7 @@ scene.add(villageGrp);
   villageLight.position.set(17.5, lh + 2.4, -13.8);
   villageGrp.add(pole, bulb, villageLight);
 }
-const SAT_POS = V3(TWIN ? -2 : -8, TWIN ? 28 : 21.5, TWIN ? 0 : -4);
+const SAT_POS = V3(TWIN ? -2 : -8, TWIN ? 26.5 : 21.5, TWIN ? 0 : -4);
 const HQ_TOP = V3(AN.ai[0], heightAt(AN.ai[0], AN.ai[1]) + 2.2, AN.ai[1]);
 
 /* ── sensors — the real product models + ground FOV wedges ──────────────── */
@@ -1697,7 +1697,7 @@ if (TWIN) {
   scene.remove(poachers, herd, jeep, pack, informant, guard1, guard2, villageGrp);
   if (window.__hqGrp) scene.remove(window.__hqGrp);
   for (const rec of SENSORS) {                          // the hardware itself stands on the board — hero scale
-    rec.g.scale.multiplyScalar(1.45);
+    rec.g.scale.multiplyScalar(1.6);
     rec.baseY = heightAt(rec.g.position.x, rec.g.position.z);
     rec.rotY = rec.g.rotation.y;
     rec.g.position.y = rec.baseY;
@@ -1757,7 +1757,7 @@ function markerPulse(rec, big = false) {
 if (TWIN) {
   const SHORT = { serengeti: 'AI camera', villageguard: 'Village camera', gateway: 'Relay station', junglewallah: 'Survey unit', wolf: 'Listener', ai: 'HQ · Landseed AI' };
   const HUE_BY = { serengeti: HUES.see, villageguard: HUES.guard, gateway: HUES.link, junglewallah: 0xFF8C42, wolf: HUES.listen, ai: HUES.brain };
-  const RANGE = { serengeti: 6.5, villageguard: 5.5, gateway: 9, junglewallah: 4.5 };
+  const RANGE = { serengeti: 6.5, villageguard: 5.5, gateway: 9 };
   let wolfN = 0, serN = 0;
   for (const rec of SENSORS) {
     const label = rec.id === 'wolf' ? ('Listener ' + (++wolfN)) : rec.id === 'serengeti' ? ('AI camera ' + (++serN)) : SHORT[rec.id];
@@ -1774,9 +1774,15 @@ if (TWIN) {
     if (RANGE[rec.id]) m.ring = rangeRing(rec.g.position.x, rec.g.position.z, HUE_BY[rec.id], RANGE[rec.id]);
     const led = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: HUE_BY[rec.id], transparent: true, opacity: .9, depthWrite: false }));
     led.scale.setScalar(1.35);
-    led.position.set(rec.g.position.x, rec.g.position.y + 3.1, rec.g.position.z);
+    led.position.set(rec.g.position.x, rec.g.position.y + 3.3, rec.g.position.z);
     scene.add(led);
     gsap.to(led.material, { opacity: .35, duration: 1.3 + Math.abs(rec.g.position.x % 1) * .7, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: HUE_BY[rec.id], transparent: true, opacity: .22, depthWrite: false }));
+    halo.scale.setScalar(4.2);                          // soft backlight — the unit reads against dark terrain
+    halo.position.set(rec.g.position.x, (rec.baseY !== undefined ? rec.baseY : rec.g.position.y) + 1.6, rec.g.position.z);
+    scene.add(halo);
+    const base = rangeRing(rec.g.position.x, rec.g.position.z, HUE_BY[rec.id], 1.5);
+    base.material.opacity = .6;                         // pedestal ring — a token stands here
   }
   mPoach = marker('human', 0xff5a4d, 'Intruders', poachers, 4);
   mPoach.key = 'intruders';
