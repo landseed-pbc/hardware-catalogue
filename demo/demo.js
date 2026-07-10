@@ -938,7 +938,7 @@ function elephant(sc = 1) {
   tail.position.set(-1.05, 1.35, 0); tail.rotation.z = .35;
   g.add(barrel, head, tail);
   g.scale.setScalar(sc);
-  g.userData = { legs, ears, trunkSegs, tail, head, phase: Math.random ? 0 : 0 };
+  g.userData = { legs, ears, trunkSegs, tail, head, phase: 0 };
   return g;
 }
 const herd = new THREE.Group();
@@ -1442,7 +1442,7 @@ function clockStr() {
 /* ── timeline — 78 s, six chapters in order ─────────────────────────────── */
 
 const tl = gsap.timeline({ repeat: -1, paused: true });
-const CH = { overview: 0, intrusion: 10, response: 18.5, coexist: 34, listening: 50, network: 62 };
+const CH = { overview: 0, intrusion: 10, response: 18.5, coexist: 34, listening: 53.2, network: 62 };
 const sceneLight = new THREE.PointLight(0xffd9a8, 0, 36, 1.7);
 scene.add(sceneLight);
 const STAGES = TWIN ? {
@@ -1473,11 +1473,11 @@ tl.call(() => {
   gsap.fromTo('#title', { opacity: 0 }, { opacity: 1, duration: 1.4, delay: .4, overwrite: true });
   gsap.to('#title', { opacity: 0, duration: 1.1, delay: 7.4, overwrite: false });
 }, null, .01);
-tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station', 'Cameras on the ridgelines, listeners in the forest, a relay on the crater rim — the brain at headquarters.', 6.5, 'MIKENO SECTOR · 7 DEVICES · 1 UPLINK'), null, 2.6);
+tl.call(() => caption(HUES.see, 'A working landscape', 'Every sensor on station', 'Cameras on the ridgelines, listeners in the forest, a relay on the crater rim — the brain at headquarters.', 6.5, TWIN ? 'MIKENO SECTOR · 7 DEVICES · 1 UPLINK' : 'ONE VALLEY · 7 DEVICES · 1 UPLINK'), null, 2.6);
 
 // ── intrusion 10–24 · the report comes first, then the cameras confirm
 tl.call(() => $('#phone').classList.add('on'), null, 10.3);         // the phone arrives with the story
-tl.call(() => caption(HUES.see, 'To see \u00b7 Park protection', 'Four men come over the hill', 'The cameras were already waiting \u2014 detected at range on the crest, confirmed on the descent.', 6, 'MONITOR 01 \u00b7 DETECT IN 200 MS'), null, 10.0);
+tl.call(() => caption(HUES.see, 'To see \u00b7 Park protection', 'Four men on the north trail', 'The cameras were already waiting \u2014 detected at range, confirmed on the approach.', 6, 'MONITOR 01 \u00b7 DETECT IN 200 MS'), null, 10.0);
 tl.call(() => { poachers.visible = true; }, null, 10.7);
 tl.to(poach, { u: .42, duration: 5.4, ease: 'none' }, 10.2);
 tl.call(() => {                                                     // DETECTION 1 — at the wedge edge, seven units out
@@ -1488,13 +1488,13 @@ tl.call(() => {                                                     // DETECTION
   gsap.fromTo(fovSer1, { opacity: .4 }, { opacity: .1, duration: 1.8 });
   popup(V3(0, 0, 0), HUES.see, 'Human ×4', '0.96', 'MONITOR 01 · detected on approach · 200 ms to image', fieldCard('people-walk'), 4.2, 0, true);
 }, null, 14.6);
-tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Monitor 01 \u00b7 alert', 'Human \u00d74 on the crest \u00b7 image \u2192 Relay Station over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 15.5);
+tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Monitor 01 \u00b7 alert', 'Human \u00d74 on the trail \u00b7 image \u2192 Relay Station over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 15.5);
 tl.call(() => fireUplink(), null, 16.7);
 tl.call(() => { playSatHQ(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 17.9);
 tl.to(poach, { u: .95, duration: 16.6, ease: 'none' }, 15.6);
 
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
-tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. The patrol is rolling before they clear the hill.', 5.5, 'TRIGGER \u2192 RANGER PHONES \u00b7 28 S'), null, 18.5);
+tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. The patrol is rolling before the group reaches the crossing.', 5.5, 'TRIGGER \u2192 RANGER PHONES \u00b7 28 S'), null, 18.5);
 tl.call(() => { jeepState.on = true; jeep.visible = true; feed(HUES.brain, 'HQ · dispatch', 'Patrol unit 2 rolling · intercept set on the track below'); }, null, 18.6);
 tl.to(jeepState, { u: TWIN ? .7 : .8, duration: 11.6, ease: 'sine.inOut' }, 20.8);
 tl.call(() => {                                                     // second camera confirms the track
@@ -1505,7 +1505,7 @@ tl.call(() => {                                                     // second ca
   flashAt(V3(AN.ser2[0], heightAt(AN.ser2[0], AN.ser2[1]) + 1.6, AN.ser2[1]), 0xd9ffe4);
   gsap.fromTo(fovSer2, { opacity: .3 }, { opacity: .1, duration: 1.4 });
   stSer2Gate.play(2);
-  feed(HUES.see, 'Monitor 02 · confirm', 'Track confirmed \u00b7 descending toward the village');
+  feed(HUES.see, 'Monitor 02 · confirm', 'Track confirmed \u00b7 closing on the river crossing');
 }, null, 25.8);
 tl.call(() => {                                                     // INTERCEPT — the jeep halts short
   placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
@@ -1542,7 +1542,7 @@ tl.call(() => {                                                     // lamp down
   if (mPoach) { mPoach.el.classList.add('nolabel'); mPoach.el.style.setProperty('--ic', '#98a29a'); }
 }, null, 34);
 tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
-tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'The patrol is waiting at the bottom of the hill. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 4, 'FOUR DETAINED \u00b7 NOTHING LOST'), null, 33.2);
+tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'The patrol is already waiting at the crossing. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 4, 'FOUR DETAINED \u00b7 NOTHING LOST'), null, 33.2);
 tl.call(() => {
   const ap = trail.getPoint(poach.u);
   popup(V3(ap.x, heightAt(ap.x, ap.z) + 2.2, ap.z), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 3, 0, true);
@@ -1668,6 +1668,8 @@ function resetWorld() {
   gsap.set(lampMat, { emissiveIntensity: 0 }); gsap.set(villageLight, { intensity: 0 });
   $('#feed-list').innerHTML = '<div class="tg-day"><span>Today</span></div>';
   $('#phone').classList.remove('on');
+  document.querySelectorAll('.pop').forEach(el => el.remove());
+  pops.length = 0;
 }
 tl.eventCallback('onRepeat', resetWorld);
 
