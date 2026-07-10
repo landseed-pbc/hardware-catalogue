@@ -127,6 +127,8 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 /* ── twin markers — the gorillas-page grammar: silhouette + name pill ────── */
 .twin-icon{position:fixed;z-index:22;transform:translate(-50%,calc(-100% - 12px));display:flex;align-items:center;gap:5px;pointer-events:none;white-space:nowrap}
 .twin-icon::after{content:"";position:absolute;left:50%;top:100%;width:1.5px;height:12px;background:linear-gradient(180deg,var(--ic),transparent)}
+.twin-icon.below{transform:translate(-50%,18px)}
+.twin-icon.below::after{top:auto;bottom:100%;background:linear-gradient(0deg,var(--ic),transparent)}
 .ti-ic{position:relative;height:34px;flex:none;display:flex;align-items:center}
 .ti-ic svg{width:30px;height:30px;display:block;fill:color-mix(in srgb,var(--ic) 74%,#ded9cc);filter:drop-shadow(0 0 1.5px rgba(4,9,5,.95)) drop-shadow(0 1px 2.5px rgba(0,0,0,.95))}
 .ti-ic svg+svg{margin-left:-13px}

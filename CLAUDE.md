@@ -78,7 +78,8 @@ catalogue moving to /catalogue, once perfected.
   Telegram phone as photo bubbles (`feedPhoto`). The film pauses on its final
   frame; the overlay's Watch again restarts via `resetWorld()`.
 - TWIN camera doctrine (FINAL): ONE fixed command view for the whole film —
-  no stations, no cuts. CAMKEYS is two keys (a 78 s push-in) + drone sway.
+  no stations, no cuts. CAMKEYS is two keys (a 78 s push-in). NO sway, NO
+  look-target rides - the camera is dead-still by user instruction (2026-07-09).
   Scene direction = events on the board (pulses, beams, streams, cards),
   never camera moves. Do not reintroduce stations.
 - TWIN (default): real DEM (z13) + ESRI imagery (z15, z14 on LOW) with ALL

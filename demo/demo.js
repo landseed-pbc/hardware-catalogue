@@ -32,15 +32,15 @@ const AN = TWIN ? {
   // west act: the intrusion CLIMBS from the NW boundary farmland (2,120 m)
   // into the massif's forest — HQ below at 2,000 m, crossing at 2,600 m,
   // the listening meadow at 2,730 m under the 4,170 m peak.
-  ser1: [-14, -10.5], ser2: [-6, -6.5], vg: [35, 12.2],
+  ser1: [-14, -10.5], ser2: [-6, -6.5], vg: [18.5, 8.5],
   w1: [0, -13], w2: [7, -19.5], jw: [10, -12],
-  gate: [13.5, 16.2], ai: [12, -2], village: [43.5, 16], villages: [[43.5, 16]],
+  gate: [13.5, 16.2], ai: [12, -2], village: [24, 7.5], villages: [[24, 7.5]],
   informant: [-33.5, -22.5], truck: [-27.5, -15.5],
   trail: [[-25, -14], [-21, -11], [-17, -8], [-12, -5.5], [-7, -4], [-2, -3.5]],
   road: [[12, -2], [8, -2.4], [4, -2.9], [0, -3.2], [-2, -3.5]],
-  herdIn: [[24, 8.5], [27.5, 9.8], [30.2, 10.8], [32, 11.4], [33, 11.8]],
-  herdOut: [[33, 11.8], [30, 10.5], [27, 9.2], [24, 8], [21, 7]],
-  guard: [[43.5, 16], [40, 14.4], [36.8, 12.9]],
+  herdIn: [[0, 12], [5, 10.8], [10, 9.8], [13.5, 9], [15.8, 8.5]],
+  herdOut: [[15.8, 8.5], [12.5, 9.4], [8.5, 10.4], [4.5, 11.4], [1, 12.2]],
+  guard: [[24, 7.5], [21.5, 8], [19.8, 8.4]],
   pack: [4, -16],
 } : {
   ser1: [6.8, 10.2], ser2: [-4.5, 5.6], vg: [12.9, -8.6],
@@ -675,7 +675,7 @@ function fovWedge(x, z, ang, hue, R = 8, spread = .5) {
 const aimAt = (from, to) => Math.atan2(to[0] - from[0], to[1] - from[1]);
 const fovSer1 = fovWedge(AN.ser1[0], AN.ser1[1], TWIN ? aimAt(AN.ser1, [-17, -8]) : 1.39, HUES.see, TWIN ? 6.5 : 8.5, .42);
 const fovSer2 = fovWedge(AN.ser2[0], AN.ser2[1], TWIN ? aimAt(AN.ser2, [-9, -4.5]) : 1.23, HUES.see, TWIN ? 5.5 : 7.5, .42);
-const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [27.5, 9.8]) : -.38, HUES.guard, TWIN ? 5.5 : 8, .52);
+const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [12.5, 9.3]) : -.38, HUES.guard, TWIN ? 5.5 : 8, .52);
 
 /* ── satellite ──────────────────────────────────────────────────────────── */
 
@@ -1710,7 +1710,8 @@ if (TWIN) {
   for (const rec of SENSORS) {
     const label = rec.id === 'wolf' ? ('Listener ' + (++wolfN)) : rec.id === 'serengeti' ? ('AI camera ' + (++serN)) : SHORT[rec.id];
     const m = marker('sensor', HUE_BY[rec.id], label, rec.g, null, true);
-    m.pri = 1;
+    m.pri = rec.id === 'ai' ? 3 : 1;                    // the hub never loses its name
+    if (rec.id === 'ai' || rec.id === 'gateway') m.el.classList.add('below');  // hang clear of the village cluster
     m.lift = 4.4;
     m.key = rec.id === 'wolf' ? ('w' + wolfN) : rec.id === 'serengeti' ? ('ser' + serN) : rec.id;
     m.el.addEventListener('click', () => { location.href = '/#' + rec.id; });
@@ -1725,9 +1726,11 @@ if (TWIN) {
 
   mJeep = marker('vehicle', 0x59F5A0, 'Patrol', jeep, 2);
   mJeep.key = 'patrol';
+  mJeep.pri = 2.5;
   trailFrom(mJeep, 0x59F5A0);
   mHerd = marker('elephant', HUES.guard, 'Elephants', herd, 3);
   mHerd.key = 'herd';
+  mHerd.pri = 2.5;
   trailFrom(mHerd, HUES.guard);
   mPack = marker('wolf', 0xE682E6, 'Wolf pack', pack, 5);
   mPack.key = 'pack';
@@ -1973,33 +1976,8 @@ function tick(dt, t) {
   grade.uniforms.uTime.value = t;
 
   sampleCam(tl.time());
-  if (TWIN) {                                            // the drone is alive: slow yaw sway + gentle bob, loop-safe
-    const T2 = tl.time();
-    const a = Math.sin(T2 * .16) * .035;
-    const dx = camP.x - camL.x, dz = camP.z - camL.z;
-    const ca = Math.cos(a), sa = Math.sin(a);
-    camP.x = camL.x + dx * ca - dz * sa;
-    camP.z = camL.z + dx * sa + dz * ca;
-    camP.y += Math.sin(T2 * .23) * .14;
-  }
   {
     const T = tl.time();
-    if (T > 14.8 && T < 21.6) {                                     // the eye rides the intruders to the wedge
-      const wIn = Math.min(1, (T - 14.8) / 1.4), wOut = Math.min(1, (21.6 - T) / 1.2);
-      const w = Math.min(wIn, wOut) * .8;
-      camL.x += (poachers.position.x - camL.x) * w;
-      camL.y += (poachers.position.y + .8 - camL.y) * w;
-      camL.z += (poachers.position.z - camL.z) * w;
-    }
-    if (jeep.visible && T > 26.4 && T < 32.6) {                     // the camera's eye rides the truck
-      const wIn = Math.min(1, (T - 26.4) / 1.2), wOut = Math.min(1, (32.6 - T) / 1.2);
-      const w = Math.min(wIn, wOut) * .95;
-      const lx = jeep.position.x + Math.cos(jeep.rotation.y) * 1.4;   // lead the truck slightly
-      const lz = jeep.position.z - Math.sin(jeep.rotation.y) * 1.4;
-      camL.x += (lx - camL.x) * w;
-      camL.y += (jeep.position.y + .6 - camL.y) * w;
-      camL.z += (lz - camL.z) * w;
-    }
   }
   camera.position.set(camP.x, camP.y, camP.z);
   camera.lookAt(camL.x, camL.y, camL.z);
@@ -2042,14 +2020,16 @@ function tick(dt, t) {
     const rx = (proj.x * .5 + .5) * innerWidth, ry = (-proj.y * .5 + .5) * innerHeight;
     ic.sx = ic.sx === undefined ? rx : ic.sx + (rx - ic.sx) * .35;   // smoothed — labels glide, never jitter
     ic.sy = ic.sy === undefined ? ry : ic.sy + (ry - ic.sy) * .35;
-    const sx = Math.round(ic.sx), sy = Math.round(ic.sy);
-    ic.el.style.left = sx + 'px';
-    ic.el.style.top = sy + 'px';
+    const sx = ic.sx, sy = ic.sy;
+    ic.el.style.left = sx.toFixed(2) + 'px';
+    ic.el.style.top = sy.toFixed(2) + 'px';
     const w = ic.el.offsetWidth || 120;
-    const box = { x0: sx - 20, x1: sx + w, y0: sy - 20, y1: sy + 22 };
+    const below = ic.el.classList.contains('below');
+    const box = below ? { x0: sx - 20, x1: sx + w, y0: sy + 10, y1: sy + 52 }
+                      : { x0: sx - 20, x1: sx + w, y0: sy - 20, y1: sy + 22 };
     const clash = shownPills.some(b => box.x0 < b.x1 && box.x1 > b.x0 && box.y0 < b.y1 && box.y1 > b.y0);
     const now = performance.now();
-    if (clash && ic.pri < 2) {
+    if (clash && ic.pri < 3) {
       if (!ic.lockUntil || now > ic.lockUntil) { ic.el.classList.add('nolabel'); ic.lockUntil = now + 1200; }
       else if (!ic.el.classList.contains('nolabel')) shownPills.push(box);
     } else {
