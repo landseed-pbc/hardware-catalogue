@@ -185,14 +185,15 @@ const CAMKEYS = TWIN ? [
   [24.4, 25, 11, -1,    17, .8, -12.3],   // HQ
   [26.2, 25, 11, -1,    17, .8, -12.3],   // · hold — dispatch
   [29.4, 12, 12, -3,     2, .6, 1],       // riding behind the jeep
-  [32.2, 2.5, 11.5, 10.5, -3, .6, 4.4],   // the crossing, birds-eye
-  [36.6, 2.5, 11.5, 10.5, -3, .6, 4.4],   // · hold — the arrest plays, nothing hides it
+  [32.2, 2, 20, 14,     -5, .4, -2.2],    // the intercept from altitude: truck in from the right
+  [36.6, 2, 20, 14,     -5, .4, -2.2],    // · hold — the arrest plays, nothing hides it
   [38.4, 11, 18, 6,      9, 0, -5],       // crane over the forest
   [40.4, 22, 17, 6,      9.5, 0, -6.5],   // coexistence board view
-  [45.8, 22, 17, 6,      9.5, 0, -6.5],   // · hold — detection, guards emerge, a breath
-  [49.4, 19, 14, 3,     10.5, .3, -6.5],  // one slow push as the deterrent plays
-  [50.9, 7, 16, 12,     -1, .8, 5],       // over the river
-  [53.2, -3.5, 12, 26,  -13.5, 1.2, 14.6],// the listening meadow from altitude
+  [47.2, 22, 17, 6,      9.5, 0, -6.5],   // · hold — detection, lights on
+  [49.4, 19, 14, 3,     10.5, .3, -6.5],  // one slow push as the guards walk out
+  [52.6, 19, 14, 3,     10.5, .3, -6.5],  // · hold — the herd turns
+  [54.4, 7, 16, 12,     -1, .8, 5],       // over the river
+  [56.2, -3.5, 12, 26,  -13.5, 1.2, 14.6],// the listening meadow from altitude
   [61.9, -3.5, 12, 26,  -13.5, 1.2, 14.6],// · hold — howls, reports
   [78,   50, 27, 46,    -5, 9, -2],       // one pull home — lands on the opening frame
 ];
@@ -463,6 +464,8 @@ function scatterOK(x, z, h) {
   if ((x - 17) ** 2 + (z + 12.5) ** 2 < 42) return false;
   if (SPOTS.some(([sx, sz]) => (x - sx) ** 2 + (z - sz) ** 2 < 8)) return false;
   if (nearCurve(herdIn, x, z, 30) < 2.4) return false;               // keep the elephant lane open
+  if (nearCurve(road, x, z, 30) < 2.6) return false;                 // and the patrol road — the drive and the arrest stay visible
+  if (nearCurve(trail, x, z, 40) < 2.2) return false;                // and the intruders' path
   if (((x - 12.6) ** 2) / 9 + ((z + 7) ** 2) / 5 < 1.4) return false; // and the crops
   if ((x - 6.6) ** 2 + (z + 9.6) ** 2 < 18) return false;            // and the close-up camera position
   return true;
@@ -678,7 +681,7 @@ function fovWedge(x, z, ang, hue, R = 8, spread = .5) {
 const aimAt = (from, to) => Math.atan2(to[0] - from[0], to[1] - from[1]);
 const fovSer1 = fovWedge(AN.ser1[0], AN.ser1[1], TWIN ? aimAt(AN.ser1, [-17, -8]) : 1.39, HUES.see, TWIN ? 6.5 : 8.5, .42);
 const fovSer2 = fovWedge(AN.ser2[0], AN.ser2[1], TWIN ? aimAt(AN.ser2, [-9, -4.5]) : 1.23, HUES.see, TWIN ? 5.5 : 7.5, .42);
-const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [12, 9.4]) : -.38, HUES.guard, TWIN ? 5.5 : 8, .52);
+const fovVG = fovWedge(AN.vg[0], AN.vg[1], aimAt(AN.vg, TWIN ? [12, 9.4] : [9.5, -2]), HUES.guard, TWIN ? 5.5 : 6, .52);
 
 /* ── satellite ──────────────────────────────────────────────────────────── */
 
@@ -1493,7 +1496,7 @@ tl.to(poach, { u: .95, duration: 16.6, ease: 'none' }, 15.6);
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
 tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. The patrol is rolling before they clear the hill.', 5.5, 'TRIGGER \u2192 RANGER PHONES \u00b7 28 S'), null, 18.5);
 tl.call(() => { jeepState.on = true; jeep.visible = true; feed(HUES.brain, 'HQ · dispatch', 'Patrol unit 2 rolling · intercept set on the track below'); }, null, 18.6);
-tl.to(jeepState, { u: .7, duration: 11.6, ease: 'sine.inOut' }, 20.8);
+tl.to(jeepState, { u: TWIN ? .7 : .8, duration: 11.6, ease: 'sine.inOut' }, 20.8);
 tl.call(() => {                                                     // second camera confirms the track
   const pp2 = trail.getPoint(poach.u);
   triggerBeam(pp2.x, pp2.z, AN.ser2[0], AN.ser2[1], HUES.see);
@@ -1506,7 +1509,7 @@ tl.call(() => {                                                     // second ca
 }, null, 25.8);
 tl.call(() => {                                                     // INTERCEPT — the jeep halts short
   placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
-  placeOnCurve(jeep, road, Math.min(Math.max(jeepState.u, .68), .7), 0, .05, true);
+  placeOnCurve(jeep, road, TWIN ? Math.min(Math.max(jeepState.u, .68), .7) : Math.min(Math.max(jeepState.u, .78), .8), 0, .05, true);
   poach.stopped = true;
   jeepState.arrived = true;
   const pp = trail.getPoint(poach.u);
@@ -1598,7 +1601,9 @@ tl.call(() => {
 }, null, 58.9);
 tl.call(() => {                                                     // …and a bird overhead — rapid chirp waveform
   {
-    const wp = V3(AN.pack[0] + 5, heightAt(AN.pack[0] + 5, AN.pack[1] - 3) + 4.5, AN.pack[1] - 3);   // birdsong from the canopy
+    const wp = (storks[0] && storks[0].b.visible)
+      ? storks[0].b.position.clone()
+      : V3(AN.pack[0] + 5, heightAt(AN.pack[0] + 5, AN.pack[1] - 3) + 4.5, AN.pack[1] - 3);   // birdsong from the bird itself
     wolves.forEach((w, i) => setTimeout(() => soundWave(wp.clone(), w, { freq: 16, amp: .26, hue: 0xc9a4ff, dur: 1.1 }), i * 220));
   }
 }, null, 61.2);
