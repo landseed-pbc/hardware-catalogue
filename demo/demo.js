@@ -32,15 +32,15 @@ const AN = TWIN ? {
   // west act: the intrusion CLIMBS from the NW boundary farmland (2,120 m)
   // into the massif's forest — HQ below at 2,000 m, crossing at 2,600 m,
   // the listening meadow at 2,730 m under the 4,170 m peak.
-  ser1: [-14, -10.5], ser2: [-6, -6.5], vg: [18.5, 8.5],
+  ser1: [-14, -10.5], ser2: [-6, -6.5], vg: [17.5, 9],
   w1: [0, -13], w2: [7, -19.5], jw: [10, -12],
-  gate: [13.5, 16.2], ai: [12, -2], village: [24, 7.5], villages: [[24, 7.5]],
+  gate: [13.5, 16.2], ai: [12, -2], village: [28, 8.5], villages: [[28, 8.5]],
   informant: [-33.5, -22.5], truck: [-27.5, -15.5],
   trail: [[-25, -14], [-21, -11], [-17, -8], [-12, -5.5], [-7, -4], [-2, -3.5]],
   road: [[12, -2], [8, -2.4], [4, -2.9], [0, -3.2], [-2, -3.5]],
-  herdIn: [[0, 12], [5, 10.8], [10, 9.8], [13.5, 9], [15.8, 8.5]],
-  herdOut: [[15.8, 8.5], [12.5, 9.4], [8.5, 10.4], [4.5, 11.4], [1, 12.2]],
-  guard: [[24, 7.5], [21.5, 8], [19.8, 8.4]],
+  herdIn: [[0, 12], [4.5, 11], [9, 10], [12.5, 9.2], [14.5, 8.6]],
+  herdOut: [[14.5, 8.6], [11.5, 9.5], [8, 10.4], [4, 11.4], [.5, 12.3]],
+  guard: [[28, 8.5], [24.5, 8.3], [21.5, 8.2]],
   pack: [4, -16],
 } : {
   ser1: [6.8, 10.2], ser2: [-4.5, 5.6], vg: [12.9, -8.6],
@@ -675,7 +675,7 @@ function fovWedge(x, z, ang, hue, R = 8, spread = .5) {
 const aimAt = (from, to) => Math.atan2(to[0] - from[0], to[1] - from[1]);
 const fovSer1 = fovWedge(AN.ser1[0], AN.ser1[1], TWIN ? aimAt(AN.ser1, [-17, -8]) : 1.39, HUES.see, TWIN ? 6.5 : 8.5, .42);
 const fovSer2 = fovWedge(AN.ser2[0], AN.ser2[1], TWIN ? aimAt(AN.ser2, [-9, -4.5]) : 1.23, HUES.see, TWIN ? 5.5 : 7.5, .42);
-const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [12.5, 9.3]) : -.38, HUES.guard, TWIN ? 5.5 : 8, .52);
+const fovVG = fovWedge(AN.vg[0], AN.vg[1], TWIN ? aimAt(AN.vg, [12, 9.4]) : -.38, HUES.guard, TWIN ? 5.5 : 8, .52);
 
 /* ── satellite ──────────────────────────────────────────────────────────── */
 
@@ -936,18 +936,18 @@ function elephant(sc = 1) {
   return g;
 }
 const herd = new THREE.Group();
-let eles = [elephant(1.1), elephant(.9), elephant(.58)];
-eles.forEach((e, i) => { e.position.set(-i * 1.45 - (i % 2) * .3, 0, (i % 2) * 1.05 - .45); herd.add(e); });
+let eles = [elephant(1.65), elephant(1.35), elephant(.95)];
+eles.forEach((e, i) => { e.position.set(-i * 2.1 - (i % 2) * .4, 0, (i % 2) * 1.5 - .6); herd.add(e); });
 // drop-in: place a licensed animated rig at demo/assets/elephant.glb and the
 // procedural family is replaced automatically (Walk clip auto-selected)
 new GLTFLoader().load('./assets/elephant.glb', (g) => {
   const box = new THREE.Box3().setFromObject(g.scene);
-  const sc0 = 2.3 / (box.max.y - box.min.y);
+  const sc0 = 3.4 / (box.max.y - box.min.y);
   const clips = g.animations;
   const walk = clips.find(c => /walk/i.test(c.name)) || clips[0];
   eles.forEach(e => herd.remove(e));
   eles = [];
-  const spots = [[0, 0, 0], [-1.6, 1, 1], [-1.3, -1.1, 2]];
+  const spots = [[0, 0, 0], [-2.3, 1.4, 1], [-1.9, -1.6, 2]];
   for (const [px, pz, i] of spots) {
     const e = SkeletonUtils.clone(g.scene);
     e.scale.setScalar(sc0 * (1 - i * .18));
@@ -1672,7 +1672,7 @@ const GLYPHS = {
 
 function iconEl(kind, hue, label, count, pillOnly) {
   const el = document.createElement('div');
-  el.className = 'twin-icon' + (kind === 'sensor' ? ' twin-sensor' : '') + (pillOnly ? ' pill-only' : '');
+  el.className = 'twin-icon ti-' + kind + (kind === 'sensor' ? ' twin-sensor' : '') + (pillOnly ? ' pill-only' : '');
   el.style.setProperty('--ic', hex(hue));
   const n = Math.min(count || 1, 5);
   const one = `<svg viewBox="0 0 24 24"><path d="${GLYPHS[kind] || GLYPHS.sensor}"/></svg>`;
@@ -2025,9 +2025,9 @@ function tick(dt, t) {
     ic.el.style.top = sy.toFixed(2) + 'px';
     const w = ic.el.offsetWidth || 120;
     const below = ic.el.classList.contains('below');
-    const box = below ? { x0: sx - 20, x1: sx + w, y0: sy + 10, y1: sy + 52 }
-                      : { x0: sx - 20, x1: sx + w, y0: sy - 20, y1: sy + 22 };
-    const clash = shownPills.some(b => box.x0 < b.x1 && box.x1 > b.x0 && box.y0 < b.y1 && box.y1 > b.y0);
+    const box = below ? { x0: sx - w / 2 - 8, x1: sx + w / 2 + 8, y0: sy + 14, y1: sy + 58, pri: ic.pri }
+                      : { x0: sx - w / 2 - 8, x1: sx + w / 2 + 8, y0: sy - 52, y1: sy + 2, pri: ic.pri };
+    const clash = shownPills.some(b => b.pri >= ic.pri && box.x0 < b.x1 && box.x1 > b.x0 && box.y0 < b.y1 && box.y1 > b.y0);
     const now = performance.now();
     if (clash && ic.pri < 3) {
       if (!ic.lockUntil || now > ic.lockUntil) { ic.el.classList.add('nolabel'); ic.lockUntil = now + 1200; }
@@ -2084,7 +2084,7 @@ window.__demo = {
     out.trail74 = trail.getPoint(.74).toArray().map(n => +n.toFixed(1));
     return out;
   },
-  tl, camera, camP, camL, CH,
+  tl, camera, camP, camL, CH, ICONS,
   // manual frame-step for automation: render an exact timeline moment even
   // when the tab is backgrounded and requestAnimationFrame is paused
   step(T) { tl.pause(); tl.time(T, false); tick(1 / 60, T); },
