@@ -1484,13 +1484,17 @@ tl.to(poach, { u: .95, duration: 16.6, ease: 'none' }, 15.6);
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
 tl.call(() => caption(HUES.brain, 'To understand · The brain', 'Response before the loss', 'Detection, image and location arrive together. The patrol is rolling before they clear the hill.', 5.5), null, 18.5);
 tl.call(() => { jeepState.on = true; jeep.visible = true; feed(HUES.brain, 'HQ · dispatch', 'Patrol unit 2 rolling · intercept set on the track below'); }, null, 18.6);
-tl.to(jeepState, { u: .7, duration: 10.9, ease: 'power1.inOut' }, 21.5);
+tl.to(jeepState, { u: .7, duration: 11.6, ease: 'sine.inOut' }, 20.8);
 tl.call(() => {                                                     // second camera confirms the track
+  const pp2 = trail.getPoint(poach.u);
+  triggerBeam(pp2.x, pp2.z, AN.ser2[0], AN.ser2[1], HUES.see);
+  ringAt(pp2.x, pp2.z, HUES.see, 2.2);
+  if (mPoach) markerPulse(mPoach);
   flashAt(V3(AN.ser2[0], heightAt(AN.ser2[0], AN.ser2[1]) + 1.6, AN.ser2[1]), 0xd9ffe4);
   gsap.fromTo(fovSer2, { opacity: .3 }, { opacity: .1, duration: 1.4 });
   stSer2Gate.play(2);
   feed(HUES.see, 'AI camera 02 · confirm', 'Track confirmed \u00b7 descending toward the village');
-}, null, 24.5);
+}, null, 25.8);
 tl.call(() => {                                                     // INTERCEPT — the jeep halts short
   placeOnCurve(poachers, trail, poach.u, 0, 1);                     // deterministic even after a chip-seek
   placeOnCurve(jeep, road, Math.min(Math.max(jeepState.u, .68), .7), 0, .05, true);
@@ -1521,21 +1525,22 @@ tl.call(() => {                                                     // INTERCEPT
 }, null, 32.6);
 tl.call(() => {                                                     // lamp down, cuffs on — quiet close
   pFigs[0].traverse(o => { if (o.isSpotLight) gsap.to(o, { intensity: 0, duration: .8 }); });
+  if (mPoach) mPoach.el.querySelectorAll('svg').forEach((v, i) => { if (i) v.style.display = 'none'; });
   feedPhoto(HUES.see, 'Patrol \u00b7 on site', 'Four detained \u00b7 rifles seized \u00b7 evidence packaged, chain of custody logged', fieldCard('people-close', 128, 1.3));
   if (mPoach) { mPoach.el.classList.add('nolabel'); mPoach.el.style.setProperty('--ic', '#98a29a'); }
 }, null, 34);
 tl.call(() => gsap.to(arrestLight, { intensity: 0, duration: 1.4 }), null, 36);
-tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'The patrol is waiting at the bottom of the hill. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 3.4), null, 33.2);
+tl.call(() => caption(HUES.see, 'Outcome', 'Detained — nothing lost', 'The patrol is waiting at the bottom of the hill. Twenty arrests across thirteen gangs began exactly like this, in the Serengeti.', 4), null, 33.2);
 tl.call(() => {
   const ap = trail.getPoint(poach.u);
   popup(V3(ap.x, heightAt(ap.x, ap.z) + 2.2, ap.z), HUES.see, 'Detained \u00d74', 'evidence', 'Faces redacted \u00b7 packaged for prosecution \u00b7 chain of custody logged', fieldCard('people-close'), 3, 0, true);
 }, null, 33.9);
 
 // ── coexistence 34–50 · approach, close-up, detection, guards out, the turn
-tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A camera on the field edge runs one model with every species on the conflict list.', 5.5), null, 37.6);
-tl.call(() => { herd.visible = true; }, null, 38.8);
-tl.to(herdState, { u: .78, duration: 5.8, ease: 'none' }, 39);
-tl.to(herdState, { u: 1, duration: 2.2, ease: 'none' }, 45);
+tl.call(() => caption(HUES.guard, 'To see · Coexistence', 'Elephants head for the crops', 'A camera on the field edge runs one model with every species on the conflict list.', 6), null, 38.4);
+tl.call(() => { herd.visible = true; }, null, 39.8);
+tl.to(herdState, { u: .78, duration: 5.8, ease: 'none' }, 40);
+tl.to(herdState, { u: 1, duration: 2.2, ease: 'none' }, 45.9);
 tl.call(() => {                                                     // DETECTION 2 — the herd crosses into the wedge
   const hp = herdIn.getPoint(herdState.u);
   triggerBeam(hp.x, hp.z, AN.vg[0], AN.vg[1], HUES.guard);
@@ -1545,65 +1550,65 @@ tl.call(() => {                                                     // DETECTION
   popup(V3(0, 0, 0), HUES.guard, 'Elephant ×3', '0.99', 'VILLAGE CAMERA 04 · detected at the treeline · alert < 1 KB', fieldCard('elephant-walk'), 3.4, 0, true);
   stVGHQ.play(2.2);
   feedPhoto(HUES.guard, 'Village camera 04 \u00b7 alert', 'Elephant \u00d73 approaching the fields \u00b7 lights on \u00b7 unit walking out', fieldCard('elephant-bull', 128));
-}, null, 44.6);
+}, null, 45.4);
 tl.call(() => {
   gsap.to(lampMat, { emissiveIntensity: 2.6, duration: .4 });
   gsap.to(villageLight, { intensity: 16, duration: .4 });
   guard1.visible = guard2.visible = true;
   if (mVillage) markerPulse(mVillage, true);
-}, null, 45.6);
-tl.to(guardState, { u: 1, duration: 4.2, ease: 'none' }, 45.9);
+}, null, 46.8);
+tl.to(guardState, { u: 1, duration: 3.8, ease: 'none' }, 47);
 tl.call(() => {
   popup(V3(12.9, heightAt(12.9, -8.6) + 2.6, -8.6), HUES.guard, 'Elephant + person', 'one model', 'VILLAGE CAMERA 04 · every class on the list in a single detector', fieldCard('multi-class'), 2.2);
   feed(HUES.guard, 'Village camera 04 · multi-class', 'Elephant and person in the same frame · one detector');
-}, null, 48.3);
+}, null, 49.7);
 tl.call(() => {                                                     // the herd actually turns
   herdState.turning = true;
   gsap.to(herd.rotation, { y: '+=2.9', duration: 2.3, ease: 'sine.inOut',
     onComplete: () => { herdState.turning = false; herdState.curve = 'out'; } });
-}, null, 47.6);
-tl.to(herdState, { u: 0, duration: 4.6, ease: 'sine.inOut' }, 49.8);
-tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, people out, and the herd drifts back to the treeline. No crops lost, no retaliation.', 2.6), null, 47.8);
+}, null, 48.9);
+tl.to(herdState, { u: 0, duration: 4.6, ease: 'sine.inOut' }, 50.6);
+tl.call(() => caption(HUES.guard, 'Outcome', 'Turned, not shot', 'Lights on, people out, and the herd drifts back to the treeline. No crops lost, no retaliation.', 4), null, 51);
 
 // ── listening 50–62 · wolves howl, birds call, the array breathes it in
-tl.call(() => { pack.visible = true; storks.forEach(st => st.b.visible = true); }, null, 52.2);
-tl.call(() => gsap.to(packLight, { intensity: 20, duration: 2 }), null, 50.5);
+tl.call(() => { pack.visible = true; storks.forEach(st => st.b.visible = true); }, null, 52.4);
+tl.call(() => gsap.to(packLight, { intensity: 20, duration: 2 }), null, 52);
 tl.call(() => gsap.to(packLight, { intensity: 0, duration: 2.5 }), null, 60.5);
-tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Two listeners breathe the forest in. Every call becomes a bearing; crossed bearings become a place.', 5.5), null, 51.4);
-tl.call(() => { howl(wolvesAnim[0]); if (mPack) markerPulse(mPack, true); }, null, 53.8);                     // the lead howls…
+tl.call(() => caption(HUES.listen, 'To listen · Bio-acoustics', 'Wolves and birds, counted by ear', 'Two listeners breathe the forest in. Every call becomes a bearing; crossed bearings become a place.', 5.4), null, 55.4);
+tl.call(() => { howl(wolvesAnim[0]); if (mPack) markerPulse(mPack, true); }, null, 56.6);                     // the lead howls…
 tl.call(() => {
   const wp = new THREE.Vector3();
   wp.set(pack.position.x, pack.position.y + 1, pack.position.z);
   wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
-}, null, 54.5);
-tl.call(() => { howl(wolvesAnim[1] || wolvesAnim[0]); if (mPack) markerPulse(mPack); }, null, 55.4);                       // …an answer…
+}, null, 57.3);
+tl.call(() => { howl(wolvesAnim[1] || wolvesAnim[0]); if (mPack) markerPulse(mPack); }, null, 58.2);                       // …an answer…
 tl.call(() => {
   const wp = new THREE.Vector3();
   wp.set(pack.position.x - .8, pack.position.y + 1, pack.position.z + .6);
   wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
-}, null, 56.1);
+}, null, 58.9);
 tl.call(() => {                                                     // …and a bird overhead — rapid chirp waveform
   {
     const wp = V3(AN.pack[0] + 5, heightAt(AN.pack[0] + 5, AN.pack[1] - 3) + 4.5, AN.pack[1] - 3);   // birdsong from the canopy
     wolves.forEach((w, i) => setTimeout(() => soundWave(wp.clone(), w, { freq: 16, amp: .26, hue: 0xc9a4ff, dur: 1.1 }), i * 220));
   }
-}, null, 59.2);
-tl.call(() => bearings(AN.pack[0], AN.pack[1]), null, 56.8);
+}, null, 61.2);
+tl.call(() => bearings(AN.pack[0], AN.pack[1]), null, 59.6);
 tl.call(() => {
   popup(V3(-12.8, heightAt(-12.8, 12.6) + 2.3, 12.6), HUES.listen, 'Wolves located', '0.97', 'LISTENER ARRAY · two bearings cross · pack located on the map', spectroCard(), 2.8);
   stWolfGate.play(2.4);
   feedPhoto(HUES.listen, 'Listener array · fix', 'Wolf pack located · two bearings cross · confidence 0.97', spectroCard());
-}, null, 57.6);
+}, null, 60.4);
 tl.call(() => {
 
   ringAt(AN.jw[0], AN.jw[1], 0xFF8C42, 2);
   feed(0xFF8C42, 'Survey unit · archive', 'Offloaded on patrol pass · two individuals re-identified');
-}, null, 61.3);
-tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 3.4), null, 60.8);
+}, null, 63);
+tl.call(() => caption(HUES.listen, 'Outcome', 'Presence becomes a number', 'Howls become bearings, detections become densities — the measurement layer for Earth Credits.', 3.6), null, 63.4);
 
 // ── network 62–78 · one continuous pull to the whole board
 
-tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landscape, reporting', 'See, listen, connect, report — every detection lands in Landseed AI, and the record writes itself.', 6.4), null, 66);
+tl.call(() => caption(HUES.brain, 'Every sensor · one brain', 'The whole landscape, reporting', 'See, listen, connect, report — every detection lands in Landseed AI, and the record writes itself.', 5.2), null, 68);
 tl.call(() => { stSer1Gate.play(3); stSer2Gate.play(3); }, null, 65);
 tl.call(() => { stWolfGate.play(3); stWolf2Gate.play(3.4); stJWGate.play(3.4); }, null, 65.9);
 tl.call(() => { fireUplink(); stVGHQ.play(3); stHQPatrol.play(3); }, null, 66.9);
@@ -1631,7 +1636,7 @@ tl.call(() => {
   $('#cap').classList.remove('on');                     // the story hands the floor to the actions
   gsap.to('#cap', { opacity: 0, duration: .8, overwrite: true });
   endcta.classList.add('on');
-}, null, 73.6);
+}, null, 74.2);
 
 tl.call(() => tl.pause(), null, 77.9);                              // hold on the closing frame — the overlay owns the restart
 
@@ -1639,7 +1644,7 @@ function resetWorld() {
   poach.u = .02; poach.stopped = false;
   herdState.u = 0; herdState.curve = 'in'; herdState.turning = false; herd.visible = false;
   if (TWIN) { poachers.visible = false; informant.visible = false; pack.visible = false; storks.forEach(st => st.b.visible = false); }
-  if (mPoach) { mPoach.el.classList.remove('nolabel'); mPoach.el.style.setProperty('--ic', hex(0xff5a4d)); }
+  if (mPoach) { mPoach.el.classList.remove('nolabel'); mPoach.el.style.setProperty('--ic', hex(0xff5a4d)); mPoach.el.querySelectorAll('svg').forEach(v => { v.style.display = ''; }); }
   jeepState.u = 0; jeepState.on = false; jeepState.arrived = false;
   jeep.visible = false;
   jeep.userData.lights.forEach(m => m.emissiveIntensity = 0);
@@ -1760,8 +1765,8 @@ if (TWIN) {
     m.pri = rec.id === 'ai' ? 3 : 1;                    // the hub never loses its name
     m.fixed = true;
     m.pos.set(rec.g.position.x, (rec.baseY !== undefined ? rec.baseY : rec.g.position.y) + 4.4, rec.g.position.z);
-    if (rec.id === 'ai' || rec.id === 'gateway') m.el.classList.add('below');   // hang clear of the village cluster
-    if (rec.id === 'wolf') m.el.classList.add('below', 'deep');                  // listeners drop under the pack's box
+    m.el.classList.add('below');                       // uniform grammar: unit above, name below
+    if (rec.id === 'wolf') m.el.classList.add('deep');  // listeners drop under the pack's box
     m.lift = 4.4;
     m.key = rec.id === 'wolf' ? ('w' + wolfN) : rec.id === 'serengeti' ? ('ser' + serN) : rec.id;
     m.el.addEventListener('click', () => { location.href = '/#' + rec.id; });
@@ -1831,7 +1836,7 @@ function worldLabel(text, pos, hue, show) {
 }
 if (TWIN) {
   worldLabel('PARK INTERIOR', V3(-21, heightAt(-21, -11) + 4, -11), HUES.see, (T) => T < 9.5 || T > 62);
-  worldLabel('PATROL TRACK', V3(5, heightAt(5, -2.8) + 3.4, -2.8), 0x59F5A0, (T) => (T >= 18.5 && T < 33) || T > 62);
+  worldLabel('PATROL TRACK', V3(0, heightAt(0, -7) + 1.2, -7), 0x59F5A0, (T) => (T >= 18.5 && T < 33) || T > 62);
   worldLabel('VILLAGE · FIELDS', V3(23, heightAt(23, 11) + 4, 11), HUES.guard, (T) => T < 9.5 || (T >= 34 && T < 50) || T > 62);
   worldLabel('WOLF TERRITORY', V3(3, heightAt(3, -19.5) + 4, -19.5), HUES.listen, (T) => T < 9.5 || (T >= 50 && T < 62) || T > 62);
 }
@@ -1877,7 +1882,7 @@ function normalizeUI(T) {
   gsap.set('#title', { opacity: T < 1 ? undefined : 0 });
   document.querySelectorAll('.pop').forEach(el => el.remove());   // a seek fires every skipped beat — don't stack their cards
   pops.length = 0;
-  endcta.classList.toggle('on', T >= 73.6);
+  endcta.classList.toggle('on', T >= 74.2);
   $('#phone').classList.toggle('on', T >= 10.3);
   $('#feed-list').innerHTML = '<div class="tg-day"><span>Today</span></div>';
 }
@@ -2107,6 +2112,7 @@ function tick(dt, t) {
     }
     const dimmed = !!(FOCUS && ic.key && !FOCUS.has(ic.key));
     ic.el.classList.toggle('dim', dimmed);
+    ic.el.style.zIndex = 22 + Math.round(ic.pri * 2) - (dimmed ? 3 : 0);
     if (ic.ring) ic.ring.material.opacity += (((dimmed ? .07 : .4)) - ic.ring.material.opacity) * .08;
   }
   for (const wl of wlabels) {

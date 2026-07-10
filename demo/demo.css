@@ -44,7 +44,7 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 
 /* projected detection cards */
 #pops{position:fixed;inset:0;z-index:24;pointer-events:none}
-.pop{position:fixed;left:26%;top:86px;transform:translate(-50%,0);width:252px;border-radius:11px;overflow:hidden;background:linear-gradient(180deg,rgba(6,12,8,.9),rgba(6,12,8,.96));border:1px solid rgba(240,240,234,.14);box-shadow:0 14px 44px rgba(0,0,0,.5);opacity:0;transition:width .5s cubic-bezier(.22,1,.36,1)}
+.pop{position:fixed;left:17%;top:96px;transform:translate(-50%,0);width:252px;border-radius:11px;overflow:hidden;background:linear-gradient(180deg,rgba(6,12,8,.9),rgba(6,12,8,.96));border:1px solid rgba(240,240,234,.14);box-shadow:0 14px 44px rgba(0,0,0,.5);opacity:0;transition:width .5s cubic-bezier(.22,1,.36,1)}
 .pop.hero{width:430px;border-color:rgba(240,240,234,.22);box-shadow:0 22px 70px rgba(0,0,0,.62)}
 .pop canvas{display:block;width:100%;height:auto}
 .pop .p-b{padding:8px 11px 9px}
@@ -158,7 +158,7 @@ body.booting .hud,body.booting #chapters,body.booting #cap,body.booting #phone,b
 @keyframes twinPulseBig{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ic) 85%,transparent)}100%{box-shadow:0 0 0 46px transparent}}
 .twin-icon.pulse .ti-ic::after{animation:twinPulse 1.1s ease-out 2}
 .twin-icon.pulse-big .ti-ic::after{animation:twinPulseBig 1.3s ease-out 3}
-.twin-icon.nolabel .ti-tag{display:none}
+.twin-icon.nolabel .ti-tag{visibility:hidden}
 .twin-icon.pill-only .ti-ic{display:none}
 /* organic cluster scatter — glyph rows breathe instead of standing in rank */
 .ti-ic svg:nth-child(2){transform:translateY(3px) scale(.92)}
