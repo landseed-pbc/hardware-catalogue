@@ -99,6 +99,10 @@ a.brand:hover .b-word{opacity:1}
 #howto.mini .sp-step b{font-size:12.5px}
 #howto.mini .sp-step i{width:18px;height:18px;font-size:10.5px}
 #specs.show,#howto.show{opacity:1;transform:none;pointer-events:auto}
+/* the rail's two cards split the height evenly (Listener is the model):
+   each takes at least half the rail, leaving an 18px seam between them */
+body.devview #howto-body{min-height:calc(50vh - 94px)}
+body.devview #caption{min-height:calc(50vh - 94px);display:flex;flex-direction:column;justify-content:flex-end}
 #howto.show{transition-delay:.25s}
 #specs.show{transition-delay:.45s}
 /* auto-fit tiers — applied by JS when a panel would collide with the caption
@@ -206,6 +210,7 @@ a.brand:hover .b-word{opacity:1}
   #howto{top:62px;left:12px;width:min(320px,44vw);max-height:34vh}
   #specs-scroll,#howto-body{max-height:inherit;overflow-y:auto}
   #caption{left:14px;bottom:92px;width:auto;max-width:56vw;padding:15px 17px 14px}
+  body.devview #howto-body,body.devview #caption{min-height:0}
   #cap-line{max-width:none}
   #chapters{bottom:14px;overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
   #chapters::-webkit-scrollbar{display:none}

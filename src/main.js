@@ -680,6 +680,7 @@ function goView(id, force = false) {
     $('#plegend').classList.add('show');
     $('#specs').classList.remove('show');
     $('#howto').classList.remove('show');
+    document.body.classList.remove('devview');
     setCaption('The product line', 'Landseed Hardware',
       CAT_LINE,
       [['7', 'products'], ['$50–299', 'hardware'], ['30 s', 'fastest alert'], ['>12 mo', 'battery']],
@@ -711,6 +712,7 @@ function goView(id, force = false) {
   $('#plegend').classList.remove('show');
   $('#specs').classList.add('show');
   $('#howto').classList.add('show');
+  document.body.classList.add('devview');
   fillPanels(d);
 
   const i = DEVICES.indexOf(d), next = DEVICES[(i + 1) % DEVICES.length];
