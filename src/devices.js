@@ -385,7 +385,7 @@ export function buildJungleWallah(hue) {
     pod:   V3(W / 2 + .065, H + .155, -.02),           // upper-left shoulder — the leader clears the hanging ring
     ir:    V3(0, H * .9 + .07, D / 2 + .05),
     ai:    V3(W / 2, H * .52 + .07, .05),            // on the camo flank itself — dot anchored to the body
-    wifi:  V3(-W / 2 + .032, H + .385, 0),             // upper-left rim of the tip ball — the hairline leaves the glow without crossing it
+    wifi:  V3(-W / 2 + .032, H + .376, 0),             // left rim at ball-centre height — the hairline aims dead centre
   };
   g.userData.pulse = [led];
   g.userData.labelY = 1.15;
