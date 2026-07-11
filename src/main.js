@@ -83,7 +83,7 @@ const DEVICES = [
       ['ir', 'Dual IR array', 'Night work at the village edge', 95, -60],
       ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge'],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
-      ['battery', 'Battery pack', 'External, expandable · > 12 months', 55, -6, 'above'],
+      ['battery', 'Battery pack', 'External, expandable · > 12 months', 30, -6, 'above'],
     ],
   },
   {
