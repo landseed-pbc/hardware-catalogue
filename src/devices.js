@@ -381,7 +381,7 @@ export function buildJungleWallah(hue) {
   g.add(status);
 
   g.userData.anchors = {
-    lens:  V3(0, H * .62 + .07, D / 2 + .1),
+    lens:  V3(-.05, H * .62 + .125, D / 2 + .08),      // upper-left rim of the ring — the leader stays off the LED row
     pod:   V3(W / 2 + .065, H + .155, -.02),           // upper-left shoulder — the leader clears the hanging ring
     ir:    V3(0, H * .9 + .07, D / 2 + .05),
     ai:    V3(W / 2, H * .52 + .07, .05),            // on the camo flank itself — dot anchored to the body
