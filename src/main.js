@@ -229,11 +229,11 @@ const DEVICES = [
       ['Roadmap', 'monocular distance · acoustic triangulation'],
     ],
     callouts: [
-      ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', 165, 50],
-      ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', 35, -45],
-      ['rings', 'Analytics', 'Occupancy, density and abundance, updated with every detection', -40, -60],
-      ['swarm', 'Detections', 'Every alert from the field network, streamed live', 40, 70],
-      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', -50, 50],
+      ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', 85, 50, null, 1],
+      ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', 35, -45, null, 1],
+      ['rings', 'Analytics', 'Occupancy, density and abundance, updated with every detection', 70, -60, null, 1],
+      ['swarm', 'Detections', 'Every alert from the field network, streamed live', 40, 70, null, 1],
+      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', 60, 50, null, 1],
     ],
   },
 ];
@@ -330,6 +330,7 @@ for (const d of DEVICES) {
   d.calloutEls = d.callouts.map(([a, n, s, ox, oy, mode, noline]) => {
     const k = document.createElement('div');
     k.className = 'klabel';
+    if (d.id === 'ai') k.classList.add('kw');           // the orb's floating notes get a wider plate
     k.style.setProperty('--fa', hex(d.hue));
     k.style.opacity = '0';
     k.innerHTML = `<span class="kn">${n}</span><span class="ks">${s}</span>`;
