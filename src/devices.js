@@ -231,7 +231,7 @@ export function buildSerengeti(hue) {
     pir:     V3(0, H * .38 + .06, D / 2 + .05),
     antenna: V3(W / 2 - .045, H + .38, 0),
     battery: V3(.44, .07, .16),                        // low on the pack face — a short lead to the label below
-    shell:   V3(-W / 2 - .005, H * .6 + .06, D / 3),   // front-left camo corner — the dot must sit ON the shell
+    shell:   V3(-W / 4, H + .075, D / 6),              // top of the unit — the shell is everywhere, the leader stays short
   };
   g.userData.pulse = [led];
   g.userData.labelY = 1.0;

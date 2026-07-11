@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=3';
-import { BUILDERS } from './devices.js?v=20';
+import { BUILDERS } from './devices.js?v=21';
 
 const $ = (s) => document.querySelector(s);
 
@@ -48,7 +48,7 @@ const DEVICES = [
       ['antenna', 'Long-range radio', 'LoRa · LTE · satellite backhaul'],
       ['pir', 'PIR trigger', '5–10 µA asleep · re-trigger < 1 s', -290, 65],
       ['battery', 'Battery pack', 'External, expandable · > 12 months', -20, 20],
-      ['shell', 'Camo shell', 'IP67+ · tested underwater', 0, -140, 'above'],
+      ['shell', 'Camo shell', 'IP67+ · tested underwater', 0, 0, 'above'],
     ],
   },
   {
