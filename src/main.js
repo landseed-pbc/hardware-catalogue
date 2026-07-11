@@ -80,7 +80,7 @@ const DEVICES = [
     ],
     callouts: [
       ['lens', 'Optics', '2 MP sensor · 15 m range', 70, -70],
-      ['ir', 'Dual IR array', 'Night work at the village edge', -30, -70],
+      ['ir', 'Dual IR array', 'Night work at the village edge', 80, -55],
       ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge', 30, -2],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
       ['battery', 'Battery pack', 'External, expandable · > 12 months', 4, 1, 'above'],
@@ -466,7 +466,8 @@ function layoutCallouts(d) {
         ly = c.ly + dy2;
       }
       c.t.el.classList.toggle('kr', aip ? aip[0] < .4 : !right);
-      c.t.el.classList.toggle('kc', !!aip && aip[0] >= .4 && aip[0] <= .6);   // 12 o'clock reads centred
+      c.t.el.classList.toggle('kc', (!!aip && aip[0] >= .4 && aip[0] <= .6) ||   // 12 o'clock reads centred —
+        ((c.t.el.__mode === 'above' || c.t.el.__mode === 'below') && !c.t.el.__noline)); // and so does a plate on a vertical leader
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
       const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;
