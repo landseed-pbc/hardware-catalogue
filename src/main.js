@@ -421,7 +421,8 @@ world.onTick = () => {
 // Landseed AI reads as a composed diagram: five leaderless notes at fixed
 // stations ringing the orb. x is a fraction of the SAFE BAND between the left
 // rail and the spec panel (so the ring holds at any window); y is viewport
-const AI_POS = { rings: [.10, .17], shells: [.90, .17], core: [.97, .50], swarm: [.90, .80], base: [.10, .80] };
+// clock face: the brain at 12, then 2 · 4 · 8 · 10 around the orb
+const AI_POS = { core: [.50, .12], shells: [.88, .27], swarm: [.88, .75], base: [.12, .75], rings: [.12, .27] };
 function layoutCallouts(d) {
   const pv = new THREE.Vector3();
   pv.copy(d.group.position).setY(d.group.position.y + .5).project(camera);
@@ -463,7 +464,8 @@ function layoutCallouts(d) {
         lx = Math.max(panelW + 135, Math.min(innerWidth - panelW - 135, c.sx + (right ? off : -off))) + dx2;
         ly = c.ly + dy2;
       }
-      c.t.el.classList.toggle('kr', aip ? lx < innerWidth / 2 : !right);
+      c.t.el.classList.toggle('kr', aip ? aip[0] < .4 : !right);
+      c.t.el.classList.toggle('kc', !!aip && aip[0] >= .4 && aip[0] <= .6);   // 12 o'clock reads centred
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
       const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;

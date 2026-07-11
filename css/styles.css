@@ -61,6 +61,7 @@ a.brand:hover .b-word{opacity:1}
 .klabel .ks{font-size:12px;font-weight:400;color:rgba(240,240,234,.78);white-space:normal;text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 12px rgba(0,0,0,.85)}
 .klabel.kr{text-align:right;align-items:flex-end}
 .klabel.kw{max-width:190px}
+.klabel.kc{text-align:center;align-items:center;max-width:240px}
 #leaders circle{fill:rgba(240,240,234,.85);transition:opacity .25s}
 
 /* ── product-line key (catalogue) — right rail ───────────────────────────── */
