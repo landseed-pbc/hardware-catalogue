@@ -103,7 +103,7 @@ a.brand:hover .b-word{opacity:1}
 /* device views: the caption IS the left rail — one card, top 78 to bottom 92,
    identical on every page. Title block up top, chain in the middle (scrolls
    if it must), the action buttons pinned to the bottom edge */
-body.devview #caption{top:64px;bottom:72px;display:flex;flex-direction:column}
+body.devview #caption{top:64px;bottom:40px;display:flex;flex-direction:column}
 /* devview condensation — buys the chain its room without touching type sizes */
 body.devview #cap-kicker{margin-bottom:6px}
 body.devview #cap-title{margin-bottom:7px}
