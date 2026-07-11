@@ -143,7 +143,7 @@ const DEVICES = [
       ['lens', 'Optics', 'VillageGuard 2 MP platform', -30, -45],
       ['pod', 'Acoustic pod', 'The listening half of the survey', -25, 5, 'above'],
       ['ai', 'Bespoke models', 'The key species of your landscape', 165, -5],
-      ['wifi', 'Wi-Fi offload', 'No airtime required', 55, -28, null, 1],
+      ['wifi', 'Wi-Fi offload', 'No airtime required', 52, -28, null, 1],
     ],
   },
   {
