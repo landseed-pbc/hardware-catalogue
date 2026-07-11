@@ -523,7 +523,7 @@ function deviceFrame(d) {
   if (Math.sign(side.x || 1) !== Math.sign(x || 1)) side.multiplyScalar(-1);
   const big = d.id === 'ai' || d.id === 'gateway';
   const ty = d.id === 'ai' ? 1.0 : .44;
-  const dist = big ? 2.5 : d.id === 'villageguard' ? 2.15 : 1.8;
+  const dist = big ? 2.5 : d.id === 'villageguard' ? 2.35 : 1.8;
   const pos = new THREE.Vector3(x, ty + .38, z)
     .addScaledVector(front, dist)
     .addScaledVector(side, dist * .28);
