@@ -110,9 +110,9 @@ const DEVICES = [
       ['Power', 'LiFePO4 · > 12 mo · solar indefinite'],
     ],
     callouts: [
-      ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 150, -45],
+      ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 110, -75, null, 1],
       ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 125, 55, 'above', 1],
-      ['solar', 'Solar endurance', 'Indefinite with sun', 70, 25],
+      ['solar', 'Solar endurance', 'Indefinite with sun', 230, 75],
       ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet', 30, 25],
       ['case', 'Field case', 'IP67 · fits in a daypack', 50, -80],
     ],
