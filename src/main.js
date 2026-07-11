@@ -79,11 +79,11 @@ const DEVICES = [
       ['Links', 'LTE / direct-to-cell · LoRa · satellite'],
     ],
     callouts: [
-      ['lens', 'Optics', '2 MP sensor · 15 m range', 10, -25],
+      ['lens', 'Optics', '2 MP sensor · 15 m range', 20, -30],
       ['ir', 'Dual IR array', 'Night work at the village edge', 100, -55],
       ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge', 10, -2],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
-      ['battery', 'Battery pack', 'External, expandable · > 12 months', 23, -9, 'above'],
+      ['battery', 'Battery pack', 'External, expandable · > 12 months', 16, -9, 'above'],
     ],
   },
   {
@@ -429,14 +429,16 @@ function layoutCallouts(d) {
       const right = side === 'R';
       // keep plates out from under the side panels and screen edges
       const panelW = Math.min(356, innerWidth * .26) + 40;
+      const kk = innerHeight / 860;                   // hand offsets authored on a ~860px-tall viewport
       const [odx, ody] = c.t.el.__off || [0, 0];
+      const dx2 = odx * kk, dy2 = ody * kk;
       let lx, ly;
       if (c.t.el.__mode === 'above' || c.t.el.__mode === 'below') {
-        lx = c.sx + odx;                                // straight over/under the part
-        ly = Math.max(96, Math.min(innerHeight - 130, c.sy + (c.t.el.__mode === 'above' ? -84 : 84) + ody));
+        lx = c.sx + dx2;                                // straight over/under the part
+        ly = Math.max(96, Math.min(innerHeight - 130, c.sy + (c.t.el.__mode === 'above' ? -84 : 84) * kk + dy2));
       } else {
-        lx = Math.max(panelW + 135, Math.min(innerWidth - panelW - 135, c.sx + (right ? off : -off))) + odx;
-        ly = c.ly + ody;
+        lx = Math.max(panelW + 135, Math.min(innerWidth - panelW - 135, c.sx + (right ? off : -off))) + dx2;
+        ly = c.ly + dy2;
       }
       c.t.el.classList.toggle('kr', !right);
       c.t.el.style.display = '';
