@@ -639,12 +639,12 @@ function fitPanels() {
   const cap = $('#caption'), how = $('#cap-how');
   cap.classList.remove('tight');
   if (how.scrollHeight > how.clientHeight + 1) cap.classList.add('tight');
-  const fit = (el, limit) => {
-    el.classList.remove('tight', 'mini');
-    if (el.getBoundingClientRect().bottom > limit()) el.classList.add('tight');
-    if (el.getBoundingClientRect().bottom > limit()) el.classList.add('mini');
-  };
-  fit($('#specs'), () => innerHeight - 96);
+  // the specs card spans the same 64→78 rail as the caption; its content
+  // steps down (tight, then mini), then scrolls inside the fixed card
+  const sp = $('#specs'), sc = $('#specs-scroll');
+  sp.classList.remove('tight', 'mini');
+  if (sc.scrollHeight > sc.clientHeight + 1) sp.classList.add('tight');
+  if (sc.scrollHeight > sc.clientHeight + 1) sp.classList.add('mini');
 }
 addEventListener('resize', () => {
   if (current !== 'catalogue') { fitPanels(); if (!busy && byId[current]) layoutCallouts(byId[current]); return; }
