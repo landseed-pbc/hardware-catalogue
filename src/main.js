@@ -514,13 +514,11 @@ function revealCallouts(d) {
   layoutCallouts(d);
   d.calloutEls.forEach((k, i) => {
     k.style.transition = 'none';                        // gsap owns the entrance
-    gsap.fromTo(k, { opacity: 0, xPercent: -50, yPercent: -50, y: 10 },
-      { opacity: 1, y: 0, xPercent: -50, yPercent: -50, duration: .55, delay: .1 + .09 * i, ease: 'power2.out', overwrite: true,
-        // gsap bakes the % translate into PIXELS at tween time; if the plate
-        // reflows afterwards (font swap, width change) that snapshot goes stale
-        // and the words drift half a box off the leader. Hand the transform
-        // back to the CSS translate(-50%,-50%), which tracks reflows live.
-        onComplete: () => { k.style.transform = ''; } });
+    // opacity ONLY — never animate the transform: gsap bakes the % translate
+    // into pixels at tween time, and any reflow mid-entrance (font swap)
+    // renders the plate half a box off its leader until it snaps back
+    k.style.transform = '';
+    gsap.fromTo(k, { opacity: 0 }, { opacity: 1, duration: .55, delay: .1 + .09 * i, ease: 'power2.out', overwrite: true });
   });
 }
 
