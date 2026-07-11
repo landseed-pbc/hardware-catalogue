@@ -229,10 +229,10 @@ const DEVICES = [
       ['Roadmap', 'monocular distance · acoustic triangulation'],
     ],
     callouts: [
-      ['core', 'The brain', 'CTDAMS — every sensor, one aggregator', 175, 40],
-      ['shells', 'Fusion layers', 'Optical · acoustic · satellite'],
-      ['rings', 'Analytics', 'Occupancy, density, abundance'],
-      ['swarm', 'Detections', 'Live from the field network'],
+      ['core', 'The brain', 'CTDAMS — every sensor, one aggregator', 215, 50],
+      ['shells', 'Fusion layers', 'Optical · acoustic · satellite', 35, -45],
+      ['rings', 'Analytics', 'Occupancy, density, abundance', -90, 0],
+      ['swarm', 'Detections', 'Live from the field network', 40, 70],
     ],
   },
 ];

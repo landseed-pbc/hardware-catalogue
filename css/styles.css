@@ -82,7 +82,15 @@ a.brand:hover .b-word{opacity:1}
    left: #howto (the chain / the scenarios) · right: #specs (the record) */
 #howto,#specs{position:fixed;top:78px;z-index:24;width:min(356px,26vw);opacity:0;transition:opacity .45s ease,transform .45s ease;transition-delay:0s;pointer-events:none}
 #specs{right:24px;transform:translateX(14px)}
-#howto{left:28px;transform:translateX(-14px)}
+#howto{left:28px;transform:translateX(-14px);width:min(410px,30vw)}
+/* the chain reads at a step up from the spec record — it is the pitch, not the fine print */
+#howto .pan-h{font-size:12px}
+#howto .sp-step{font-size:13.5px;padding:8px 0}
+#howto .sp-step b{font-size:14.5px}
+#howto .sp-step i{width:22px;height:22px;font-size:12px}
+#howto .sp-row{font-size:13px}
+#howto.tight .sp-step{padding:4px 0}
+#howto.tight .sp-step span{font-size:12.5px}
 #specs.show,#howto.show{opacity:1;transform:none;pointer-events:auto}
 #howto.show{transition-delay:.25s}
 #specs.show{transition-delay:.45s}
