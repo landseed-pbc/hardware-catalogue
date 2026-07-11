@@ -60,7 +60,7 @@ a.brand:hover .b-word{opacity:1}
 .klabel .kn{font-weight:700;font-size:13.5px;letter-spacing:.02em;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95),0 0 16px rgba(0,0,0,.85)}
 .klabel .ks{font-size:12px;font-weight:400;color:rgba(240,240,234,.78);white-space:normal;text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 12px rgba(0,0,0,.85)}
 .klabel.kr{text-align:right;align-items:flex-end}
-.klabel.kw{max-width:310px}
+.klabel.kw{max-width:190px}
 #leaders circle{fill:rgba(240,240,234,.85);transition:opacity .25s}
 
 /* ── product-line key (catalogue) — right rail ───────────────────────────── */

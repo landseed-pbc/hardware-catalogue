@@ -419,8 +419,9 @@ world.onTick = () => {
 // ── …and becomes a one-shot: computed once when the camera settles, so the
 // plates never drag across the screen during a flight. Dots keep tracking.
 // Landseed AI reads as a composed diagram: five leaderless notes at fixed
-// stations (viewport fractions) ringing the orb, clear of the UI cards
-const AI_POS = { rings: [.36, .19], shells: [.66, .24], core: [.70, .50], swarm: [.66, .77], base: [.34, .75] };
+// stations ringing the orb. x is a fraction of the SAFE BAND between the left
+// rail and the spec panel (so the ring holds at any window); y is viewport
+const AI_POS = { rings: [.10, .17], shells: [.90, .17], core: [.97, .50], swarm: [.90, .80], base: [.10, .80] };
 function layoutCallouts(d) {
   const pv = new THREE.Vector3();
   pv.copy(d.group.position).setY(d.group.position.y + .5).project(camera);
@@ -451,7 +452,9 @@ function layoutCallouts(d) {
       if (aip) {
         // the orb page is a composed diagram — no leaders, so the five notes
         // take fixed stations around the orb; hand offsets nudge from there
-        lx = aip[0] * innerWidth + dx2;
+        const hw = $('#howto').getBoundingClientRect(), sp = $('#specs').getBoundingClientRect();
+        const bandL = (hw.width ? hw.right : 0) + 20, bandR = (sp.width ? sp.left : innerWidth) - 20;
+        lx = bandL + aip[0] * (bandR - bandL) + dx2;
         ly = aip[1] * innerHeight + dy2;
       } else if (c.t.el.__mode === 'above' || c.t.el.__mode === 'below') {
         lx = c.sx + dx2;                                // straight over/under the part
@@ -464,16 +467,11 @@ function layoutCallouts(d) {
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
       const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;
-      if (d.id === 'ai') {
-        // the orb's free-floating notes: shoved clear of the UI cards and the
-        // screen edges only when they actually collide — positions stay hand-set
-        for (const pid of ['howto', 'caption', 'specs']) {
-          const r = document.getElementById(pid).getBoundingClientRect();
-          if (!r.width) continue;
-          if (lx + w / 2 > r.left - 10 && lx - w / 2 < r.right + 10 && ly + h / 2 > r.top - 10 && ly - h / 2 < r.bottom + 10)
-            lx = r.left < innerWidth / 2 ? r.right + w / 2 + 16 : r.left - w / 2 - 16;
-        }
-        lx = Math.max(w / 2 + 10, Math.min(innerWidth - w / 2 - 10, lx));
+      if (aip) {
+        // once measured, keep the whole plate inside the safe band
+        const hw = $('#howto').getBoundingClientRect(), sp = $('#specs').getBoundingClientRect();
+        const bandL = (hw.width ? hw.right : 0) + 12, bandR = (sp.width ? sp.left : innerWidth) - 12;
+        lx = Math.max(bandL + w / 2, Math.min(bandR - w / 2, lx));
         c.t.el.style.left = lx + 'px';
       }
       // the leader aims at the label's CENTRE and stops at its border:
