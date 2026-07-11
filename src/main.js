@@ -111,7 +111,7 @@ const DEVICES = [
     ],
     callouts: [
       ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 150, -45],
-      ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist'],
+      ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 340, 20],
       ['solar', 'Solar endurance', 'Indefinite with sun'],
       ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet'],
       ['case', 'Field case', 'IP67 · fits in a daypack'],
@@ -435,15 +435,10 @@ function layoutCallouts(d) {
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
       const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;
-      // the leader leaves whichever edge faces the anchor: side for lateral
-      // runs, top/bottom-centre when the anchor sits mostly above or below
-      if (Math.abs(c.sy - ly) * 1.6 > Math.abs(c.sx - lx)) {
-        c.t.line.setAttribute('x2', lx);
-        c.t.line.setAttribute('y2', ly + (c.sy > ly ? h / 2 + 8 : -h / 2 - 8));
-      } else {
-        c.t.line.setAttribute('x2', lx + (right ? -w / 2 - 6 : w / 2 + 6));
-        c.t.line.setAttribute('y2', ly);
-      }
+      // the leader attaches to the point on the label's box nearest the
+      // anchor, so it always leaves the face that looks at the part
+      c.t.line.setAttribute('x2', Math.max(lx - w / 2 - 6, Math.min(lx + w / 2 + 6, c.sx)));
+      c.t.line.setAttribute('y2', Math.max(ly - h / 2 - 8, Math.min(ly + h / 2 + 8, c.sy)));
       c.t.fx = lx; c.t.fy = ly;
     }
   }
