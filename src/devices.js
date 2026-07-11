@@ -385,7 +385,7 @@ export function buildJungleWallah(hue) {
     pod:   V3(W / 2 + .065, H + .155, -.02),           // upper-left shoulder — the leader clears the hanging ring
     ir:    V3(0, H * .9 + .07, D / 2 + .05),
     ai:    V3(W / 2, H * .52 + .07, .05),            // on the camo flank itself — dot anchored to the body
-    wifi:  V3(-W / 2 + .05, H + .4, 0),                // dead centre of the beacon — the glow swallows the line's root
+    wifi:  V3(-W / 2 + .05, H + .375, 0),              // dead centre of the tip ball (mast .3 → tip at H+.376)
   };
   g.userData.pulse = [led];
   g.userData.labelY = 1.15;

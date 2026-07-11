@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=3';
-import { BUILDERS } from './devices.js?v=28';
+import { BUILDERS } from './devices.js?v=29';
 
 const $ = (s) => document.querySelector(s);
 
@@ -140,7 +140,7 @@ const DEVICES = [
       ['Spec sheet', 'in development'],
     ],
     callouts: [
-      ['lens', 'Optics', 'VillageGuard 2 MP platform', -50, -120],
+      ['lens', 'Optics', 'VillageGuard 2 MP platform', -30, -70],
       ['pod', 'Acoustic pod', 'The listening half of the survey', -45, -10, 'above'],
       ['ai', 'Bespoke models', 'The key species of your landscape', 60, -5],
       ['wifi', 'Wi-Fi offload', 'No airtime required', -15, -15, null, 2],
