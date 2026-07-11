@@ -209,7 +209,7 @@ const DEVICES = [
     hue: 0x9B6CE0, price: 'subscription', x: 0, z: -1.9,
     desc: 'The analytics platform behind every sensor',
     line: 'Every sensor reports here. Landseed AI — the platform brain, the CTDAMS — fuses optical, acoustic and remotely-sensed data into population metrics, and writes the measurement layer for Earth Credits.',
-    stats: [['1', 'brain, all sensors'], ['4', 'population metrics'], ['auto', 'reporting'], ['Earth', 'Credits layer']],
+    stats: [],
     badges: ['subscription', 'standalone or bundled', 'bespoke builds'],
     best: 'Sold as a package with the hardware or standalone; annual updates, with bespoke versions built to a programme’s needs.',
     how: [
