@@ -627,12 +627,18 @@ function fillPanels(d) {
 // step through density tiers until everything fits the viewport
 function fitPanels() {
   const cap = $('#caption');
-  const fit = (el, limit) => {
+  const fit = (el, limit, body) => {
     el.classList.remove('tight', 'mini');
+    if (body) { body.style.transform = ''; body.style.transformOrigin = 'top left'; }
     if (el.getBoundingClientRect().bottom > limit()) el.classList.add('tight');
     if (el.getBoundingClientRect().bottom > limit()) el.classList.add('mini');
+    // last resort — scale the card itself so the left rail NEVER collides
+    if (body) {
+      const r = el.getBoundingClientRect(), over = r.bottom - limit();
+      if (over > 0) body.style.transform = `scale(${Math.max(.78, (r.height - over) / r.height)})`;
+    }
   };
-  fit($('#howto'), () => cap.getBoundingClientRect().top - 14);
+  fit($('#howto'), () => cap.getBoundingClientRect().top - 18, $('#howto-body'));
   fit($('#specs'), () => innerHeight - 96);
 }
 addEventListener('resize', () => {

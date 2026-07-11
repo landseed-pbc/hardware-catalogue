@@ -155,7 +155,10 @@ a.brand:hover .b-word{opacity:1}
 #cap-stats div:first-child{padding-left:0;border-left:0}
 #cap-stats b{font-size:16px;font-weight:800;letter-spacing:-.01em;color:#eef0ea;font-variant-numeric:tabular-nums;white-space:nowrap}
 #cap-stats span{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:2px}
-/* stack2 — long stat labels (Landseed AI) sit in a roomy 2×2 grid instead of a squeezed row */
+/* stack2 — long stat labels (Landseed AI) sit in a roomy 2×2 grid instead of a squeezed row;
+   the card matches the how-it-works width so the two read as one aligned left rail */
+#caption.stack2{max-width:min(410px,30vw);width:min(410px,30vw)}
+#caption.stack2 #cap-line{font-size:13.5px}
 #caption.stack2 #cap-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 0}
 #caption.stack2 #cap-stats div{padding:0 0 0 14px;border-left:1px solid rgba(240,240,234,.1)}
 #caption.stack2 #cap-stats div:nth-child(odd){padding-left:0;border-left:0}
