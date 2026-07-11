@@ -80,10 +80,10 @@ const DEVICES = [
     ],
     callouts: [
       ['lens', 'Optics', '2 MP sensor · 15 m range', 70, -70],
-      ['ir', 'Dual IR array', 'Night work at the village edge', -290, -65],
+      ['ir', 'Dual IR array', 'Night work at the village edge', -30, -70],
       ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge', 30, -2],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
-      ['battery', 'Battery pack', 'External, expandable · > 12 months', 19, -14, 'above'],
+      ['battery', 'Battery pack', 'External, expandable · > 12 months', 4, 1, 'above'],
     ],
   },
   {
