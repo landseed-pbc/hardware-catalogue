@@ -543,8 +543,9 @@ export function buildShaman(hue) {
   g.userData.anchors = {
     core:   V3(.19, .8, .21),                           // front-right of the lockup cube
     shells: V3(.4, 1.08, 0),                            // on the outer lattice shell
-    rings:  V3(-.64, .79, .02),                         // on the middle gyroscope ring's rim
+    rings:  V3(-.33, 1.16, .05),                        // upper-left of the outer shell
     swarm:  V3(.48, .58, .12),                          // inside the detection cloud
+    base:   V3(-.38, .47, .08),                         // lower-left of the outer shell
   };
   g.userData.spin = [
     { obj: s1, ax: 'y', v: .22 }, { obj: s2, ax: 'y', v: -.12 },

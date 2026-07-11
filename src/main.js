@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=3';
-import { BUILDERS } from './devices.js?v=17';
+import { BUILDERS } from './devices.js?v=18';
 
 const $ = (s) => document.querySelector(s);
 
@@ -231,8 +231,9 @@ const DEVICES = [
     callouts: [
       ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', 165, 50],
       ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', 35, -45],
-      ['rings', 'Analytics', 'Occupancy, density and abundance, updated with every detection', 20, -15],
+      ['rings', 'Analytics', 'Occupancy, density and abundance, updated with every detection', -40, -60],
       ['swarm', 'Detections', 'Every alert from the field network, streamed live', 40, 70],
+      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', -50, 50],
     ],
   },
 ];
