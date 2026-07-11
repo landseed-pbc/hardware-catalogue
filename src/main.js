@@ -111,10 +111,10 @@ const DEVICES = [
     ],
     callouts: [
       ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 150, -45],
-      ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 125, 55, 'above'],
+      ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 125, 55, 'above', 1],
       ['solar', 'Solar endurance', 'Indefinite with sun', 70, 25],
       ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet', 30, 25],
-      ['case', 'Field case', 'IP67 · fits in a daypack', 20, -55],
+      ['case', 'Field case', 'IP67 · fits in a daypack', 50, -80],
     ],
   },
   {
@@ -326,7 +326,7 @@ for (const d of DEVICES) {
   else p = new THREE.Vector3(d.x, 0, z + .68);
   addLabel(el, () => p, d, 'plate');
 
-  d.calloutEls = d.callouts.map(([a, n, s, ox, oy, mode]) => {
+  d.calloutEls = d.callouts.map(([a, n, s, ox, oy, mode, noline]) => {
     const k = document.createElement('div');
     k.className = 'klabel';
     k.style.setProperty('--fa', hex(d.hue));
@@ -334,6 +334,7 @@ for (const d of DEVICES) {
     k.innerHTML = `<span class="kn">${n}</span><span class="ks">${s}</span>`;
     k.__off = [ox || 0, oy || 0];                       // hand-tuned nudge, applied after auto-layout
     k.__mode = mode || null;                            // 'above'/'below': place relative to the part, not the side columns
+    k.__noline = !!noline;                              // the part's own beacon serves as the dot — no leader drawn
     const anchor = d.group.userData.anchors[a] ?? new THREE.Vector3();
     const getPos = () => _v.copy(anchor).applyMatrix4(d.group.matrixWorld);
     addLabel(k, getPos, d, 'callout', true);
@@ -360,7 +361,7 @@ world.onTick = () => {
       if (t.fx == null) { t.el.style.display = 'none'; if (t.line) { t.line.style.opacity = '0'; t.dot.style.opacity = '0'; } continue; }
       t.dot.setAttribute('cx', sx); t.dot.setAttribute('cy', sy);
       t.line.setAttribute('x1', sx); t.line.setAttribute('y1', sy);
-      const op = getComputedStyle(t.el).opacity;
+      const op = t.el.__noline ? '0' : getComputedStyle(t.el).opacity;
       t.line.style.opacity = op; t.dot.style.opacity = op;
     } else {
       plates.push({ t, sx, sy, ly: sy, hw: t.el.offsetWidth / 2 + 8, h: t.el.offsetHeight + 6 });
