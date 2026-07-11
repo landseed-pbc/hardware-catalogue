@@ -56,7 +56,7 @@ a.brand:hover .b-word{opacity:1}
 
 /* ── part callouts (device views) — quiet cartographic annotations:
       a dot on the part, a hairline, set type. No boxes. ─────────────────── */
-.klabel{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;gap:2px;line-height:1.4;transition:opacity .3s;pointer-events:none;max-width:230px;padding:2px 0}
+.klabel{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;gap:2px;line-height:1.4;transition:opacity .3s;pointer-events:none;width:max-content;max-width:230px;padding:2px 0}
 .klabel .kn{font-weight:700;font-size:13.5px;letter-spacing:.02em;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95),0 0 16px rgba(0,0,0,.85)}
 .klabel .ks{font-size:12px;font-weight:400;color:rgba(240,240,234,.78);white-space:normal;text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 12px rgba(0,0,0,.85)}
 .klabel.kr{text-align:right;align-items:flex-end}
