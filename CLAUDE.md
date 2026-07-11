@@ -120,6 +120,10 @@ and the `PAN` map in `deviceFrame`; this section records the system so nobody
   edge, y: fraction of viewport height} — clock face: core 12, shells 2,
   swarm 4, base 8, rings 10. Plates: `.kw` 190px (`.kc` centred 240px at 12
   o'clock). No dots/lines (`noline`), labels ride the orb's bob.
+- **Plates are CSS-centred**: after the entrance tween, the inline transform is
+  CLEARED so `.klabel{transform:translate(-50%,-50%)}` centres live — gsap bakes
+  % into pixels at tween time, and a later reflow (font swap) leaves the words
+  half a box off the leader. Never leave a gsap transform resident on a klabel.
 - **Leaders**: aim at plate center; a mostly-horizontal leader pins to the
   plate's near text edge at mid-height (never detaches), a mostly-vertical one
   clips at the plate border. `above`/`below`-mode plates with a leader render
