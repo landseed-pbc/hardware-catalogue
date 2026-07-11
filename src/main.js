@@ -112,8 +112,8 @@ const DEVICES = [
     callouts: [
       ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 150, -45],
       ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 110, 55, 'above'],
-      ['solar', 'Solar endurance', 'Indefinite with sun'],
-      ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet'],
+      ['solar', 'Solar endurance', 'Indefinite with sun', -40, 25],
+      ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet', 30, 25],
       ['case', 'Field case', 'IP67 · fits in a daypack'],
     ],
   },
@@ -525,11 +525,16 @@ function deviceFrame(d) {
   if (Math.sign(side.x || 1) !== Math.sign(x || 1)) side.multiplyScalar(-1);
   const big = d.id === 'ai' || d.id === 'gateway';
   const ty = d.id === 'ai' ? 1.0 : .44;
-  const dist = big ? 2.5 : d.id === 'villageguard' ? 2.35 : 1.8;
+  const dist = d.id === 'gateway' ? 2.2 : big ? 2.5 : d.id === 'villageguard' ? 2.35 : 1.8;
   const pos = new THREE.Vector3(x, ty + .38, z)
     .addScaledVector(front, dist)
     .addScaledVector(side, dist * .28);
-  return { pos, tgt: new THREE.Vector3(x, ty, z) };
+  const tgt = new THREE.Vector3(x, ty, z);
+  if (d.id === 'gateway') {                             // the solar half hangs left of the case —
+    pos.addScaledVector(side, -.3);                     // pan the whole frame so the ensemble
+    tgt.addScaledVector(side, -.3);                     // sits centre-right, not left-heavy
+  }
+  return { pos, tgt };
 }
 
 let current = 'catalogue', busy = false, onSettle = null, calloutsLive = true;
