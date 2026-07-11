@@ -229,11 +229,11 @@ const DEVICES = [
       ['Roadmap', 'monocular distance · acoustic triangulation'],
     ],
     callouts: [
-      ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', 165, 50, null, 1],
-      ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', 35, -45, null, 1],
-      ['rings', 'Analytics', 'Occupancy, density and abundance, updated with every detection', -40, -60, null, 1],
-      ['swarm', 'Detections', 'Every alert from the field network, streamed live', 40, 70, null, 1],
-      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', -50, 50, null, 1],
+      ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', 0, 0, null, 1],
+      ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', 0, 0, null, 1],
+      ['rings', 'Analytics', 'Occupancy, density and abundance, updated with every detection', 0, 0, null, 1],
+      ['swarm', 'Detections', 'Every alert from the field network, streamed live', 0, 0, null, 1],
+      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', 0, 0, null, 1],
     ],
   },
 ];
@@ -334,6 +334,7 @@ for (const d of DEVICES) {
     k.style.setProperty('--fa', hex(d.hue));
     k.style.opacity = '0';
     k.innerHTML = `<span class="kn">${n}</span><span class="ks">${s}</span>`;
+    k.__anchor = a;
     k.__off = [ox || 0, oy || 0];                       // hand-tuned nudge, applied after auto-layout
     k.__mode = mode || null;                            // 'above'/'below': place relative to the part, not the side columns
     k.__noline = !!noline;                              // the part's own beacon serves as the dot — no leader drawn
@@ -417,6 +418,9 @@ world.onTick = () => {
 
 // ── …and becomes a one-shot: computed once when the camera settles, so the
 // plates never drag across the screen during a flight. Dots keep tracking.
+// Landseed AI reads as a composed diagram: five leaderless notes at fixed
+// stations (viewport fractions) ringing the orb, clear of the UI cards
+const AI_POS = { rings: [.36, .19], shells: [.66, .24], core: [.70, .50], swarm: [.66, .77], base: [.34, .75] };
 function layoutCallouts(d) {
   const pv = new THREE.Vector3();
   pv.copy(d.group.position).setY(d.group.position.y + .5).project(camera);
@@ -443,14 +447,20 @@ function layoutCallouts(d) {
       const [odx, ody] = c.t.el.__off || [0, 0];
       const dx2 = odx * kk, dy2 = ody * kk;
       let lx, ly;
-      if (c.t.el.__mode === 'above' || c.t.el.__mode === 'below') {
+      const aip = d.id === 'ai' && AI_POS[c.t.el.__anchor];
+      if (aip) {
+        // the orb page is a composed diagram — no leaders, so the five notes
+        // take fixed stations around the orb; hand offsets nudge from there
+        lx = aip[0] * innerWidth + dx2;
+        ly = aip[1] * innerHeight + dy2;
+      } else if (c.t.el.__mode === 'above' || c.t.el.__mode === 'below') {
         lx = c.sx + dx2;                                // straight over/under the part
         ly = Math.max(96, Math.min(innerHeight - 130, c.sy + (c.t.el.__mode === 'above' ? -84 : 84) * kk + dy2));
       } else {
         lx = Math.max(panelW + 135, Math.min(innerWidth - panelW - 135, c.sx + (right ? off : -off))) + dx2;
         ly = c.ly + dy2;
       }
-      c.t.el.classList.toggle('kr', !right);
+      c.t.el.classList.toggle('kr', aip ? lx < innerWidth / 2 : !right);
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
       const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;
@@ -548,7 +558,7 @@ function deviceFrame(d) {
   if (Math.sign(side.x || 1) !== Math.sign(x || 1)) side.multiplyScalar(-1);
   const big = d.id === 'ai' || d.id === 'gateway';
   const ty = d.id === 'ai' ? 1.0 : .44;
-  const dist = d.id === 'gateway' ? 2.2 : d.id === 'ai' ? 2.85 : big ? 2.5 : d.id === 'villageguard' ? 2.35 : 1.8;
+  const dist = d.id === 'gateway' ? 2.2 : d.id === 'ai' ? 3.15 : big ? 2.5 : d.id === 'villageguard' ? 2.35 : 1.8;
   const pos = new THREE.Vector3(x, ty + .38, z)
     .addScaledVector(front, dist)
     .addScaledVector(side, dist * .28);
