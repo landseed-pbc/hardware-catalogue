@@ -79,9 +79,9 @@ const DEVICES = [
       ['Links', 'LTE / direct-to-cell · LoRa · satellite'],
     ],
     callouts: [
-      ['lens', 'Optics', '2 MP sensor · 15 m range'],
+      ['lens', 'Optics', '2 MP sensor · 15 m range', 0, -15],
       ['ir', 'Dual IR array', 'Night work at the village edge', 95, -60],
-      ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge', 0, 15],
+      ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge', 0, 8],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
       ['battery', 'Battery pack', 'External, expandable · > 12 months', 35, -6, 'above'],
     ],
