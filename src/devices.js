@@ -430,7 +430,7 @@ export function buildWolf(hue) {
 
   g.userData.anchors = {
     grille: V3(R * .62, .15 + H * .31, R * .78),        // on the grille face toward the viewer
-    mic:    V3(0, .15 + H * .62 + .14, 0),
+    mic:    V3(-.06, .15 + H * .62 + .17, 0),          // the left outer rim of the hanging ring
     core:   V3(-R * .62, .15 + H * .42, R * .78),       // on the grille, upper-left
     base:   V3(R * .8, .13, R * .5),                    // the status LED itself
   };

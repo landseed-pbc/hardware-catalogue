@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=3';
-import { BUILDERS } from './devices.js?v=15';
+import { BUILDERS } from './devices.js?v=16';
 
 const $ = (s) => document.querySelector(s);
 
@@ -170,7 +170,7 @@ const DEVICES = [
     ],
     callouts: [
       ['grille', 'Open grille', 'Weatherproof acoustic window'],
-      ['mic', 'Mic crown', 'Omnidirectional, canopy-aimed'],
+      ['mic', 'Mic crown', 'Omnidirectional, canopy-aimed', 0, -18],
       ['core', 'Detector', 'Call recognition on the edge'],
       ['base', 'Status', 'Months on a charge'],
     ],
