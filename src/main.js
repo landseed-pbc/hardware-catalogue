@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=3';
-import { BUILDERS } from './devices.js?v=8';
+import { BUILDERS } from './devices.js?v=9';
 
 const $ = (s) => document.querySelector(s);
 
@@ -142,7 +142,7 @@ const DEVICES = [
     callouts: [
       ['lens', 'Optics', 'VillageGuard 2 MP platform', 75, 60],
       ['pod', 'Acoustic pod', 'The listening half of the survey', -90, 30],
-      ['ai', 'Bespoke models', 'The key species of your landscape', 85, -90],
+      ['ai', 'Bespoke models', 'The key species of your landscape', 45, -90],
       ['wifi', 'Wi-Fi offload', 'No airtime required'],
     ],
   },
@@ -437,7 +437,7 @@ function layoutCallouts(d) {
       const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;
       // the leader leaves whichever edge faces the anchor: side for lateral
       // runs, top/bottom-centre when the anchor sits mostly above or below
-      if (Math.abs(c.sy - ly) > Math.abs(c.sx - lx)) {
+      if (Math.abs(c.sy - ly) * 1.6 > Math.abs(c.sx - lx)) {
         c.t.line.setAttribute('x2', lx);
         c.t.line.setAttribute('y2', ly + (c.sy > ly ? h / 2 + 8 : -h / 2 - 8));
       } else {
@@ -519,7 +519,7 @@ function deviceFrame(d) {
   if (Math.sign(side.x || 1) !== Math.sign(x || 1)) side.multiplyScalar(-1);
   const big = d.id === 'ai' || d.id === 'gateway';
   const ty = d.id === 'ai' ? 1.0 : .44;
-  const dist = big ? 2.5 : 1.8;
+  const dist = big ? 2.5 : d.id === 'villageguard' ? 2.15 : 1.8;
   const pos = new THREE.Vector3(x, ty + .38, z)
     .addScaledVector(front, dist)
     .addScaledVector(side, dist * .28);

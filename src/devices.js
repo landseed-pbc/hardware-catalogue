@@ -324,7 +324,7 @@ export function buildGateway(hue) {
     lte:   V3(0, H + .34, -D * .2),
     io:    V3(0, H * .35 + .05, D / 2 + .08),
     case:  V3(W / 2 + .05, H * .5 + .05, 0),
-    solar: V3(-.52, .74, -.3),
+    solar: V3(-.45, .67, -.32),                        // on the panel surface, toward the raised end
     leds:  V3(W * .3, H * .78 + .05, D / 2 + .06),
   };
   g.userData.pulse = [led];
