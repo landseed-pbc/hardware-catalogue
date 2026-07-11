@@ -384,7 +384,7 @@ export function buildJungleWallah(hue) {
     lens:  V3(0, H * .62 + .07, D / 2 + .1),
     pod:   V3(W / 2 + .11, H + .18, -.02),
     ir:    V3(0, H * .9 + .07, D / 2 + .05),
-    ai:    V3(-W / 2 - .04, H * .5 + .07, 0),
+    ai:    V3(W / 2 + .04, H * .5 + .07, 0),          // right flank — the label lives in the open right space
     wifi:  V3(-W / 2 + .05, H + .4, 0),
   };
   g.userData.pulse = [led];
