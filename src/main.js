@@ -44,7 +44,7 @@ const DEVICES = [
     ],
     callouts: [
       ['lens', 'Optics', 'Low-light sensor · 200 ms to first image'],
-      ['ir', 'IR illuminator', 'Sees at night, shows nothing', 25, -40],
+      ['ir', 'IR illuminator', 'Sees at night, shows nothing', 60, -65],
       ['antenna', 'Long-range radio', 'LoRa · LTE · satellite backhaul'],
       ['pir', 'PIR trigger', '5–10 µA asleep · re-trigger < 1 s', -290, 65],
       ['battery', 'Battery pack', 'External, expandable · > 12 months', -35, 55],
@@ -442,10 +442,12 @@ function layoutCallouts(d) {
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
       const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;
-      // the leader attaches to the point on the label's box nearest the
-      // anchor, so it always leaves the face that looks at the part
-      c.t.line.setAttribute('x2', Math.max(lx - w / 2 - 6, Math.min(lx + w / 2 + 6, c.sx)));
-      c.t.line.setAttribute('y2', Math.max(ly - h / 2 - 8, Math.min(ly + h / 2 + 8, c.sy)));
+      // the leader aims at the label's CENTRE and stops at its border:
+      // wherever the label moves, the line rotates to lead to its middle
+      const ddx = c.sx - lx, ddy = c.sy - ly;
+      const bt = Math.min(1, 1 / Math.max(Math.abs(ddx) / (w / 2 + 4), Math.abs(ddy) / (h / 2 + 4), 1e-6));
+      c.t.line.setAttribute('x2', lx + ddx * bt);
+      c.t.line.setAttribute('y2', ly + ddy * bt);
       c.t.fx = lx; c.t.fy = ly;
     }
   }
