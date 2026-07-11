@@ -1906,8 +1906,18 @@ const chips = document.querySelectorAll('#chapters .chip[data-ch]');
 function normalizeUI(T) {
   gsap.killTweensOf('#title');
   gsap.set('#title', { opacity: T < 1 ? undefined : 0 });
+  gsap.killTweensOf('#cap');                                      // a stale caption never rides into the next chapter
+  gsap.set('#cap', { opacity: 0 });
   document.querySelectorAll('.pop').forEach(el => el.remove());   // a seek fires every skipped beat — don't stack their cards
   pops.length = 0;
+  for (const s of streams) {                                      // in-flight beams die instantly — no ghost traffic after a jump
+    s.active = false;
+    gsap.killTweensOf([s.line.material, s.pts.material]);
+    s.line.material.opacity = 0; s.pts.material.opacity = 0;
+  }
+  for (const f of [fovSer1, fovSer2, fovVG]) { gsap.killTweensOf(f); f.opacity = .1; }
+  for (const L of [packLight, arrestLight]) { gsap.killTweensOf(L); L.intensity = 0; }
+  if (TWIN) { gsap.killTweensOf(sceneLight); if (T < 10) { sceneLight.intensity = 0; stage('none', .01); } }
   endcta.classList.toggle('on', T >= 74.2);
   $('#phone').classList.toggle('on', T >= 10.3);
   $('#feed-list').innerHTML = '<div class="tg-day"><span>Today</span></div>';
@@ -1933,17 +1943,20 @@ const CHSETUP = {
   network() { setupSettled(); pack.visible = true; storks.forEach(st => st.b.visible = true); },
 };
 chips.forEach(b => b.addEventListener('click', () => {
-  const T = CH[b.dataset.ch] + .02;
+  // land a breath BEFORE the chapter mark: its opening caption/beat is often
+  // scheduled AT the mark, and a suppressed seek past it would swallow it
+  const T = Math.max(0, CH[b.dataset.ch] - .12);
   resetWorld();                                          // clean base state…
   normalizeUI(T);
   (CHSETUP[b.dataset.ch] || (() => {}))();               // …then just what the chapter needs
   tl.time(T, true);                                      // no compressed beat replay
   tl.play();
+  if ($('#pause')) $('#pause').textContent = '⏸';        // a jump always resumes the film
 }));
 function markChapter() {
   const t = tl.time();
   let cur = 'overview';
-  for (const [k, v] of Object.entries(CH)) if (t >= v) cur = k;
+  for (const [k, v] of Object.entries(CH)) if (t >= v - .15) cur = k;   // the pre-roll counts as the target chapter
   chips.forEach(b => b.classList.toggle('on', b.dataset.ch === cur));
 }
 if ($('#pause')) $('#pause').addEventListener('click', () => {
