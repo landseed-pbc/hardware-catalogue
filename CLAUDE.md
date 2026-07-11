@@ -124,9 +124,12 @@ and the `PAN` map in `deviceFrame`; this section records the system so nobody
   plate's near text edge at mid-height (never detaches), a mostly-vertical one
   clips at the plate border. `above`/`below`-mode plates with a leader render
   centre-aligned.
-- **Left rail**: #howto and #caption (ALL pages) share `min(410px,30vw)`, one
-  type scale (13px steps / 14px titles) on every device; fitPanels tiers are
-  tight → mini ONLY. **Never reintroduce a scale() fallback or fixed/equalized
-  card heights** — both shipped and were rolled back (scale renders every page
-  a different size; fixed heights clip titles). mini keeps step descriptions
-  (shrinks, never hides).
+- **Left rail**: ONE card (#caption, body.devview) spanning top:78 → bottom:92
+  at `min(410px,30vw)` — kicker/title/summary, stats, then the chain (#cap-how,
+  "How it works"; gateway gets its key spec there instead), buttons pinned to
+  the bottom. #cap-how scrolls (hidden scrollbar) if content overflows; one
+  `tight` tier on #caption condenses steps first. #howto is retired from
+  device views but stays in the DOM (the AI safe-band uses its rect).
+  **Never reintroduce a scale() fallback or fixed/equalized two-card heights**
+  — both shipped and were rolled back (scale renders every page a different
+  size; fixed heights clip titles).
