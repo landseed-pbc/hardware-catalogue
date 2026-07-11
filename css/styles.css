@@ -91,6 +91,11 @@ a.brand:hover .b-word{opacity:1}
 #howto .sp-row{font-size:13px}
 #howto.tight .sp-step{padding:4px 0}
 #howto.tight .sp-step span{font-size:12.5px}
+/* mini must never strip the chain's descriptions — shrink, don't hide */
+#howto.mini .sp-step span{display:inline}
+#howto.mini .sp-step{font-size:12px;padding:3px 0}
+#howto.mini .sp-step b{font-size:12.5px}
+#howto.mini .sp-step i{width:18px;height:18px;font-size:10.5px}
 #specs.show,#howto.show{opacity:1;transform:none;pointer-events:auto}
 #howto.show{transition-delay:.25s}
 #specs.show{transition-delay:.45s}

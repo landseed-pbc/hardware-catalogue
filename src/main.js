@@ -229,9 +229,9 @@ const DEVICES = [
       ['Roadmap', 'monocular distance · acoustic triangulation'],
     ],
     callouts: [
-      ['core', 'The brain', 'CTDAMS — every sensor, one aggregator', 215, 50],
+      ['core', 'The brain', 'CTDAMS — every sensor, one aggregator', 165, 50],
       ['shells', 'Fusion layers', 'Optical · acoustic · satellite', 35, -45],
-      ['rings', 'Analytics', 'Occupancy, density, abundance', -90, 0],
+      ['rings', 'Analytics', 'Occupancy, density, abundance', -60, 0],
       ['swarm', 'Detections', 'Live from the field network', 40, 70],
     ],
   },
@@ -534,7 +534,7 @@ function deviceFrame(d) {
   if (Math.sign(side.x || 1) !== Math.sign(x || 1)) side.multiplyScalar(-1);
   const big = d.id === 'ai' || d.id === 'gateway';
   const ty = d.id === 'ai' ? 1.0 : .44;
-  const dist = d.id === 'gateway' ? 2.2 : big ? 2.5 : d.id === 'villageguard' ? 2.35 : 1.8;
+  const dist = d.id === 'gateway' ? 2.2 : d.id === 'ai' ? 2.85 : big ? 2.5 : d.id === 'villageguard' ? 2.35 : 1.8;
   const pos = new THREE.Vector3(x, ty + .38, z)
     .addScaledVector(front, dist)
     .addScaledVector(side, dist * .28);
