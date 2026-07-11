@@ -230,10 +230,10 @@ const DEVICES = [
     ],
     callouts: [
       ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', 0, 0, null, 1],
-      ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', 0, 0, null, 1],
-      ['rings', 'Analytics', 'Occupancy, density and abundance, always current', 0, 0, null, 1],
-      ['swarm', 'Detections', 'Every alert from the field network, streamed live', 0, 0, null, 1],
-      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', 0, 0, null, 1],
+      ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', 0, 40, null, 1],
+      ['rings', 'Analytics', 'Occupancy, density and abundance, always current', 0, 40, null, 1],
+      ['swarm', 'Detections', 'Every alert from the field network, streamed live', 0, -20, null, 1],
+      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', 0, -20, null, 1],
     ],
   },
 ];
