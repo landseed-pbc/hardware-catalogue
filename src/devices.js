@@ -321,7 +321,7 @@ export function buildGateway(hue) {
 
   g.userData.anchors = {
     lora:  V3(-W * .32, H + .52, -D * .18),
-    lte:   V3(0, H + .34, -D * .2),
+    lte:   V3(.035, H + .36, -D * .2),                 // right shoulder of the beacon — the hairline leaves the glow's right side
     io:    V3(0, H * .35 + .05, D / 2 + .08),
     case:  V3(W / 2 + .05, H * .5 + .05, 0),
     solar: V3(-.405, .66, -.182),                      // near rim, a third toward the raised end — the leader falls at the panel's perpendicular
