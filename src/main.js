@@ -198,10 +198,10 @@ const DEVICES = [
       ['Why $50', 'nothing on board that a person replaces'],
     ],
     callouts: [
-      ['screen', 'Report screen', 'Frame, confirm, transmit', 70, 55],
+      ['screen', 'Report screen', 'Frame, confirm, transmit', 55, 10],
       ['eye', 'Daylight camera', 'No IR, no meter — $50 stays $50'],
       ['shutter', 'Shutter key', 'One press to capture and send', 45, 60],
-      ['body', 'Rugged slab', 'Pocketable, unremarkable'],
+      ['body', 'Rugged slab', 'Pocketable, unremarkable', -10, 70],
     ],
   },
   {
