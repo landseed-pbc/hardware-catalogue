@@ -170,7 +170,7 @@ const DEVICES = [
     ],
     callouts: [
       ['grille', 'Open grille', 'Weatherproof acoustic window'],
-      ['mic', 'Mic crown', 'Omnidirectional, canopy-aimed', 0, -18],
+      ['mic', 'Mic crown', 'Omnidirectional, canopy-aimed', 0, 0],
       ['core', 'Detector', 'Call recognition on the edge'],
       ['base', 'Status', 'Months on a charge'],
     ],
