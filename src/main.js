@@ -112,7 +112,7 @@ const DEVICES = [
     callouts: [
       ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 150, -45],
       ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 125, 55, 'above'],
-      ['solar', 'Solar endurance', 'Indefinite with sun', 20, 25],
+      ['solar', 'Solar endurance', 'Indefinite with sun', 70, 25],
       ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet', 30, 25],
       ['case', 'Field case', 'IP67 · fits in a daypack', 20, -55],
     ],
