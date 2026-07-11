@@ -86,19 +86,29 @@ a.brand:hover .b-word{opacity:1}
 #specs{right:24px;transform:translateX(14px)}
 #howto{left:28px;transform:translateX(-14px);width:min(410px,30vw)}
 /* the chain reads at a step up from the spec record — it is the pitch, not the fine print */
-#howto .pan-h{font-size:12px}
-#howto .sp-step{font-size:13px;padding:7px 0}
-#howto .sp-step b{font-size:14px}
-#howto .sp-step i{width:21px;height:21px;font-size:11.5px}
-#howto .sp-row{font-size:13px;padding:5px 0;line-height:1.5}
-#howto.tight .sp-step{padding:4px 0}
-#howto.tight .sp-step span{font-size:12.5px}
+#cap-how .pan-h{font-size:12px}
+#cap-how .sp-step{font-size:13px;padding:7px 0}
+#cap-how .sp-step b{font-size:14px}
+#cap-how .sp-step i{width:21px;height:21px;font-size:11.5px}
+#cap-how .sp-row{font-size:13px;padding:5px 0;line-height:1.5}
+#caption.tight .sp-step{padding:4px 0}
+#caption.tight .sp-step span{font-size:12.5px}
+#caption.tight #cap-how .sp-step{font-size:12.5px}
 /* mini must never strip the chain's descriptions — shrink, don't hide */
 #howto.mini .sp-step span{display:inline}
 #howto.mini .sp-step{font-size:12px;padding:3px 0}
 #howto.mini .sp-step b{font-size:12.5px}
 #howto.mini .sp-step i{width:18px;height:18px;font-size:10.5px}
 #specs.show,#howto.show{opacity:1;transform:none;pointer-events:auto}
+/* device views: the caption IS the left rail — one card, top 78 to bottom 92,
+   identical on every page. Title block up top, chain in the middle (scrolls
+   if it must), the action buttons pinned to the bottom edge */
+body.devview #caption{top:78px;display:flex;flex-direction:column}
+body.devview #caption>*{flex:none}
+body.devview #cap-how{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-top:15px;padding-top:13px;border-top:1px solid rgba(240,240,234,.13);scrollbar-width:none}
+body.devview #cap-how::-webkit-scrollbar{display:none}
+body.devview #cap-links{margin-top:16px}
+#cap-how:empty{display:none}
 #howto.show{transition-delay:.25s}
 #specs.show{transition-delay:.45s}
 /* auto-fit tiers — applied by JS when a panel would collide with the caption
@@ -206,6 +216,8 @@ a.brand:hover .b-word{opacity:1}
   #howto{top:62px;left:12px;width:min(320px,44vw);max-height:34vh}
   #specs-scroll,#howto-body{max-height:inherit;overflow-y:auto}
   #caption{left:14px;bottom:92px;width:auto;max-width:56vw;padding:15px 17px 14px}
+  body.devview #caption{top:auto}
+  body.devview #cap-how{max-height:26vh}
   #cap-line{max-width:none}
   #chapters{bottom:14px;overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
   #chapters::-webkit-scrollbar{display:none}

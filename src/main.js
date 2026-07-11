@@ -622,12 +622,11 @@ function fillPanels(d) {
     $('#specs-scroll').innerHTML = badges + best +
       `<div class="sp-h">A solution for every landscape</div>` +
       d.scenarios.map((c, i) => `<div class="sp-scen"><b>${i + 1} · ${c.n}<em>${c.t}</em></b><p>${c.d}</p></div>`).join('') + consult + note;
-    $('#howto-body').innerHTML = `<div class="pan-h">Key specification</div>` +
-      `<div id="howto-rows">${keyRows}</div>`;
+    $('#cap-how').innerHTML = `<div class="pan-h">Key specification</div>` + keyRows;
   } else {
     $('#specs-scroll').innerHTML = badges + best +
       `<div class="sp-h">Key specification</div>` + keyRows + note;
-    $('#howto-body').innerHTML = `<div class="pan-h">How it works</div>` + d.how.map(([t, x], i) =>
+    $('#cap-how').innerHTML = `<div class="pan-h">How it works</div>` + d.how.map(([t, x], i) =>
       `<div class="sp-step"><i>${i + 1}</i><div><b>${t}</b><span>${x}</span></div></div>`).join('');
   }
 }
@@ -635,14 +634,16 @@ function fillPanels(d) {
 // panels must never overlap the caption (left) or run past the chips (right):
 // step through density tiers until everything fits the viewport
 function fitPanels() {
-  const cap = $('#caption');
-  $('#howto-body').style.transform = '';                // scale() is banned — it made every page render differently
+  // the caption is the whole left rail: if its chain section can't fit,
+  // it steps to the tight tier once, then scrolls — never scales, never hides
+  const cap = $('#caption'), how = $('#cap-how');
+  cap.classList.remove('tight');
+  if (how.scrollHeight > how.clientHeight + 1) cap.classList.add('tight');
   const fit = (el, limit) => {
     el.classList.remove('tight', 'mini');
     if (el.getBoundingClientRect().bottom > limit()) el.classList.add('tight');
     if (el.getBoundingClientRect().bottom > limit()) el.classList.add('mini');
   };
-  fit($('#howto'), () => cap.getBoundingClientRect().top - 18);
   fit($('#specs'), () => innerHeight - 96);
 }
 addEventListener('resize', () => {
@@ -674,7 +675,8 @@ function goView(id, force = false) {
     for (const t of tracked) { if (t.kind === 'plate') t.el.style.opacity = ''; else { t.el.style.opacity = '0'; t.fx = null; gsap.killTweensOf(t.el); } }
     $('#plegend').classList.add('show');
     $('#specs').classList.remove('show');
-    $('#howto').classList.remove('show');
+    document.body.classList.remove('devview');
+    $('#cap-how').innerHTML = '';
     setCaption('The product line', 'Landseed Hardware',
       CAT_LINE,
       [['7', 'products'], ['$50–299', 'hardware'], ['30 s', 'fastest alert'], ['>12 mo', 'battery']],
@@ -705,7 +707,7 @@ function goView(id, force = false) {
   calloutsLive = false;                                 // the tick reveals once the flight has settled
   $('#plegend').classList.remove('show');
   $('#specs').classList.add('show');
-  $('#howto').classList.add('show');
+  document.body.classList.add('devview');   // the caption becomes the full left rail
   fillPanels(d);
 
   const i = DEVICES.indexOf(d), next = DEVICES[(i + 1) % DEVICES.length];
