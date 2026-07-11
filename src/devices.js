@@ -230,7 +230,7 @@ export function buildSerengeti(hue) {
     ir:      V3(0, H * .93 + .06, D / 2 + .04),
     pir:     V3(0, H * .38 + .06, D / 2 + .05),
     antenna: V3(W / 2 - .045, H + .38, 0),
-    battery: V3(.46, .2, .1),
+    battery: V3(.44, .07, .16),                        // low on the pack face — a short lead to the label below
     shell:   V3(-W / 2 - .02, H * .6 + .06, 0),
   };
   g.userData.pulse = [led];

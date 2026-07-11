@@ -14,7 +14,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { BUILDERS } from '../src/devices.js?v=9';
+import { BUILDERS } from '../src/devices.js?v=10';
 
 const $ = (s) => document.querySelector(s);
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);

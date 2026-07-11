@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=3';
-import { BUILDERS } from './devices.js?v=9';
+import { BUILDERS } from './devices.js?v=10';
 
 const $ = (s) => document.querySelector(s);
 
@@ -83,7 +83,7 @@ const DEVICES = [
       ['ir', 'Dual IR array', 'Night work at the village edge', 95, -60],
       ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge'],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
-      ['battery', 'Battery pack', 'External, expandable · > 12 months', 0, -6, 'above'],
+      ['battery', 'Battery pack', 'External, expandable · > 12 months', 55, -6, 'above'],
     ],
   },
   {
@@ -111,7 +111,7 @@ const DEVICES = [
     ],
     callouts: [
       ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 150, -45],
-      ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 45, 0, 'above'],
+      ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 110, 55, 'above'],
       ['solar', 'Solar endurance', 'Indefinite with sun'],
       ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet'],
       ['case', 'Field case', 'IP67 · fits in a daypack'],
@@ -142,7 +142,7 @@ const DEVICES = [
     callouts: [
       ['lens', 'Optics', 'VillageGuard 2 MP platform', 75, 60],
       ['pod', 'Acoustic pod', 'The listening half of the survey', -25, 5, 'above'],
-      ['ai', 'Bespoke models', 'The key species of your landscape', -45, 0, 'above'],
+      ['ai', 'Bespoke models', 'The key species of your landscape', -20, 0, 'above'],
       ['wifi', 'Wi-Fi offload', 'No airtime required'],
     ],
   },
