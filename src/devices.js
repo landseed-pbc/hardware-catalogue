@@ -472,7 +472,7 @@ export function buildMobile(hue) {
     screen:  V3(0, .47, .015),                          // upper half of the display
     eye:     V3(W * .3, .61, 0),                        // the camera nub on the top bezel
     shutter: V3(W / 2 + .015, .54, -.02),               // the key on the right edge
-    body:    V3(-W / 2 - .005, .36, .01),               // the slab's left flank
+    body:    V3(-W / 2 + .015, .36, .022),          // on the bezel corner, not beside it
   };
   g.userData.pulse = [led];
   g.userData.labelY = .85;

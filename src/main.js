@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=3';
-import { BUILDERS } from './devices.js?v=16';
+import { BUILDERS } from './devices.js?v=17';
 
 const $ = (s) => document.querySelector(s);
 
@@ -200,7 +200,7 @@ const DEVICES = [
     callouts: [
       ['screen', 'Report screen', 'Frame, confirm, transmit', 95, 0],
       ['eye', 'Daylight camera', 'No IR, no meter — $50 stays $50'],
-      ['shutter', 'One key', 'Usable under pressure'],
+      ['shutter', 'One key', 'Usable under pressure', 25, -30],
       ['body', 'Rugged slab', 'Pocketable, unremarkable'],
     ],
   },
