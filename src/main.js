@@ -326,6 +326,7 @@ for (const d of DEVICES) {
   if (d.id === 'ai') { el.classList.add('up'); p = new THREE.Vector3(0, 1.8, z); }
   else p = new THREE.Vector3(d.x, 0, z + .68);
   addLabel(el, () => p, d, 'plate');
+  d.plateEl = el;                                       // raycast hover lights the plate too
 
   d.calloutEls = d.callouts.map(([a, n, s, ox, oy, mode, noline]) => {
     const k = document.createElement('div');
@@ -727,13 +728,20 @@ function pick(e) {
   return null;
 }
 addEventListener('pointermove', (e) => {
-  if (e.target !== $('#scene')) { $('#scene').classList.remove('pointing'); return; }
-  const d = current === 'catalogue' ? pick(e) : null;
-  $('#scene').classList.toggle('pointing', !!d);
+  const onScene = e.target === $('#scene');
+  if (!onScene) $('#scene').classList.remove('pointing');
+  const d = onScene && current === 'catalogue' ? pick(e) : null;
+  if (onScene) $('#scene').classList.toggle('pointing', !!d);
   if (hovered !== d) {
-    if (hovered && current === 'catalogue') gsap.to(hovered.plinth.userData.ring.material, { opacity: .8, duration: .3 });
+    if (hovered && current === 'catalogue') {
+      gsap.to(hovered.plinth.userData.ring.material, { opacity: .8, duration: .3 });
+      hovered.plateEl?.classList.remove('hl');
+    }
     hovered = d;
-    if (d) gsap.to(d.plinth.userData.ring.material, { opacity: 1, duration: .2 });
+    if (d) {
+      gsap.to(d.plinth.userData.ring.material, { opacity: 1, duration: .2 });
+      d.plateEl?.classList.add('hl');
+    }
   }
 });
 addEventListener('pointerdown', (e) => { downAt = performance.now(); downXY = [e.clientX, e.clientY]; });
