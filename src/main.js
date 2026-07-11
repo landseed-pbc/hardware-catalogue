@@ -140,7 +140,7 @@ const DEVICES = [
       ['Spec sheet', 'in development'],
     ],
     callouts: [
-      ['lens', 'Optics', 'VillageGuard 2 MP platform', -90, -150],
+      ['lens', 'Optics', 'VillageGuard 2 MP platform', -50, -120],
       ['pod', 'Acoustic pod', 'The listening half of the survey', -45, -10, 'above'],
       ['ai', 'Bespoke models', 'The key species of your landscape', 60, -5],
       ['wifi', 'Wi-Fi offload', 'No airtime required', -60, -75, null, 2],
