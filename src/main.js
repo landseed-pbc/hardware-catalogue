@@ -367,15 +367,24 @@ world.onTick = () => {
       const rlx = t.fx + rox, rly = t.fy + roy;
       t.el.style.left = rlx + 'px'; t.el.style.top = rly + 'px';
       t.dot.setAttribute('cx', sx); t.dot.setAttribute('cy', sy);
-      t.line.setAttribute('x1', sx); t.line.setAttribute('y1', sy);
       const rw = t.el.offsetWidth, rh = t.el.offsetHeight;
       const rdx = sx - rlx, rdy = sy - rly;
+      let X1 = sx, Y1 = sy, X2, Y2;
       if (Math.abs(rdx) >= Math.abs(rdy)) {
-        t.line.setAttribute('x2', rlx + Math.sign(rdx) * (rw / 2 + 2)); t.line.setAttribute('y2', rly);
+        X2 = rlx + Math.sign(rdx) * (rw / 2 + 2); Y2 = rly;
       } else {
         const rbt = Math.min(1, 1 / Math.max(Math.abs(rdx) / (rw / 2 + 4), Math.abs(rdy) / (rh / 2 + 4), 1e-6));
-        t.line.setAttribute('x2', rlx + rdx * rbt); t.line.setAttribute('y2', rly + rdy * rbt);
+        X2 = rlx + rdx * rbt; Y2 = rly + rdy * rbt;
       }
+      if (t.el.__noline === 2) {
+        // a beacon hairline FLOATS: pulled off the glow at one end and short
+        // of the words at the other — it points, it never touches
+        const ldx = X2 - X1, ldy = Y2 - Y1, ll = Math.hypot(ldx, ldy) || 1;
+        X1 += ldx / ll * 16; Y1 += ldy / ll * 16;
+        X2 -= ldx / ll * 7; Y2 -= ldy / ll * 7;
+      }
+      t.line.setAttribute('x1', X1); t.line.setAttribute('y1', Y1);
+      t.line.setAttribute('x2', X2); t.line.setAttribute('y2', Y2);
       // noline tiers: 1 = bare (the part IS the marker) · 2 = hairline to the
       // part's own beacon, no dot (the glow plays the dot's role)
       const vis = getComputedStyle(t.el).opacity;
