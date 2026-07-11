@@ -359,7 +359,7 @@ export function buildJungleWallah(hue) {
     pgr.material.map = grilleTex().clone();
     pgr.material.map.repeat.set(3, 1.4);
     pod.add(pgr);
-    const pcore = mesh(CYL(pr * .82, pr * .82, ph * .56, 20), M.led(hue, .55), 0, 0, 0);
+    const pcore = mesh(CYL(pr * .82, pr * .82, ph * .56, 20), M.led(hue, 1.5), 0, 0, 0);  // the listening presence glows through the grille
     pcore.castShadow = false;
     pod.add(pcore);
     pod.add(mesh(CYL(pr * 1.04, pr, .045, 24), M.body(0x272d27), 0, ph * .34, 0));
