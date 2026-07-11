@@ -113,7 +113,7 @@ const DEVICES = [
       ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 110, -75, null, 1],
       ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 125, 55, 'above', 1],
       ['solar', 'Solar endurance', 'Indefinite with sun', 150, 45],
-      ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet', 30, 25],
+      ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet', -10, 55],
       ['case', 'Field case', 'IP67 · fits in a daypack', 50, -80],
     ],
   },
