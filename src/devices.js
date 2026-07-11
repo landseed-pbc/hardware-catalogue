@@ -320,7 +320,7 @@ export function buildGateway(hue) {
   g.add(cable(V3(-.52, .58, -.3), V3(-W / 2 + .04, .16, -.1), .06, .01));
 
   g.userData.anchors = {
-    lora:  V3(-W * .32, H + .52, -D * .18),
+    lora:  V3(-W * .32 + .035, H + .54, -D * .18),     // right shoulder of the mast beacon, same treatment as lte
     lte:   V3(.035, H + .36, -D * .2),                 // right shoulder of the beacon — the hairline leaves the glow's right side
     io:    V3(0, H * .35 + .05, D / 2 + .08),
     case:  V3(W / 2 + .05, H * .5 + .05, 0),
