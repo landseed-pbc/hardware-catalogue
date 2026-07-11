@@ -469,13 +469,6 @@ function layoutCallouts(d) {
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
       const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;
-      if (aip) {
-        // once measured, keep the whole plate inside the safe band
-        const hw = $('#howto').getBoundingClientRect(), sp = $('#specs').getBoundingClientRect();
-        const bandL = (hw.width ? hw.right : 0) + 12, bandR = (sp.width ? sp.left : innerWidth) - 12;
-        lx = Math.max(bandL + w / 2, Math.min(bandR - w / 2, lx));
-        c.t.el.style.left = lx + 'px';
-      }
       // the leader aims at the label's CENTRE and stops at its border:
       // wherever the label moves, the line rotates to lead to its middle
       const ddx = c.sx - lx, ddy = c.sy - ly;
