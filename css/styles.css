@@ -103,14 +103,20 @@ a.brand:hover .b-word{opacity:1}
 /* device views: the caption IS the left rail — one card, top 78 to bottom 92,
    identical on every page. Title block up top, chain in the middle (scrolls
    if it must), the action buttons pinned to the bottom edge */
-body.devview #caption{top:64px;bottom:78px;display:flex;flex-direction:column}
+body.devview #caption{top:64px;bottom:72px;display:flex;flex-direction:column}
+/* devview condensation — buys the chain its room without touching type sizes */
+body.devview #cap-kicker{margin-bottom:6px}
+body.devview #cap-title{margin-bottom:7px}
+body.devview #cap-line{line-height:1.5}
+body.devview #cap-stats{margin-top:11px;padding-top:9px}
+body.devview #cap-how .sp-step{padding:6px 0}
 body.devview #specs{top:64px}
 body.devview #specs-scroll{max-height:calc(100vh - 142px);overflow-y:auto;scrollbar-width:none}
 body.devview #specs-scroll::-webkit-scrollbar{display:none}
 body.devview #caption>*{flex:none}
-body.devview #cap-how{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-top:15px;padding-top:13px;border-top:1px solid rgba(240,240,234,.13);scrollbar-width:none}
+body.devview #cap-how{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-top:12px;padding-top:11px;border-top:1px solid rgba(240,240,234,.13);scrollbar-width:none}
 body.devview #cap-how::-webkit-scrollbar{display:none}
-body.devview #cap-links{margin-top:16px}
+body.devview #cap-links{margin-top:12px}
 #cap-how:empty{display:none}
 #howto.show{transition-delay:.25s}
 #specs.show{transition-delay:.45s}
