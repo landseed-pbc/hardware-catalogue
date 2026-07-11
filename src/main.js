@@ -457,10 +457,14 @@ function layoutCallouts(d) {
       const aip = d.id === 'ai' && AI_POS[c.t.el.__anchor];
       if (aip) {
         // the orb page is a composed diagram — no leaders, so the five notes
-        // take fixed stations around the orb; hand offsets nudge from there
+        // take fixed stations RINGED ON THE ORB: the band between the rail
+        // cards sets the ring's width, the orb's own screen position sets its
+        // centre, so orb and notes move as one grouped piece
         const hw = $('#howto').getBoundingClientRect(), sp = $('#specs').getBoundingClientRect();
-        const bandL = (hw.width ? hw.right : 0) + 20, bandR = (sp.width ? sp.left : innerWidth) - 20;
-        lx = bandL + aip[0] * (bandR - bandL) + dx2;
+        const bandW = ((sp.width ? sp.left : innerWidth) - 20) - ((hw.width ? hw.right : 0) + 20);
+        const pv2 = _v.copy(d.group.position); pv2.y += 1; pv2.project(camera);
+        const orbX = (pv2.x * .5 + .5) * innerWidth;
+        lx = orbX + (aip[0] - .5) * bandW + dx2;
         ly = aip[1] * innerHeight + dy2;
       } else if (c.t.el.__mode === 'above' || c.t.el.__mode === 'below') {
         lx = c.sx + dx2;                                // straight over/under the part
@@ -576,7 +580,7 @@ function deviceFrame(d) {
   const tgt = new THREE.Vector3(x, ty, z);
   // per-device frame pan: the battery box hangs off one side of each camera,
   // so the ensemble is re-centred — gateway right, monitor left, VG right
-  const PAN = { gateway: .27, serengeti: -.12, villageguard: .1, ai: -.22 };
+  const PAN = { gateway: .27, serengeti: -.12, villageguard: .1, ai: -.12 };
   if (PAN[d.id]) {
     pos.addScaledVector(side, PAN[d.id]);
     tgt.addScaledVector(side, PAN[d.id]);
