@@ -87,10 +87,10 @@ a.brand:hover .b-word{opacity:1}
 #howto{left:28px;transform:translateX(-14px);width:min(410px,30vw)}
 /* the chain reads at a step up from the spec record — it is the pitch, not the fine print */
 #howto .pan-h{font-size:12px}
-#howto .sp-step{font-size:13.5px;padding:8px 0}
-#howto .sp-step b{font-size:14.5px}
-#howto .sp-step i{width:22px;height:22px;font-size:12px}
-#howto .sp-row{font-size:13px}
+#howto .sp-step{font-size:13px;padding:7px 0}
+#howto .sp-step b{font-size:14px}
+#howto .sp-step i{width:21px;height:21px;font-size:11.5px}
+#howto .sp-row{font-size:13px;padding:5px 0;line-height:1.5}
 #howto.tight .sp-step{padding:4px 0}
 #howto.tight .sp-step span{font-size:12.5px}
 /* mini must never strip the chain's descriptions — shrink, don't hide */
@@ -142,7 +142,7 @@ a.brand:hover .b-word{opacity:1}
 .sp-scen p{font-size:12px;line-height:1.45;color:var(--dim);margin:0}
 
 /* caption — the field-note card, bottom left */
-#caption{position:fixed;left:28px;bottom:92px;z-index:25;max-width:400px;padding:19px 22px 17px;border-radius:14px;background:linear-gradient(180deg,rgba(6,11,9,.66),rgba(6,11,9,.78));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.09);opacity:0;transition:opacity .5s ease}
+#caption{position:fixed;left:28px;bottom:92px;z-index:25;width:min(410px,30vw);padding:19px 22px 17px;border-radius:14px;background:linear-gradient(180deg,rgba(6,11,9,.66),rgba(6,11,9,.78));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.09);opacity:0;transition:opacity .5s ease}
 #caption.in{opacity:1;animation:capin .6s cubic-bezier(.2,.7,.2,1)}
 @keyframes capin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 #cap-kicker{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--fa,var(--accent));margin-bottom:8px}
@@ -158,7 +158,6 @@ a.brand:hover .b-word{opacity:1}
 #cap-stats span{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:2px}
 /* stack2 — long stat labels (Landseed AI) sit in a roomy 2×2 grid instead of a squeezed row;
    the card matches the how-it-works width so the two read as one aligned left rail */
-#caption.stack2{max-width:min(410px,30vw);width:min(410px,30vw)}
 #caption.stack2 #cap-line{font-size:13.5px}
 #caption.stack2 #cap-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 0}
 #caption.stack2 #cap-stats div{padding:0 0 0 14px;border-left:1px solid rgba(240,240,234,.1)}
@@ -206,7 +205,7 @@ a.brand:hover .b-word{opacity:1}
   #specs{top:62px;right:12px;width:min(320px,44vw);max-height:calc(100vh - 220px)}
   #howto{top:62px;left:12px;width:min(320px,44vw);max-height:34vh}
   #specs-scroll,#howto-body{max-height:inherit;overflow-y:auto}
-  #caption{left:14px;bottom:92px;max-width:56vw;padding:15px 17px 14px}
+  #caption{left:14px;bottom:92px;width:auto;max-width:56vw;padding:15px 17px 14px}
   #cap-line{max-width:none}
   #chapters{bottom:14px;overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
   #chapters::-webkit-scrollbar{display:none}
@@ -217,7 +216,7 @@ a.brand:hover .b-word{opacity:1}
   #plegend{top:46px;left:11px;right:auto;max-width:62vw;max-height:52vh;overflow-y:auto}
   #specs{top:46px;left:11px;right:11px;width:auto;max-height:34vh}
   #howto{display:none}
-  #caption{left:11px;right:11px;bottom:110px;max-width:none;padding:13px 15px 12px}
+  #caption{left:11px;right:11px;bottom:110px;width:auto;max-width:none;padding:13px 15px 12px}
   #cap-title{font-size:20px;margin-bottom:6px}
   #cap-line{font-size:12px;line-height:1.5}
   #cap-stats div{padding:0 11px}
