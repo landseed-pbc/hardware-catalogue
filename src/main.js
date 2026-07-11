@@ -43,7 +43,7 @@ const DEVICES = [
       ['Proven', '14 days underwater, transmitting'],
     ],
     callouts: [
-      ['lens', 'Optics', 'Low-light sensor · 200 ms to first image'],
+      ['lens', 'Optics', 'Low-light sensor · 200 ms to first image', 70, -55],
       ['ir', 'IR illuminator', 'Sees at night, shows nothing', 60, -65],
       ['antenna', 'Long-range radio', 'LoRa · LTE · satellite backhaul'],
       ['pir', 'PIR trigger', '5–10 µA asleep · re-trigger < 1 s', -290, 65],
