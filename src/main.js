@@ -229,9 +229,9 @@ const DEVICES = [
       ['Roadmap', 'monocular distance · acoustic triangulation'],
     ],
     callouts: [
-      ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', 0, 95, null, 1],
-      ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', -10, 65, null, 1],
-      ['rings', 'Analytics', 'Occupancy, density and abundance, always current', 15, 65, null, 1],
+      ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', 0, 110, null, 1],
+      ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', -10, 80, null, 1],
+      ['rings', 'Analytics', 'Occupancy, density and abundance, always current', 15, 80, null, 1],
       ['swarm', 'Detections', 'Every alert from the field network, streamed live', -10, -45, null, 1],
       ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', 15, -40, null, 1],
     ],
@@ -338,7 +338,7 @@ for (const d of DEVICES) {
     k.__anchor = a;
     k.__off = [ox || 0, oy || 0];                       // hand-tuned nudge, applied after auto-layout
     k.__mode = mode || null;                            // 'above'/'below': place relative to the part, not the side columns
-    k.__noline = !!noline;                              // the part's own beacon serves as the dot — no leader drawn
+    k.__noline = noline || 0;                           // 0 = dot+line · 1 = bare · 2 = hairline only (keep the NUMBER — the tiers compare with ===)
     const anchor = d.group.userData.anchors[a] ?? new THREE.Vector3();
     const getPos = () => _v.copy(anchor).applyMatrix4(d.group.matrixWorld);
     addLabel(k, getPos, d, 'callout', true);
