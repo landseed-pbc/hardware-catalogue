@@ -233,7 +233,7 @@ const DEVICES = [
       ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', -15, 80, null, 1],
       ['rings', 'Analytics', 'Occupancy, density and abundance, always current', 15, 80, null, 1],
       ['swarm', 'Detections', 'Every alert from the field network, streamed live', -15, -45, null, 1],
-      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', 15, -40, null, 1],
+      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', 20, -45, null, 1],
     ],
   },
 ];
