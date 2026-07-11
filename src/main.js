@@ -229,7 +229,7 @@ const DEVICES = [
       ['Roadmap', 'monocular distance · acoustic triangulation'],
     ],
     callouts: [
-      ['core', 'The brain', 'CTDAMS — every sensor, one aggregator', 160, 0],
+      ['core', 'The brain', 'CTDAMS — every sensor, one aggregator', 175, 40],
       ['shells', 'Fusion layers', 'Optical · acoustic · satellite'],
       ['rings', 'Analytics', 'Occupancy, density, abundance'],
       ['swarm', 'Detections', 'Live from the field network'],
@@ -359,8 +359,15 @@ world.onTick = () => {
       // the plate is frozen where layoutCallouts put it — only the anchor
       // dot and the leader line follow the part through the frame
       if (t.fx == null) { t.el.style.display = 'none'; if (t.line) { t.line.style.opacity = '0'; t.dot.style.opacity = '0'; } continue; }
+      const rox = sx - (t.fax ?? sx), roy = sy - (t.fay ?? sy);
+      const rlx = t.fx + rox, rly = t.fy + roy;
+      t.el.style.left = rlx + 'px'; t.el.style.top = rly + 'px';
       t.dot.setAttribute('cx', sx); t.dot.setAttribute('cy', sy);
       t.line.setAttribute('x1', sx); t.line.setAttribute('y1', sy);
+      const rw = t.el.offsetWidth, rh = t.el.offsetHeight;
+      const rdx = sx - rlx, rdy = sy - rly;
+      const rbt = Math.min(1, 1 / Math.max(Math.abs(rdx) / (rw / 2 + 4), Math.abs(rdy) / (rh / 2 + 4), 1e-6));
+      t.line.setAttribute('x2', rlx + rdx * rbt); t.line.setAttribute('y2', rly + rdy * rbt);
       const op = t.el.__noline ? '0' : getComputedStyle(t.el).opacity;
       t.line.style.opacity = op; t.dot.style.opacity = op;
     } else {
@@ -452,6 +459,7 @@ function layoutCallouts(d) {
       c.t.line.setAttribute('x2', lx + ddx * bt);
       c.t.line.setAttribute('y2', ly + ddy * bt);
       c.t.fx = lx; c.t.fy = ly;
+      c.t.fax = c.sx; c.t.fay = c.sy;
     }
   }
 }
