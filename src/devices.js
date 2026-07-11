@@ -405,7 +405,7 @@ export function buildWolf(hue) {
   grille.material.map.repeat.set(3, 1.4);
   g.add(grille);
   // inner glow — the animal presence behind the perforations
-  const core = mesh(CYL(R * .82, R * .82, H * .56, 20), M.led(hue, .55), 0, .15 + H * .31, 0);
+  const core = mesh(CYL(R * .82, R * .82, H * .56, 20), M.led(hue, 1.4), 0, .15 + H * .31, 0);
   core.castShadow = false;
   g.add(core);
   g.add(mesh(CYL(R * 1.04, R, .06, 24), M.body(0x272d27), 0, .15 + H * .62 + .03, 0));
@@ -429,10 +429,10 @@ export function buildWolf(hue) {
   g.userData.waves = rings;
 
   g.userData.anchors = {
-    grille: V3(R + .06, .15 + H * .31, 0),
+    grille: V3(R * .62, .15 + H * .31, R * .78),        // on the grille face toward the viewer
     mic:    V3(0, .15 + H * .62 + .14, 0),
-    core:   V3(-R - .05, .15 + H * .35, 0),
-    base:   V3(R * .9, .1, R * .5),
+    core:   V3(-R * .62, .15 + H * .42, R * .78),       // on the grille, upper-left
+    base:   V3(R * .8, .13, R * .5),                    // the status LED itself
   };
   g.userData.pulse = [led, core.material];
   g.userData.labelY = .92;
