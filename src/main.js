@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=3';
-import { BUILDERS } from './devices.js?v=7';
+import { BUILDERS } from './devices.js?v=8';
 
 const $ = (s) => document.querySelector(s);
 
@@ -110,7 +110,7 @@ const DEVICES = [
       ['Power', 'LiFePO4 · > 12 mo · solar indefinite'],
     ],
     callouts: [
-      ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency'],
+      ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 150, -45],
       ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist'],
       ['solar', 'Solar endurance', 'Indefinite with sun'],
       ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet'],

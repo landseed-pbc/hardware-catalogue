@@ -469,10 +469,10 @@ export function buildMobile(hue) {
   g.add(mesh(RB(.2, .16, .16, .05, 4), M.body(0x20261f), 0, .08, -.1));
 
   g.userData.anchors = {
-    screen:  V3(0, H / 2 + .22, D / 2 + .1),
-    eye:     V3(W * .3, H * .88 + .14, D / 2 + .06),
-    shutter: V3(W / 2 + .08, H * .55 + .12, 0),
-    body:    V3(-W / 2 - .06, H * .45 + .12, 0),
+    screen:  V3(0, .47, .015),                          // upper half of the display
+    eye:     V3(W * .3, .61, 0),                        // the camera nub on the top bezel
+    shutter: V3(W / 2 + .015, .54, -.02),               // the key on the right edge
+    body:    V3(-W / 2 - .005, .36, .01),               // the slab's left flank
   };
   g.userData.pulse = [led];
   g.userData.labelY = .85;
@@ -541,10 +541,10 @@ export function buildShaman(hue) {
   g.children.forEach(c => c.position.y += .78);
 
   g.userData.anchors = {
-    core:   V3(0, .55, .28),
-    shells: V3(.46, 1.1, 0),
-    rings:  V3(-.62, .62, 0),
-    swarm:  V3(.5, .5, 0),
+    core:   V3(.19, .8, .21),                           // front-right of the lockup cube
+    shells: V3(.4, 1.08, 0),                            // on the outer lattice shell
+    rings:  V3(-.64, .79, .02),                         // on the middle gyroscope ring's rim
+    swarm:  V3(.48, .58, .12),                          // inside the detection cloud
   };
   g.userData.spin = [
     { obj: s1, ax: 'y', v: .22 }, { obj: s2, ax: 'y', v: -.12 },
