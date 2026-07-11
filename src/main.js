@@ -229,11 +229,11 @@ const DEVICES = [
       ['Roadmap', 'monocular distance · acoustic triangulation'],
     ],
     callouts: [
-      ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', 85, 50, null, 1],
+      ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', 165, 50, null, 1],
       ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', 35, -45, null, 1],
-      ['rings', 'Analytics', 'Occupancy, density and abundance, updated with every detection', 70, -60, null, 1],
+      ['rings', 'Analytics', 'Occupancy, density and abundance, updated with every detection', -40, -60, null, 1],
       ['swarm', 'Detections', 'Every alert from the field network, streamed live', 40, 70, null, 1],
-      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', 60, 50, null, 1],
+      ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', -50, 50, null, 1],
     ],
   },
 ];
@@ -454,6 +454,18 @@ function layoutCallouts(d) {
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
       const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;
+      if (d.id === 'ai') {
+        // the orb's free-floating notes: shoved clear of the UI cards and the
+        // screen edges only when they actually collide — positions stay hand-set
+        for (const pid of ['howto', 'caption', 'specs']) {
+          const r = document.getElementById(pid).getBoundingClientRect();
+          if (!r.width) continue;
+          if (lx + w / 2 > r.left - 10 && lx - w / 2 < r.right + 10 && ly + h / 2 > r.top - 10 && ly - h / 2 < r.bottom + 10)
+            lx = r.left < innerWidth / 2 ? r.right + w / 2 + 16 : r.left - w / 2 - 16;
+        }
+        lx = Math.max(w / 2 + 10, Math.min(innerWidth - w / 2 - 10, lx));
+        c.t.el.style.left = lx + 'px';
+      }
       // the leader aims at the label's CENTRE and stops at its border:
       // wherever the label moves, the line rotates to lead to its middle
       const ddx = c.sx - lx, ddy = c.sy - ly;
@@ -647,6 +659,7 @@ function goView(id, force = false) {
       CAT_LINE,
       [['7', 'products'], ['$50–299', 'hardware'], ['30 s', 'fastest alert'], ['>12 mo', 'battery']],
       [['Begin the tour → Monitor', 'serengeti']], null);
+    $('#caption').classList.remove('stack2');
     requestAnimationFrame(() => {                       // measure cards, then frame the bay
       const f = fitCatalogue();
       flyTo(f.pos, f.tgt, prev === 'catalogue' ? 1.2 : 1.7);
@@ -677,8 +690,9 @@ function goView(id, force = false) {
 
   const i = DEVICES.indexOf(d), next = DEVICES[(i + 1) % DEVICES.length];
   const nextName = next.id === 'ai' ? next.name : next.name.replace('Landseed ', '');
-  const links = [[`Next · ${nextName} →`, next.id], ['← Catalogue', 'catalogue']];
+  const links = [['← Catalogue', 'catalogue'], [`Next · ${nextName} →`, next.id]];
   setCaption(d.kicker, d.name, d.line, d.stats, links, d.hue);
+  $('#caption').classList.toggle('stack2', d.id === 'ai');   // AI's long stat labels breathe in a 2×2 grid
   requestAnimationFrame(fitPanels);
 }
 
