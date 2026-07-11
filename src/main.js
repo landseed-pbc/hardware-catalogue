@@ -110,8 +110,8 @@ const DEVICES = [
       ['Power', 'LiFePO4 · > 12 mo · solar indefinite'],
     ],
     callouts: [
-      ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 110, -75, null, 1],
-      ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 125, 55, 'above', 1],
+      ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 110, -75, null, 2],
+      ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 125, 55, 'above', 2],
       ['solar', 'Solar endurance', 'Indefinite with sun', 150, 45],
       ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet', -10, 43],
       ['case', 'Field case', 'IP67 · fits in a daypack', 85, -105],
@@ -376,8 +376,11 @@ world.onTick = () => {
         const rbt = Math.min(1, 1 / Math.max(Math.abs(rdx) / (rw / 2 + 4), Math.abs(rdy) / (rh / 2 + 4), 1e-6));
         t.line.setAttribute('x2', rlx + rdx * rbt); t.line.setAttribute('y2', rly + rdy * rbt);
       }
-      const op = t.el.__noline ? '0' : getComputedStyle(t.el).opacity;
-      t.line.style.opacity = op; t.dot.style.opacity = op;
+      // noline tiers: 1 = bare (the part IS the marker) · 2 = hairline to the
+      // part's own beacon, no dot (the glow plays the dot's role)
+      const vis = getComputedStyle(t.el).opacity;
+      t.line.style.opacity = t.el.__noline === 1 ? '0' : vis;
+      t.dot.style.opacity = t.el.__noline ? '0' : vis;
     } else {
       plates.push({ t, sx, sy, ly: sy, hw: t.el.offsetWidth / 2 + 8, h: t.el.offsetHeight + 6 });
     }
