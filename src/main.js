@@ -636,6 +636,17 @@ function fillPanels(d) {
 // step through density tiers until everything fits the viewport
 function fitPanels() {
   const cap = $('#caption');
+  // the caption owns the lower half-card: its content steps down (ctight),
+  // then scales, until it fits — the card itself never changes size
+  cap.classList.remove('ctight'); cap.style.transform = '';
+  if (document.body.classList.contains('devview')) {
+    const over = () => cap.scrollHeight > cap.clientHeight + 1;
+    if (over()) cap.classList.add('ctight');
+    if (over()) {
+      cap.style.transformOrigin = 'left bottom';
+      cap.style.transform = `scale(${Math.max(.7, cap.clientHeight / cap.scrollHeight)})`;
+    }
+  }
   const fit = (el, limit, body) => {
     el.classList.remove('tight', 'mini');
     if (body) { body.style.transform = ''; body.style.transformOrigin = 'top left'; }
@@ -681,6 +692,7 @@ function goView(id, force = false) {
     $('#specs').classList.remove('show');
     $('#howto').classList.remove('show');
     document.body.classList.remove('devview');
+    $('#caption').classList.remove('ctight'); $('#caption').style.transform = '';
     setCaption('The product line', 'Landseed Hardware',
       CAT_LINE,
       [['7', 'products'], ['$50–299', 'hardware'], ['30 s', 'fastest alert'], ['>12 mo', 'battery']],
