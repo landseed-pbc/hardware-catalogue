@@ -48,7 +48,7 @@ const DEVICES = [
       ['antenna', 'Long-range radio', 'LoRa · LTE · satellite backhaul'],
       ['pir', 'PIR trigger', '5–10 µA asleep · re-trigger < 1 s', -290, 65],
       ['battery', 'Battery pack', 'External, expandable · > 12 months', -20, 20],
-      ['shell', 'Camo shell', 'IP67+ · tested underwater', -75, 0],
+      ['shell', 'Camo shell', 'IP67+ · tested underwater', -35, -100],
     ],
   },
   {
