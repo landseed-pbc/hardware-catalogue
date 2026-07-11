@@ -87,8 +87,10 @@ a.brand:hover .b-word{opacity:1}
 #howto{left:28px;transform:translateX(-14px);width:min(410px,30vw)}
 /* the chain reads at a step up from the spec record — it is the pitch, not the fine print */
 #cap-how .pan-h{font-size:12px}
-#cap-how .sp-step{font-size:13px;padding:7px 0}
-#cap-how .sp-step b{font-size:14px}
+#cap-how .sp-step{font-size:13px;padding:7px 0;align-items:center}
+/* chain steps read as ONE line — title runs into the description */
+#cap-how .sp-step b{display:inline;font-size:13.5px;margin:0 7px 0 0}
+#cap-how .sp-step span{display:inline}
 #cap-how .sp-step i{width:21px;height:21px;font-size:11.5px}
 #cap-how .sp-row{font-size:13px;padding:5px 0;line-height:1.5}
 #caption.tight .sp-step{padding:4px 0}
