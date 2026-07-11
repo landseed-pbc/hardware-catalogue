@@ -229,9 +229,9 @@ const DEVICES = [
       ['Roadmap', 'monocular distance · acoustic triangulation'],
     ],
     callouts: [
-      ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', -30, 70, null, 1],
-      ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', -45, 40, null, 1],
-      ['rings', 'Analytics', 'Occupancy, density and abundance, always current', -25, 40, null, 1],
+      ['core', 'The brain', 'CTDAMS — every sensor in the landscape feeds one aggregator', -30, 95, null, 1],
+      ['shells', 'Fusion layers', 'Optical, acoustic and satellite streams, read together', -45, 65, null, 1],
+      ['rings', 'Analytics', 'Occupancy, density and abundance, always current', -25, 65, null, 1],
       ['swarm', 'Detections', 'Every alert from the field network, streamed live', -30, -40, null, 1],
       ['base', 'Back to the sources', 'Alerts and reports return to the teams in the field', -15, -40, null, 1],
     ],
@@ -719,7 +719,6 @@ function goView(id, force = false) {
   const nextName = next.id === 'ai' ? next.name : next.name.replace('Landseed ', '');
   const links = [['← Catalogue', 'catalogue'], [`Next · ${nextName} →`, next.id]];
   setCaption(d.kicker, d.name, d.line, d.stats, links, d.hue);
-  $('#caption').classList.toggle('stack2', d.id === 'ai');   // AI's long stat labels breathe in a 2×2 grid
   requestAnimationFrame(fitPanels);
 }
 
