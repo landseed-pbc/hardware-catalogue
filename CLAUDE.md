@@ -101,3 +101,29 @@ catalogue moving to /catalogue, once perfected.
 - Verification gotcha: backgrounded tabs freeze rAF AND gsap real-time holds —
   ghost cards / stale clocks in screenshots are artifacts, not bugs. Foreground
   the window before judging timing.
+
+## Callout & framing reference (LOCKED 2026-07-11)
+
+Hand-tuned on Alex's 13" MacBook Pro. **All hand offsets are authored in px at an
+860px-tall viewport and scaled by `kk = innerHeight/860`** in `layoutCallouts` —
+this is what keeps every screen size looking identical. Do not convert these to
+absolute px and do not change the 860 basis. The current values live in
+`DEVICES[..].callouts` (`[anchor, title, sub, dx, dy, mode, noline]`), `AI_POS`,
+and the `PAN` map in `deviceFrame`; this section records the system so nobody
+"simplifies" it away:
+
+- **Frame pans** (`deviceFrame` PAN map): gateway +.27, serengeti −.12,
+  villageguard +.10 along the side vector. Distances: gateway 2.2, ai 3.15,
+  villageguard 2.35, others 1.8.
+- **Landseed AI page**: leaderless composed diagram. Stations in `AI_POS` are
+  {x: fraction of the safe band between #howto's right edge and #specs' left
+  edge, y: fraction of viewport height} — clock face: core 12, shells 2,
+  swarm 4, base 8, rings 10. Plates: `.kw` 190px (`.kc` centred 240px at 12
+  o'clock). No dots/lines (`noline`), labels ride the orb's bob.
+- **Leaders**: aim at plate center; a mostly-horizontal leader pins to the
+  plate's near text edge at mid-height (never detaches), a mostly-vertical one
+  clips at the plate border. `above`/`below`-mode plates with a leader render
+  centre-aligned.
+- **Left rail**: #howto and #caption.stack2 share `min(410px,30vw)`; fitPanels
+  tiers tight → mini → scale, so they can never collide. mini keeps step
+  descriptions (shrinks, never hides).

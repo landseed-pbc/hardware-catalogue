@@ -370,8 +370,12 @@ world.onTick = () => {
       t.line.setAttribute('x1', sx); t.line.setAttribute('y1', sy);
       const rw = t.el.offsetWidth, rh = t.el.offsetHeight;
       const rdx = sx - rlx, rdy = sy - rly;
-      const rbt = Math.min(1, 1 / Math.max(Math.abs(rdx) / (rw / 2 + 4), Math.abs(rdy) / (rh / 2 + 4), 1e-6));
-      t.line.setAttribute('x2', rlx + rdx * rbt); t.line.setAttribute('y2', rly + rdy * rbt);
+      if (Math.abs(rdx) >= Math.abs(rdy)) {
+        t.line.setAttribute('x2', rlx + Math.sign(rdx) * (rw / 2 + 2)); t.line.setAttribute('y2', rly);
+      } else {
+        const rbt = Math.min(1, 1 / Math.max(Math.abs(rdx) / (rw / 2 + 4), Math.abs(rdy) / (rh / 2 + 4), 1e-6));
+        t.line.setAttribute('x2', rlx + rdx * rbt); t.line.setAttribute('y2', rly + rdy * rbt);
+      }
       const op = t.el.__noline ? '0' : getComputedStyle(t.el).opacity;
       t.line.style.opacity = op; t.dot.style.opacity = op;
     } else {
@@ -474,9 +478,16 @@ function layoutCallouts(d) {
       // the leader aims at the label's CENTRE and stops at its border:
       // wherever the label moves, the line rotates to lead to its middle
       const ddx = c.sx - lx, ddy = c.sy - ly;
-      const bt = Math.min(1, 1 / Math.max(Math.abs(ddx) / (w / 2 + 4), Math.abs(ddy) / (h / 2 + 4), 1e-6));
-      c.t.line.setAttribute('x2', lx + ddx * bt);
-      c.t.line.setAttribute('y2', ly + ddy * bt);
+      if (Math.abs(ddx) >= Math.abs(ddy)) {
+        // side leader — pin to the text's near edge at mid-height; the text
+        // always hugs that edge, so the line can never visibly detach
+        c.t.line.setAttribute('x2', lx + Math.sign(ddx) * (w / 2 + 2));
+        c.t.line.setAttribute('y2', ly);
+      } else {
+        const bt = Math.min(1, 1 / Math.max(Math.abs(ddx) / (w / 2 + 4), Math.abs(ddy) / (h / 2 + 4), 1e-6));
+        c.t.line.setAttribute('x2', lx + ddx * bt);
+        c.t.line.setAttribute('y2', ly + ddy * bt);
+      }
       c.t.fx = lx; c.t.fy = ly;
       c.t.fax = c.sx; c.t.fay = c.sy;
     }
