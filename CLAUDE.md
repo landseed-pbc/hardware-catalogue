@@ -125,6 +125,8 @@ and the `PAN` map in `deviceFrame`; this section records the system so nobody
   clips at the plate border. `above`/`below`-mode plates with a leader render
   centre-aligned.
 - **Left rail**: #howto and #caption (ALL pages) share `min(410px,30vw)`, one
-  type scale (13px steps / 14px titles) on every device; fitPanels
-  tiers tight → mini → scale, so they can never collide. mini keeps step
-  descriptions (shrinks, never hides).
+  type scale (13px steps / 14px titles) on every device; fitPanels tiers are
+  tight → mini ONLY. **Never reintroduce a scale() fallback or fixed/equalized
+  card heights** — both shipped and were rolled back (scale renders every page
+  a different size; fixed heights clip titles). mini keeps step descriptions
+  (shrinks, never hides).
