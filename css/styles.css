@@ -104,8 +104,8 @@ a.brand:hover .b-word{opacity:1}
    identical on every page. Title block up top, chain in the middle (scrolls
    if it must), the action buttons pinned to the bottom edge */
 body.devview #caption{top:64px;bottom:78px;display:flex;flex-direction:column}
-body.devview #specs{top:64px;bottom:78px}
-body.devview #specs-scroll{height:100%;overflow-y:auto;scrollbar-width:none}
+body.devview #specs{top:64px}
+body.devview #specs-scroll{max-height:calc(100vh - 142px);overflow-y:auto;scrollbar-width:none}
 body.devview #specs-scroll::-webkit-scrollbar{display:none}
 body.devview #caption>*{flex:none}
 body.devview #cap-how{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-top:15px;padding-top:13px;border-top:1px solid rgba(240,240,234,.13);scrollbar-width:none}
