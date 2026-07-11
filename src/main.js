@@ -531,8 +531,8 @@ function deviceFrame(d) {
     .addScaledVector(side, dist * .28);
   const tgt = new THREE.Vector3(x, ty, z);
   if (d.id === 'gateway') {                             // the solar half hangs left of the case —
-    pos.addScaledVector(side, -.3);                     // pan the whole frame so the ensemble
-    tgt.addScaledVector(side, -.3);                     // sits centre-right, not left-heavy
+    pos.addScaledVector(side, .15);                     // pan the whole frame so the ensemble
+    tgt.addScaledVector(side, .15);                     // sits centre-right, not left-heavy
   }
   return { pos, tgt };
 }
