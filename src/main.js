@@ -83,7 +83,7 @@ const DEVICES = [
       ['ir', 'Dual IR array', 'Night work at the village edge', 95, -60],
       ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge'],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
-      ['battery', 'Battery pack', 'External, expandable · > 12 months', 160, 90],
+      ['battery', 'Battery pack', 'External, expandable · > 12 months', 0, -6, 'above'],
     ],
   },
   {
@@ -111,7 +111,7 @@ const DEVICES = [
     ],
     callouts: [
       ['lora', 'LoRa mast', 'Free-protocol radio, per-country frequency', 150, -45],
-      ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 340, 20],
+      ['lte', 'LTE / direct-to-cell', 'Uses the towers when they exist', 45, 0, 'above'],
       ['solar', 'Solar endurance', 'Indefinite with sun'],
       ['io', 'Sealed I/O', 'Starlink Mini · Viasat · ethernet'],
       ['case', 'Field case', 'IP67 · fits in a daypack'],
@@ -141,8 +141,8 @@ const DEVICES = [
     ],
     callouts: [
       ['lens', 'Optics', 'VillageGuard 2 MP platform', 75, 60],
-      ['pod', 'Acoustic pod', 'The listening half of the survey', -90, 30],
-      ['ai', 'Bespoke models', 'The key species of your landscape', 45, -90],
+      ['pod', 'Acoustic pod', 'The listening half of the survey', -25, 5, 'above'],
+      ['ai', 'Bespoke models', 'The key species of your landscape', -45, 0, 'above'],
       ['wifi', 'Wi-Fi offload', 'No airtime required'],
     ],
   },
@@ -198,7 +198,7 @@ const DEVICES = [
       ['Why $50', 'nothing on board that a person replaces'],
     ],
     callouts: [
-      ['screen', 'Report screen', 'Frame, confirm, transmit', 140, 0],
+      ['screen', 'Report screen', 'Frame, confirm, transmit', 95, 0],
       ['eye', 'Daylight camera', 'No IR, no meter — $50 stays $50'],
       ['shutter', 'One key', 'Usable under pressure'],
       ['body', 'Rugged slab', 'Pocketable, unremarkable'],
@@ -326,13 +326,14 @@ for (const d of DEVICES) {
   else p = new THREE.Vector3(d.x, 0, z + .68);
   addLabel(el, () => p, d, 'plate');
 
-  d.calloutEls = d.callouts.map(([a, n, s, ox, oy]) => {
+  d.calloutEls = d.callouts.map(([a, n, s, ox, oy, mode]) => {
     const k = document.createElement('div');
     k.className = 'klabel';
     k.style.setProperty('--fa', hex(d.hue));
     k.style.opacity = '0';
     k.innerHTML = `<span class="kn">${n}</span><span class="ks">${s}</span>`;
     k.__off = [ox || 0, oy || 0];                       // hand-tuned nudge, applied after auto-layout
+    k.__mode = mode || null;                            // 'above'/'below': place relative to the part, not the side columns
     const anchor = d.group.userData.anchors[a] ?? new THREE.Vector3();
     const getPos = () => _v.copy(anchor).applyMatrix4(d.group.matrixWorld);
     addLabel(k, getPos, d, 'callout', true);
@@ -429,8 +430,14 @@ function layoutCallouts(d) {
       // keep plates out from under the side panels and screen edges
       const panelW = Math.min(356, innerWidth * .26) + 40;
       const [odx, ody] = c.t.el.__off || [0, 0];
-      const lx = Math.max(panelW + 135, Math.min(innerWidth - panelW - 135, c.sx + (right ? off : -off))) + odx;
-      const ly = c.ly + ody;
+      let lx, ly;
+      if (c.t.el.__mode === 'above' || c.t.el.__mode === 'below') {
+        lx = c.sx + odx;                                // straight over/under the part
+        ly = Math.max(96, Math.min(innerHeight - 130, c.sy + (c.t.el.__mode === 'above' ? -84 : 84) + ody));
+      } else {
+        lx = Math.max(panelW + 135, Math.min(innerWidth - panelW - 135, c.sx + (right ? off : -off))) + odx;
+        ly = c.ly + ody;
+      }
       c.t.el.classList.toggle('kr', !right);
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
