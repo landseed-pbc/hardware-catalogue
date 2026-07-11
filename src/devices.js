@@ -273,7 +273,7 @@ export function buildVillageGuard(hue) {
 
   g.userData.anchors = {
     lens:    V3(0, H * .66 + .07, D / 2 + .1),
-    ir:      V3(0, H * .91 + .07, D / 2 + .05),
+    ir:      V3(-.1, H * .91 + .07, D / 2 + .05),       // leftmost LED cluster — the leader reads cleanly leftward
     vpu:     V3(W / 2 + .04, H * .5 + .07, 0),
     antenna: V3(-W / 2 + .05, H + .42, 0),
     pir:     V3(0, H * .33 + .07, D / 2 + .06),

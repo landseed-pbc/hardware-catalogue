@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=3';
-import { BUILDERS } from './devices.js?v=18';
+import { BUILDERS } from './devices.js?v=19';
 
 const $ = (s) => document.querySelector(s);
 
@@ -79,9 +79,9 @@ const DEVICES = [
       ['Links', 'LTE / direct-to-cell · LoRa · satellite'],
     ],
     callouts: [
-      ['lens', 'Optics', '2 MP sensor · 15 m range', 20, -30],
+      ['lens', 'Optics', '2 MP sensor · 15 m range', 70, -70],
       ['ir', 'Dual IR array', 'Night work at the village edge', -290, -65],
-      ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge', 10, -2],
+      ['vpu', 'Dedicated vision NPU', '8–10 classes on the edge', 30, -2],
       ['antenna', 'Twin radios', 'LoRa + LTE / direct-to-cell'],
       ['battery', 'Battery pack', 'External, expandable · > 12 months', 19, -14, 'above'],
     ],
