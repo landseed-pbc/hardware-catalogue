@@ -7,19 +7,19 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SPECIES, iconSVG } from './species.js?v=1';
-import { buildSerengeti, buildVillageGuard, buildGateway, buildShaman } from '/src/devices.js?v=146';
+import { buildSerengeti, buildVillageGuard, buildGateway } from '/src/devices.js?v=146';
 
-// the deployed hardware, placed strategically across the park — the same 3D
-// models as the catalogue & demo. [lat, lon]
+// the deployed field hardware, placed strategically across the park — the same
+// 3D models as the catalogue & demo. Spaced into the gaps, clear of the wildlife
+// area-markers. Landseed AI is the platform brain, not a field unit, so it is
+// not placed on the map. [lat, lon]
 const DEVLAYERS = {
-  monitor:      { build: buildSerengeti,   hue: 0x00FF64, name: 'Monitor',       role: 'AI camera-alert · park protection', h: .18,
-    pts: [[-.88, 29.33], [-.83, 29.37], [-.66, 29.44], [-.55, 29.48], [-1.00, 29.45], [-.30, 29.50], [-.13, 29.52]] },
-  villageguard: { build: buildVillageGuard, hue: 0xFFC800, name: 'VillageGuard',  role: 'multi-species · coexistence',       h: .20,
-    pts: [[-1.10, 29.50], [-.95, 29.60], [-1.30, 29.52], [-.78, 29.56]] },
-  gateway:      { build: buildGateway,      hue: 0x32C8FF, name: 'Relay Station',  role: 'LoRa → LTE / satellite hub',        h: .24,
-    pts: [[-.50, 29.46], [-.95, 29.40], [-.20, 29.58]] },
-  ai:           { build: buildShaman,       hue: 0x9B6CE0, name: 'Landseed AI',    role: 'the platform brain · HQ',           h: .34,
-    pts: [[-.66, 29.49]] },
+  monitor:      { build: buildSerengeti,   hue: 0x00FF64, name: 'Monitor',      role: 'AI camera-alert · park protection', h: .12,
+    pts: [[-1.2, 29.3], [-1.15, 29.545], [-1.05, 29.685], [-.95, 29.51], [-.6, 29.3], [-.3, 29.3], [-.3, 29.79]] },
+  villageguard: { build: buildVillageGuard, hue: 0xFFC800, name: 'VillageGuard', role: 'multi-species · coexistence',       h: .13,
+    pts: [[-1.4, 29.3], [-1.4, 29.65], [-1.4, 29.79], [-1.35, 29.405]] },
+  gateway:      { build: buildGateway,      hue: 0x32C8FF, name: 'Relay Station', role: 'LoRa → LTE / satellite hub',        h: .16,
+    pts: [[-1.25, 29.615], [-1.15, 29.755], [-.75, 29.685]] },
 };
 
 const BASE = '/public/terrain-vir/';
@@ -169,7 +169,16 @@ export async function buildTerrain(hostId, tip) {
       model.scale.setScalar(s);
       const wp = lonlat(lat, lon);
       model.position.set(wp.x, wp.y - _box.min.y * s, wp.z);
-      model.traverse(o => { if (o.isMesh) o.castShadow = false; });
+      const glow = new THREE.Color(def.hue);
+      model.traverse(o => {
+        if (!o.isMesh) return;
+        o.castShadow = false;
+        if (o.material && o.material.isMeshStandardMaterial) {
+          o.material = o.material.clone();
+          o.material.emissive = glow;
+          o.material.emissiveIntensity = 0.14;
+        }
+      });
       grp.add(model);
       const hp = document.createElement('button');
       hp.className = 'vt-dev';
@@ -186,7 +195,7 @@ export async function buildTerrain(hostId, tip) {
   }
 
   // ── layers panel (top-right) — biodiversity + sensors with per-asset subs ──
-  const state = { bio: true, sensors: true, dev: { monitor: true, villageguard: true, gateway: true, ai: true } };
+  const state = { bio: true, sensors: true, dev: { monitor: true, villageguard: true, gateway: true } };
   const panel = document.createElement('div');
   panel.className = 'layers';
   panel.innerHTML =
@@ -259,13 +268,11 @@ export async function buildTerrain(hostId, tip) {
   layer.style.opacity = '0';
   layer.style.transition = 'opacity 1s ease .3s';
 
-  const aiGroup = deviceGroups.ai;
-  let alive = true, faded = false, t0 = 0;
+  let alive = true, faded = false;
   function tick() {
     if (!alive) return;
     requestAnimationFrame(tick);
     if (host.offsetParent === null) return;                 // paused when its view is hidden
-    if (aiGroup && aiGroup.visible) { t0 += .01; aiGroup.rotation.y = t0; }   // the HQ brain turns
     controls.update();
     renderer.render(scene, camera);
     project();
