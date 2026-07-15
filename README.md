@@ -24,14 +24,25 @@ engineering callouts to the unit's parts, with the full spec record on the right
 
 ## Stack
 
-No build step. Three.js (ESM importmap) + GSAP (UMD) from CDN, one HTML file, one CSS
-file, three JS modules:
+No build step. Three.js (ESM importmap) + GSAP (UMD) from CDN.
+
+**App pages** (fixed layout, no scrolling):
 
 - `index.html` — DOM chrome: HUD, product-line key, spec rail, caption card, chapter chips
 - `src/main.js` — the app: `DEVICES` data (every line from the product-line introduction
   & price sheet), views/flights, callout declutter, raycast hover/click
 - `src/world.js` — the bay: renderer, bloom, holo-grid shader floor, plinths, data streams
 - `src/devices.js` — the seven products, procedural geometry only (no model files)
+- `demo/` — the field-demonstration film (see CLAUDE.md)
+
+**Satellite pages** (scroll layout, import `css/styles.css` read-only + `css/satellite.css`):
+
+- `why/` — Why Landseed: differentiators strip, size proof, Q&A, next steps. Built to be
+  forwarded ahead of a call; no Three.js, no GSAP.
+- `ai/` — Landseed AI: the platform brain as a flagship scroll — chain, sample-data
+  dashboards (live DOM, every panel labeled), workflow & reporting.
+- `scripts/check-facts.mjs` — satellite copy restates facts whose source of truth is
+  `DEVICES` in `main.js`; run before deploying any satellite change.
 
 ## Run
 

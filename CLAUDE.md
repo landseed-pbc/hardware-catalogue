@@ -56,10 +56,9 @@ Canonical remote is **GitHub** (`landseed-pbc/hardware-catalogue`); **Forgejo**
 (`forge.aroessner.com/Landseed-PBC/hardware-catalogue`) is the sovereign mirror. Push
 GitHub first, then forge. Conventional commits (`type(scope): why`).
 
-## Satellite pages (planned: Why Landseed · Landseed AI — see scope doc before building)
+## Satellite pages (/why/ · /ai/ — live 2026-07-15)
 
-Two scroll pages are planned alongside the app pages (Catalogue, Demo). Binding rules,
-settled regardless of the open naming/URL decisions:
+Two scroll pages alongside the app pages (Catalogue, Demo). Binding rules:
 
 1. **Satellites import `css/styles.css` read-only** — it IS the design system (tokens,
    chips incl. the purple `.chip.dive`, caption card, HUD, responsive tiers). Never edit
@@ -81,6 +80,14 @@ settled regardless of the open naming/URL decisions:
    fact values) so changes verify headlessly — same doctrine as `__hw` / `__demo.step()`.
 7. **Indexability is per-page:** /demo/ is deliberately noindex; satellites are indexable
    and ship full OG cards, with the OG image generated before first deploy, not after.
+
+Verifying a satellite change:
+
+```bash
+node --check why/why.js && node --check ai/ai.js
+node scripts/check-facts.mjs        # fact drift vs DEVICES in main.js — must pass
+python3 -m http.server 8791         # then assert on window.__why / window.__ai
+```
 
 ## /demo — the field demonstration
 
