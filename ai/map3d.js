@@ -96,14 +96,15 @@ export async function buildTerrain(hostId, tip) {
   scene.add(sun);
   scene.add(new THREE.AmbientLight(0x3a4457, .38));
 
-  // camera + controls — fixed oblique looking north over the volcanoes toward
-  // Lake Edward, framed so the whole terrain sits in the pane; no auto-rotate
+  // camera + controls — a low, near-horizon diagonal from the SE corner looking
+  // up to the NW: the volcanoes stand against the sky, the whole map recedes in
+  // view. Almost level, slightly above for perspective. No auto-rotate.
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; controls.dampingFactor = .09;
-  controls.minDistance = Wz * .5; controls.maxDistance = Wz * 1.3;
-  controls.maxPolarAngle = 1.32; controls.minPolarAngle = .35;
-  controls.target.set(0, hSpan * .5, -Wz * .06);
-  camera.position.set(Wx * .08, Wz * .5, Wz * .72);
+  controls.minDistance = Wz * .55; controls.maxDistance = Wz * 1.5;
+  controls.maxPolarAngle = 1.46; controls.minPolarAngle = .35;
+  controls.target.set(-Wx * .12, hSpan * .5, -Wz * .1);
+  camera.position.set(Wx * .9, Wz * .38, Wz * .82);
   controls.autoRotate = false;
   controls.update();
 
@@ -135,7 +136,7 @@ export async function buildTerrain(hostId, tip) {
       el.addEventListener('focus', (e) => { const b = el.getBoundingClientRect(); speciesTip(tip, s, { clientX: b.left, clientY: b.top }); });
       el.addEventListener('blur', () => tip.classList.remove('on'));
       layer.appendChild(el);
-      markers.push({ el, p, rad: 14, mass: 1 });             // species: bigger, heavier (dots yield)
+      markers.push({ el, p, rad: 15, mass: 1 });             // species: bigger, heavier (dots yield)
     }
   }
   // sensor stations — occupancy dots with ψ hovers
@@ -153,7 +154,7 @@ export async function buildTerrain(hostId, tip) {
     el.addEventListener('mousemove', (e) => posTip(tip, e));
     el.addEventListener('mouseleave', () => tip.classList.remove('on'));
     layer.appendChild(el);
-    markers.push({ el, p, st: true, rad: 5, mass: .35 });    // station dots: small, light
+    markers.push({ el, p, st: true, rad: 7.5, mass: .35 });    // station dots: small, light
   }
 
   // screen-space declutter — markers start at their true projected position and
@@ -168,7 +169,7 @@ export async function buildTerrain(hostId, tip) {
       m.sx = (v.x * .5 + .5) * w; m.sy = (-v.y * .5 + .5) * h;
     }
     const vis = markers.filter(m => !m.behind);
-    for (let it = 0; it < 26; it++) {
+    for (let it = 0; it < 44; it++) {
       for (let a = 0; a < vis.length; a++) for (let b = a + 1; b < vis.length; b++) {
         const A = vis[a], C = vis[b];
         const min = A.rad + C.rad;
