@@ -48,7 +48,9 @@ Cloudflare Pages, project `hardware-catalogue` (Landseed primary CF account):
 npx wrangler pages deploy . --project-name=hardware-catalogue --branch=main
 ```
 
-Verify the live URL with a `?cb=$(date +%s)` query.
+Verify the live URL with a `?cb=$(date +%s)` query for JS/CSS. For HTML, check the
+BARE url — Pages can serve stale edge copies for query-string variants of pages
+(observed 2026-07-15: `/faqs/?cb=…` lagged the deploy while `/faqs/` was current).
 
 ## Git
 
