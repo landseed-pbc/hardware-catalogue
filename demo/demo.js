@@ -1498,7 +1498,7 @@ tl.call(() => {                                                     // DETECTION
 }, null, 14.6);
 tl.call(() => { stSer1Gate.play(2.6); feedPhoto(HUES.see, 'Monitor 01 \u00b7 alert', 'Human \u00d74 on the trail \u00b7 image \u2192 Relay Station over LoRa', fieldCard('people-walk', 128, 1.5)); }, null, 15.5);
 tl.call(() => fireUplink(), null, 16.7);
-tl.call(() => { playSatHQ(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Gateway \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 28 s after trigger'); }, null, 17.9);
+tl.call(() => { playSatHQ(2.2); feed(HUES.brain, 'HQ \u00b7 alert delivered', 'LoRa \u2192 Relay Station \u2192 satellite \u2192 HQ \u00b7 no cell inside the park \u00b7 on rangers\u2019 phones 1\u20132 min after trigger'); }, null, 17.9);
 tl.to(poach, { u: .95, duration: 16.6, ease: 'none' }, 15.6);
 
 // ── response 24–34 · rise, glide to HQ, dispatch, confirm, intercept
