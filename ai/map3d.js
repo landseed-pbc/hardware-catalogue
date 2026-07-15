@@ -64,7 +64,7 @@ export async function buildTerrain(hostId, tip) {
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x0a0812, Wz * .9, Wz * 2.3);   // atmospheric depth
-  const camera = new THREE.PerspectiveCamera(50, host.clientWidth / host.clientHeight, .05, 100);
+  const camera = new THREE.PerspectiveCamera(45, host.clientWidth / host.clientHeight, .05, 100);
 
   // terrain plane, displaced + real normals
   const SEG = 340;
@@ -117,8 +117,8 @@ export async function buildTerrain(hostId, tip) {
   controls.enableDamping = true; controls.dampingFactor = .09;
   controls.minDistance = Wz * .55; controls.maxDistance = Wz * 1.5;
   controls.maxPolarAngle = 1.46; controls.minPolarAngle = .05;
-  controls.target.set(0, hSpan * .15, 0);
-  camera.position.set(Wx * .55, Wz * .95, Wz * .001);
+  controls.target.set(0, hSpan * .13, 0);
+  camera.position.set(Wx * .5, Wz * .82, Wz * .12);
   controls.autoRotate = false;
   controls.update();
   const refDist = camera.position.distanceTo(controls.target);   // depth-scale reference
@@ -196,7 +196,7 @@ export async function buildTerrain(hostId, tip) {
     Object.entries(DEVLAYERS).map(([t, d]) =>
       `<button class="sub on" data-d="${t}"><i style="--c:#${d.hue.toString(16).padStart(6, '0')}"></i>${d.name}</button>`).join('') +
     `</div>`;
-  host.appendChild(panel);
+  (document.getElementById('map-ctrl') || host).appendChild(panel);
   const applyDevices = () => { for (const t in deviceGroups) deviceGroups[t].visible = state.sensors && state.dev[t]; };
   panel.querySelector('[data-l="bio"]').addEventListener('click', (e) => { state.bio = !state.bio; e.currentTarget.classList.toggle('on', state.bio); });
   panel.querySelector('[data-l="sensors"]').addEventListener('click', (e) => { state.sensors = !state.sensors; e.currentTarget.classList.toggle('on', state.sensors); panel.querySelector('#lyr-sub').classList.toggle('off', !state.sensors); applyDevices(); });
