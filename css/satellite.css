@@ -1,62 +1,53 @@
-/* ── satellite pages (Why Landseed · Landseed AI) ─────────────────────────────
-   Layout atop the catalogue system: styles.css is imported READ-ONLY (repo
-   CLAUDE.md · satellite rules); every override or addition lives here. */
+/* ── satellite pages (FAQs · Landseed AI) ─────────────────────────────────────
+   App-style pages atop the catalogue system: styles.css is imported READ-ONLY
+   (repo CLAUDE.md · satellite rules). Satellites reuse the device-view chrome
+   (#caption left rail, #specs right rail, body.devview) over a live bay canvas;
+   everything satellite-specific lives here. No page scroll — same doctrine as
+   the catalogue. */
 
-/* styles.css pins the app pages (overflow:hidden); satellites scroll */
-body.sat{overflow-y:auto;overflow-x:hidden;height:auto;min-height:100vh}
-body.sat::-webkit-scrollbar{width:0}
-body.sat{scrollbar-width:none}
+#cap-links a.cap-link{text-decoration:none}
 
-/* content column — clear of the fixed hud (top) and chip bar (bottom) */
-.sat-wrap{max-width:1040px;margin:0 auto;padding:108px 30px 150px}
+/* panels are always "arrived" on satellites — no flight choreography gates them */
+body.sat #caption{opacity:1}
+body.sat #specs{opacity:1;transform:none;pointer-events:auto}
 
-/* copied byte-identical from demo.css:67-68 — .cta exists nowhere else;
-   satellites must not fork a third chip variant */
-.chip.cta{color:var(--alive);border:1px solid rgba(0,190,90,.45)}
-.chip.cta:hover{background:var(--accent);color:var(--deep)}
+/* ── FAQ accordion — lives inside #specs-scroll, every row begs a click ────── */
+.fq{border-bottom:1px solid rgba(240,240,234,.07)}
+.fq:last-child{border-bottom:0}
+.fq .q{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;cursor:pointer;padding:11px 2px;font-family:var(--sans);font-size:13.5px;font-weight:700;color:var(--text);text-align:left;transition:background .15s;border-radius:8px}
+.fq .q::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--qh,#fff);box-shadow:0 0 7px var(--qh,#fff);flex:none}
+.fq .q::after{content:"+";margin-left:auto;font-size:15px;font-weight:600;color:var(--muted);transition:transform .3s,color .2s}
+.fq .q:hover{background:rgba(255,255,255,.05)}
+.fq .q:hover::after{color:var(--qh,#fff)}
+.fq.open .q::after{transform:rotate(45deg);color:var(--qh,#fff)}
+.fq .a{max-height:0;overflow:hidden;opacity:0;transition:max-height .45s ease,opacity .35s ease;font-size:12.5px;line-height:1.55;color:var(--dim);padding:0 2px 0 19px}
+.fq.open .a{max-height:180px;opacity:1;padding-bottom:11px}
+.fq .a .sp-badge{margin-top:7px}
 
-/* hero — the #caption type recipe at page scale */
-.sat-hero{margin:0 0 54px;max-width:760px}
-.sat-kicker{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--fa,var(--accent));margin-bottom:12px}
-.sat-kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--fa,var(--accent));box-shadow:0 0 8px var(--fa,var(--accent));flex:none}
-.sat-hero h1{font-size:clamp(36px,4.8vw,56px);font-weight:800;letter-spacing:-.02em;line-height:1.04;color:#f4f3ee;margin-bottom:14px}
-.sat-line{font-size:16px;line-height:1.6;color:rgba(240,240,234,.82);max-width:56ch}
+/* fact rows — each carries its own micro-graphic; no two alike by design */
+.fx{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid rgba(240,240,234,.06)}
+.fx:last-child{border-bottom:0}
+.fx b{min-width:78px;font-size:16.5px;font-weight:800;letter-spacing:-.01em;color:#eef0ea;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fx span{flex:1;font-size:11px;line-height:1.45;color:var(--dim)}
+.fx svg{flex:none;opacity:.95}
+.fx:hover svg{filter:drop-shadow(0 0 4px var(--qh,transparent))}
 
-/* section header — the .sp-h recipe at section scale */
-.sat-h{font-size:12px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:rgba(240,240,234,.7);margin:58px 0 18px;display:flex;align-items:center;gap:10px}
-.sat-h::after{content:"";flex:1;height:1px;background:rgba(240,240,234,.12)}
+/* ── the floating size chip — pinned over the 3D, above the nav ────────────── */
+#sizechip{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:24;display:flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;background:rgba(7,15,7,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.12);font-size:12px;font-weight:600;color:var(--dim);white-space:nowrap;pointer-events:none}
+#sizechip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--alive);box-shadow:0 0 8px var(--alive);flex:none}
+#sizechip b{color:var(--text);font-weight:700}
 
-/* content card — the #caption surface recipe, in-flow */
-.sat-card{border-radius:14px;background:linear-gradient(180deg,rgba(6,11,9,.66),rgba(6,11,9,.78));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.09);padding:22px 24px}
+/* ── dashboard spotlight (Landseed AI) — a dive chip opens one at a time ───── */
+#spot{position:fixed;inset:0;z-index:35;display:flex;align-items:center;justify-content:center;background:rgba(4,8,5,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .35s ease}
+#spot.on{opacity:1;pointer-events:auto}
+#spot .dash{width:min(600px,92vw);box-shadow:0 30px 80px rgba(0,0,0,.5);transform:translateY(10px);transition:transform .35s ease}
+#spot.on .dash{transform:none}
+#spot .dash canvas{height:110px}
+.spot-x{margin-left:8px;background:none;border:0;cursor:pointer;color:var(--muted);font-size:16px;font-family:var(--sans);line-height:1;padding:2px 4px;border-radius:6px}
+.spot-x:hover{color:var(--text)}
 
-/* the differentiators strip — #cap-stats recipe, one fact per row */
-.sat-strip{display:flex;flex-direction:column}
-.sat-strip>div{display:flex;align-items:baseline;gap:16px;padding:13px 2px;border-bottom:1px solid rgba(240,240,234,.08)}
-.sat-strip>div:last-child{border-bottom:0}
-.sat-strip b{font-size:clamp(18px,2vw,22px);font-weight:800;letter-spacing:-.01em;color:#eef0ea;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:172px}
-.sat-strip span{font-size:14px;color:var(--dim);line-height:1.5}
-
-/* size proof — the rendered still */
-.sat-figure{border-radius:14px;overflow:hidden;border:1px solid rgba(240,240,234,.09);margin:0}
-.sat-figure img{display:block;width:100%;height:auto}
-.sat-figure figcaption{font-size:11.5px;line-height:1.55;color:var(--muted);padding:11px 16px;background:linear-gradient(180deg,rgba(6,11,9,.66),rgba(6,11,9,.78))}
-
-/* Q&A — flat list, hairline dividers, everything visible */
-.qa{display:flex;flex-direction:column}
-.qa>div{padding:17px 2px;border-bottom:1px solid rgba(240,240,234,.08)}
-.qa>div:last-child{border-bottom:0}
-.qa b{display:block;font-size:15.5px;font-weight:700;color:var(--text);margin-bottom:5px}
-.qa p{font-size:14px;line-height:1.6;color:var(--dim);max-width:66ch}
-.qa .sp-badge{margin:6px 6px 0 0}
-
-/* closing links — .cap-link is the established pill action */
-.sat-next{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
-.sat-next .cap-link{font-size:13px;padding:9px 16px;text-decoration:none}
-
-/* dashboards (Landseed AI) — diegetic interface chrome, the phone idiom:
-   darker glass, tighter type, live-feeling rows. Not a content card. */
-.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
-.dash{border-radius:16px;border:1px solid rgba(240,240,234,.12);background:linear-gradient(180deg,rgba(9,13,10,.92),rgba(7,11,8,.96));overflow:hidden}
+/* dashboard chrome — diegetic interface panels (the phone idiom, not a card) */
+.dash{border-radius:16px;border:1px solid rgba(240,240,234,.12);background:linear-gradient(180deg,rgba(9,13,10,.94),rgba(7,11,8,.97))}
 .dash-h{display:flex;align-items:center;gap:9px;padding:12px 15px;border-bottom:1px solid rgba(240,240,234,.08)}
 .dash-h i{width:7px;height:7px;border-radius:50%;background:var(--fa,#9B6CE0);box-shadow:0 0 7px var(--fa,#9B6CE0);flex:none}
 .dash-h b{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(240,240,234,.85);flex:1}
@@ -69,30 +60,13 @@ body.sat{scrollbar-width:none}
 .dash-row .bar i{display:block;height:100%;border-radius:3px;background:var(--fa,#9B6CE0);width:0;transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
 .dash-row em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--text);font-weight:700;min-width:30px;text-align:right}
 .dash-grid9{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;padding-top:2px}
-.dash-grid9 i{aspect-ratio:1;border-radius:3px;background:color-mix(in srgb,var(--fa,#9B6CE0) calc(var(--v)*1%),rgba(240,240,234,.06))}
+.dash-grid9 i{aspect-ratio:1;border-radius:3px;background:color-mix(in srgb,var(--fa,#9B6CE0) calc(var(--v)*1%),rgba(240,240,234,.06));transition:transform .15s}
+.dash-grid9 i:hover{transform:scale(1.18)}
 .dash-foot{font-size:10.5px;color:var(--muted);padding:9px 15px;border-top:1px solid rgba(240,240,234,.07)}
 
-/* workflow chain reuses .sp-step from styles.css unchanged */
-
-/* reveal on scroll — opacity-led, transform settles once (never re-runs) */
-.rv{opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .7s ease}
-.rv.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.dash-row .bar i{transition:none}}
-
-/* phones */
+/* phones — the catalogue's own ≤560px device-view layout applies (styles.css);
+   only the size chip needs to duck under the stacked panels */
 @media(max-width:560px){
-  .sat-wrap{padding:88px 18px 130px}
-  .sat-strip b{min-width:118px;font-size:16px}
-  .sat-strip span{font-size:12.5px}
-  .qa p{font-size:13px}
-}
-
-/* forwarded pages get printed — chrome off, content black-on-white */
-@media print{
-  body.sat{background:#fff;color:#111;overflow:visible}
-  .hud,#chapters,.rv{position:static;opacity:1;transform:none}
-  #chapters{display:none}
-  .sat-card,.dash{background:none;border-color:#ccc;backdrop-filter:none}
-  .sat-hero h1,.qa b,.sat-strip b{color:#111}
-  .sat-line,.qa p,.sat-strip span{color:#333}
+  #sizechip{bottom:74px;font-size:10.5px;padding:7px 12px}
+  #spot .dash{width:94vw}
 }

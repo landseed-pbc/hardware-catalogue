@@ -35,14 +35,16 @@ No build step. Three.js (ESM importmap) + GSAP (UMD) from CDN.
 - `src/devices.js` — the seven products, procedural geometry only (no model files)
 - `demo/` — the field-demonstration film (see CLAUDE.md)
 
-**Satellite pages** (scroll layout, import `css/styles.css` read-only + `css/satellite.css`):
+**Satellite pages** (fixed viewport like the catalogue; import `css/styles.css`
+read-only + `css/satellite.css`, reuse the device-view chrome over a live bay canvas):
 
-- `why/` — Why Landseed: differentiators strip, size proof, Q&A, next steps. Built to be
-  forwarded ahead of a call; no Three.js, no GSAP.
-- `ai/` — Landseed AI: the platform brain as a flagship scroll — chain, sample-data
-  dashboards (live DOM, every panel labeled), workflow & reporting.
+- `faqs/` — FAQs: the Monitor staged at true scale beside two AA batteries (drag to
+  orbit), five facts each with its own micro-graphic, seven-question accordion.
+- `ai/` — Landseed AI: the live Shaman orb, the chain, the record, and three sample
+  dashboards opened from the purple dive chips (every panel labeled "sample data").
 - `scripts/check-facts.mjs` — satellite copy restates facts whose source of truth is
   `DEVICES` in `main.js`; run before deploying any satellite change.
+- `_redirects` — the retired /why/ URLs 301 to /faqs/.
 
 ## Run
 

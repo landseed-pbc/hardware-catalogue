@@ -12,16 +12,17 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');
 
 const main = read('src/main.js');
-const why = read('why/index.html');
+const faqs = read('faqs/index.html');
 const ai = read('ai/index.html');
+const aijs = read('ai/ai.js');
 
-// [fact label, must-match-in-main.js, [page file, must-match-in-page]]
+// [fact label, must-match-in-main.js, [page file, must-match-in-page, page text]]
 const CHECKS = [
-  ['Monitor price', /\$199–225/, ['why/index.html', /\$199–225/, why]],
-  ['first capture', /200 ms/, ['why/index.html', /200 ms/, why]],
-  ['battery life', />12 mo/, ['why/index.html', /&gt;12 mo/, why]],
-  ['battery chemistry', /LiFePO4/, ['why/index.html', /LiFePO4/, why]],
-  ['transmission links', /LTE · LoRa · Wi-Fi · satellite/, ['why/index.html', /cell · LoRa · Wi-Fi · satellite/, why]],
+  ['Monitor price', /\$199–225/, ['faqs/index.html', /\$199–225/, faqs]],
+  ['first capture', /200 ms/, ['faqs/index.html', /200 ms/, faqs]],
+  ['battery life', />12 mo/, ['faqs/index.html', /&gt;12 mo/, faqs]],
+  ['battery chemistry', /LiFePO4/, ['faqs/index.html', /LiFePO4/, faqs]],
+  ['transmission links', /LTE · LoRa · Wi-Fi · satellite/, ['faqs/index.html', /cell · LoRa · Wi-Fi · satellite/, faqs]],
   ['CTDAMS line', /fuses optical, acoustic and remotely-sensed data into population metrics/, ['ai/index.html', /fuses optical, acoustic and remotely-sensed data into population metrics/, ai]],
   ['AI metrics', /presence · occupancy · density · abundance/, ['ai/index.html', /presence · occupancy · density · abundance/, ai]],
   ['AI inputs', /cameras · acoustics · reports · satellite/, ['ai/index.html', /cameras · acoustics · reports · satellite/, ai]],
@@ -40,9 +41,14 @@ for (const [label, srcRe, [page, pageRe, pageText]] of CHECKS) {
 }
 
 // satellite honesty invariants
-if (!/spec sheet in development/.test(why)) { failed++; console.error('DRIFT  why page lost the "spec sheet in development" placeholder'); }
-const sampleBadges = (ai.match(/sample data/g) || []).length;
-if (sampleBadges < 3) { failed++; console.error(`DRIFT  ai page has ${sampleBadges} "sample data" badges — every dashboard panel needs one`); }
+if (!/spec sheet in development/.test(faqs)) { failed++; console.error('DRIFT  faqs page lost the "spec sheet in development" placeholder'); }
+if (!/sample data/.test(ai)) { failed++; console.error('DRIFT  ai page lost its "sample data" badge'); }
+if (!/sample data|sample sector/.test(aijs)) { failed++; console.error('DRIFT  ai.js dashboards lost their sample labeling'); }
+// the 2×AA form factor is founder-stated (2026-07-15), not in DEVICES — it must
+// stay paired with the in-development badge until the spec sheet publishes
+if (/2×AA|two AA/.test(faqs) && !/spec sheet in development/.test(faqs)) {
+  failed++; console.error('DRIFT  faqs states the AA form factor without the spec-sheet badge');
+}
 
 if (failed) { console.error(`\n${failed} fact check(s) failed`); process.exit(1); }
-console.log(`all ${CHECKS.length + 2} fact checks pass`);
+console.log(`all ${CHECKS.length + 3} fact checks pass`);

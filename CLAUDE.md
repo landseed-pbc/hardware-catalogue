@@ -56,37 +56,43 @@ Canonical remote is **GitHub** (`landseed-pbc/hardware-catalogue`); **Forgejo**
 (`forge.aroessner.com/Landseed-PBC/hardware-catalogue`) is the sovereign mirror. Push
 GitHub first, then forge. Conventional commits (`type(scope): why`).
 
-## Satellite pages (/why/ · /ai/ — live 2026-07-15)
+## Satellite pages (/faqs/ · /ai/ — rebuilt app-style 2026-07-15)
 
-Two scroll pages alongside the app pages (Catalogue, Demo). Binding rules:
+Two more app pages alongside Catalogue and Demo. Binding rules:
 
 1. **Satellites import `css/styles.css` read-only** — it IS the design system (tokens,
    chips incl. the purple `.chip.dive`, caption card, HUD, responsive tiers). Never edit
    it for a satellite need; overrides live in `css/satellite.css` + per-page files.
-   `.chip.cta` exists only in `demo.css` — copy it byte-identical into `satellite.css`,
-   don't fork a third variant.
-2. **Satellites scroll; app pages don't.** That split is deliberate — don't add scrolling
-   to Catalogue/Demo, don't add app-style fixed layouts to satellites.
-3. **Chip-bar grammar:** in-page nav first, then `.chip-div`, then outbound `.chip.cta`
-   links. Never a self-label chip. `#9B6CE0` purple only where content is semantically
-   Landseed AI.
+2. **No page scrolls, anywhere.** Satellites are fixed-viewport like the catalogue: a
+   live bay canvas (`createWorld` + the real `devices.js` builders), the device-view
+   chrome reused verbatim (`#caption` left rail, `#specs` right rail, `body.devview`),
+   internal panel scrolling only. FAQs stages the Monitor at true scale beside two AA
+   batteries (form factor founder-stated 2026-07-15 — keep the spec-sheet badge until
+   dimensions publish); /ai/ stages the live Shaman orb.
+3. **Nav bars are uniform:** every page ends its chip bar with
+   `Catalogue · Demo · Landseed AI · FAQs`, current page as a solid-green `.chip.on`
+   self-chip. In-page chips (Demo's chapters, /ai/'s purple dashboard dive chips) come
+   first, then `.chip-div`, then the four. All plain `.chip` — no `.cta` outlines.
+   `#9B6CE0` purple only where content is semantically Landseed AI.
+   `_redirects` 301s the retired /why/ URLs to /faqs/.
 4. **Facts trace to `DEVICES` in `main.js`** (or its successor data module) and the source
    docs — same as invariant 3 above. Unconfirmed numbers get the exact phrase
    "spec sheet in development". Every illustrative dashboard carries a "sample data" chip —
    convincing fake interfaces ship labeled, always.
 5. **`?v=N` discipline extends to satellites** — including any prefetch/preload hints
    pointing at versioned files (the hint version must match the reference it warms).
-6. **Every satellite ships a `window.__why` / `__ai` hook** (current section, rendered
-   fact values) so changes verify headlessly — same doctrine as `__hw` / `__demo.step()`.
+6. **Every satellite ships a `window.__faq` / `__ai` hook** (open state, scene flags,
+   rendered fact values) so changes verify headlessly — same doctrine as `__hw` /
+   `__demo.step()`.
 7. **Indexability is per-page:** /demo/ is deliberately noindex; satellites are indexable
    and ship full OG cards, with the OG image generated before first deploy, not after.
 
 Verifying a satellite change:
 
 ```bash
-node --check why/why.js && node --check ai/ai.js
+node --check faqs/faqs.js && node --check ai/ai.js
 node scripts/check-facts.mjs        # fact drift vs DEVICES in main.js — must pass
-python3 -m http.server 8791         # then assert on window.__why / window.__ai
+python3 -m http.server 8791         # then assert on window.__faq / window.__ai
 ```
 
 ## /demo — the field demonstration
