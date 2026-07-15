@@ -103,10 +103,11 @@ export async function buildTerrain(hostId, tip) {
   controls.enableDamping = true; controls.dampingFactor = .09;
   controls.minDistance = Wz * .55; controls.maxDistance = Wz * 1.5;
   controls.maxPolarAngle = 1.46; controls.minPolarAngle = .35;
-  controls.target.set(-Wx * .12, hSpan * .5, -Wz * .1);
-  camera.position.set(Wx * .9, Wz * .38, Wz * .82);
+  controls.target.set(-Wx * .28, hSpan * .34, -Wz * .02);
+  camera.position.set(Wx * .5, Wz * .5, Wz * .7);
   controls.autoRotate = false;
   controls.update();
+  const refDist = camera.position.distanceTo(controls.target);   // depth-scale reference
 
   // ── species icons + sensor stations, projected as DOM markers ──
   const layer = document.createElement('div');
@@ -167,12 +168,15 @@ export async function buildTerrain(hostId, tip) {
       v.copy(m.p).project(camera);
       m.behind = v.z > 1;
       m.sx = (v.x * .5 + .5) * w; m.sy = (-v.y * .5 + .5) * h;
+      // perspective scale: near markers larger, far smaller — reads proportionate
+      m.s = Math.max(.72, Math.min(1.28, refDist / camera.position.distanceTo(m.p)));
+      m.rr = m.rad * m.s;
     }
     const vis = markers.filter(m => !m.behind);
     for (let it = 0; it < 44; it++) {
       for (let a = 0; a < vis.length; a++) for (let b = a + 1; b < vis.length; b++) {
         const A = vis[a], C = vis[b];
-        const min = A.rad + C.rad;
+        const min = A.rr + C.rr;
         let dx = C.sx - A.sx, dy = C.sy - A.sy, d = Math.hypot(dx, dy) || .01;
         if (d < min) {
           const push = (min - d), inv = 1 / (A.mass + C.mass);
@@ -186,6 +190,7 @@ export async function buildTerrain(hostId, tip) {
       m.el.style.opacity = m.behind ? '0' : '';
       m.el.style.left = m.sx.toFixed(1) + 'px';
       m.el.style.top = m.sy.toFixed(1) + 'px';
+      m.el.style.setProperty('--s', m.s.toFixed(2));
     }
   }
 
