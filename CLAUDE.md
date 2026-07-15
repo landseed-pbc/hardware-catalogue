@@ -74,13 +74,16 @@ Two more app pages alongside Catalogue and Demo. Binding rules:
    (rangers' phone + the Virunga occupancy twin + metrics), Detections (image cards
    with bounding boxes, filterable by intrusion/people/vehicle/animal-by-species),
    Survey (the twin + class bars + acoustics), Reports (a Virunga-titled library,
-   each doc renders its own preview). The occupancy centerpiece is a LIVING TWIN of
-   the group's area: real OSM park boundary (relation 404784) + Lake Edward in
-   public/virunga-geo.json, a modeled occupancy field (inverse-distance from a
-   sensor network at real central-sector locations), interactive stations with
-   subtly-cited real population figures (ai/map.js SOURCES — gorilla/hippo/elephant
-   census, UNESCO biomass; all illustrative sample data, cited numbers are real).
-   Regenerate the geo asset from the virunga-immersive repo's public/boundaries.json. The bay's /#ai shows the brain itself.
+   each doc renders its own preview). The occupancy centerpiece is a LIVING 3D TWIN of
+   the group's area (ai/map3d.js): real DEM relief + real ESRI satellite, cropped
+   to the operating area from the virunga-immersive terrain and downsampled to
+   ~0.6 MB (public/terrain-vir/, one displaced Three.js plane — no tile streaming).
+   Species icons and hover data are the site's OWN, lifted verbatim into
+   ai/species.js (SPSVG field-guide icons + SPECIES registry — accurate, identical
+   iconography, verified population figures). Camera-trap stations carry sample
+   occupancy ψ. Survey keeps a lightweight 2D occupancy surface (ai/map.js) as a
+   second lens. Regenerate terrain-vir with the procterrain script (crop+downsample
+   the virunga-immersive rift DEM/satellite; DEM decode is R*256+G+B/256-32768). The bay's /#ai shows the brain itself.
    No Three.js on satellites. Desktop fits one viewport; small screens scroll
    (the ≤1080px media block in satellite.css).
 3. **Nav bars are uniform:** every page ends its chip bar with

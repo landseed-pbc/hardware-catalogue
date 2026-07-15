@@ -18,6 +18,8 @@ const aijs = read('ai/ai.js');
 const mapjs = read('ai/map.js');
 import { existsSync } from 'node:fs';
 const hasGeo = existsSync(join(root, 'public/virunga-geo.json'));
+const hasTerrain = existsSync(join(root, 'public/terrain-vir/sat.jpg')) && existsSync(join(root, 'public/terrain-vir/dem.png'));
+const species = existsSync(join(root, 'ai/species.js')) ? read('ai/species.js') : '';
 
 // [fact label, must-match-in-main.js, [page file, must-match-in-page, page text]]
 const CHECKS = [
@@ -52,6 +54,9 @@ if (!/sample/.test(aijs)) { failed++; console.error('DRIFT  ai.js lost its sampl
 if (!hasGeo) { failed++; console.error('DRIFT  public/virunga-geo.json (real OSM boundary) missing'); }
 if (!/OpenStreetMap/.test(mapjs)) { failed++; console.error('DRIFT  map.js lost its OSM source attribution'); }
 if (!/Virunga/.test(ai)) { failed++; console.error('DRIFT  ai page lost the Virunga framing'); }
+if (!hasTerrain) { failed++; console.error('DRIFT  public/terrain-vir (real DEM + ESRI satellite) missing'); }
+if (!/SPECIES|SPSVG/.test(species)) { failed++; console.error('DRIFT  ai/species.js lost the Virunga species registry'); }
+if (!/Gorilla beringei beringei/.test(species)) { failed++; console.error('DRIFT  species.js lost verified species data'); }
 // cited population figures must keep their sources in the map SOURCES list
 for (const fig of ['604', '2,700', '27.6']) if (!mapjs.includes(fig)) { failed++; console.error(`DRIFT  map.js lost cited figure ${fig}`); }
 // the 2×AA form factor is founder-stated (2026-07-15), not in DEVICES — it must
@@ -61,4 +66,4 @@ if (/2×AA|two AA/.test(faqs) && !/spec sheet in development/.test(faqs)) {
 }
 
 if (failed) { console.error(`\n${failed} fact check(s) failed`); process.exit(1); }
-console.log(`all ${CHECKS.length + 9} checks pass`);
+console.log(`all ${CHECKS.length + 12} checks pass`);

@@ -15,18 +15,22 @@ function setView(name) {
 }
 tabs.forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
 
-/* ── the Virunga occupancy twin — real boundary + modeled occupancy field ──── */
+/* ── the Virunga twin — 3D terrain (Overview) + 2D occupancy surface (Survey) ── */
 import { buildMap, sourcesHTML } from './map.js?v=1';
+import { buildTerrain } from './map3d.js?v=1';
 
 const tip = document.createElement('div');
 tip.className = 'vmap-tip';
 document.body.appendChild(tip);
 
 let mapStations = 0;
+// 3D terrain centerpiece on Overview; falls back to the flat map if WebGL fails
+buildTerrain('map', tip).then(t => { if (t) mapStations = t.stations; })
+  .catch(() => fetch('/public/virunga-geo.json?v=1').then(r => r.json()).then(g => buildMap(g, 'map', tip)));
+
 fetch('/public/virunga-geo.json?v=1').then(r => r.json()).then(async (geo) => {
-  const a = await buildMap(geo, 'map', tip);
   await buildMap(geo, 'map2', tip);
-  mapStations = a ? a.stations : 0;
+  if (!mapStations) mapStations = geo.stations.length;
   // sources popover — subtle "sources" affordance in each map header
   const pop = document.createElement('div');
   pop.className = 'src-pop';

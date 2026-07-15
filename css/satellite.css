@@ -339,3 +339,23 @@ body.sat.ai-page{
 .prev-sec p{font-size:11.5px;line-height:1.5;color:var(--dim);margin:0}
 .prev-cite{margin-top:auto;padding-top:12px;border-top:1px solid rgba(155,108,224,.2);font-size:11px;line-height:1.5;color:var(--muted)}
 .prev-cite::before{content:"◆ ";color:#9B6CE0}
+
+/* ── 3D terrain twin (Overview) — WebGL canvas + projected DOM markers ────── */
+.map-pane .map-wrap{position:relative;overflow:hidden;border-radius:10px}
+#map canvas{display:block;width:100%;height:100%;border-radius:10px}
+.vt-layer{position:absolute;inset:0;pointer-events:none}
+.vt-sp{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;padding:0;border:0;background:none;cursor:pointer;pointer-events:auto;transition:transform .12s;filter:drop-shadow(0 2px 4px rgba(0,0,0,.7))}
+.vt-sp:hover{transform:translate(-50%,-50%) scale(1.25);z-index:3}
+.vt-sp .icv{width:100%;height:100%;fill:var(--fa);stroke:rgba(0,0,0,.55);stroke-width:12px;paint-order:stroke}
+.vt-st{position:absolute;transform:translate(-50%,-50%);width:var(--r,5px);height:var(--r,5px);border-radius:50%;padding:0;border:1.5px solid rgba(8,6,14,.9);background:var(--fa,#9B6CE0);cursor:pointer;pointer-events:auto;box-shadow:0 0 6px var(--fa,#9B6CE0);transition:transform .12s}
+.vt-st:hover{transform:translate(-50%,-50%) scale(1.7);z-index:3}
+
+/* species tooltip — richer, with the field-guide illustration */
+.vt-tip{width:240px}
+.vt-tip .tp-illus{display:block;width:46px;height:46px;margin-bottom:6px}
+.vt-tip .tp-illus .icv{width:100%;height:100%;fill:var(--fa)}
+.vt-tip .tp-latin{display:block;font-style:italic;font-size:11px;color:var(--muted);margin:-4px 0 8px}
+.vt-tip .tp-range{display:block;margin-top:7px;padding-top:7px;border-top:1px solid rgba(240,240,234,.1);font-size:10.5px;line-height:1.45;color:var(--dim)}
+
+.map-leg-l{color:var(--dim);letter-spacing:.02em}
+.map-leg-l::before{content:none}
