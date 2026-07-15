@@ -64,7 +64,7 @@ export async function buildTerrain(hostId, tip) {
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x0a0812, Wz * .9, Wz * 2.3);   // atmospheric depth
-  const camera = new THREE.PerspectiveCamera(52, host.clientWidth / host.clientHeight, .05, 100);
+  const camera = new THREE.PerspectiveCamera(50, host.clientWidth / host.clientHeight, .05, 100);
 
   // terrain plane, displaced + real normals
   const SEG = 340;
@@ -116,9 +116,9 @@ export async function buildTerrain(hostId, tip) {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; controls.dampingFactor = .09;
   controls.minDistance = Wz * .55; controls.maxDistance = Wz * 1.5;
-  controls.maxPolarAngle = 1.46; controls.minPolarAngle = .35;
-  controls.target.set(Wx * .05, hSpan * .05, Wz * .02);
-  camera.position.set(-Wx * .58, Wz * .44, Wz * .84);
+  controls.maxPolarAngle = 1.46; controls.minPolarAngle = .05;
+  controls.target.set(0, hSpan * .15, 0);
+  camera.position.set(Wx * .55, Wz * .95, Wz * .001);
   controls.autoRotate = false;
   controls.update();
   const refDist = camera.position.distanceTo(controls.target);   // depth-scale reference
@@ -169,16 +169,7 @@ export async function buildTerrain(hostId, tip) {
       model.scale.setScalar(s);
       const wp = lonlat(lat, lon);
       model.position.set(wp.x, wp.y - _box.min.y * s, wp.z);
-      const glow = new THREE.Color(def.hue);
-      model.traverse(o => {
-        if (!o.isMesh) return;
-        o.castShadow = false;
-        if (o.material && o.material.isMeshStandardMaterial) {
-          o.material = o.material.clone();
-          o.material.emissive = glow;
-          o.material.emissiveIntensity = 0.14;
-        }
-      });
+      model.traverse(o => { if (o.isMesh) o.castShadow = false; });
       grp.add(model);
       const hp = document.createElement('button');
       hp.className = 'vt-dev';
