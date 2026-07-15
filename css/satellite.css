@@ -262,3 +262,80 @@ body.sat.ai-page{
 /* report preview skeleton sections */
 .prev-sec{margin-top:12px}
 .prev-sec span{display:block;font-size:9px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+
+/* ── the Virunga occupancy twin (map centerpiece) ─────────────────────────── */
+.map-pane{position:relative}
+.map-note{margin-left:auto;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:1px dotted rgba(240,240,234,.3);padding-bottom:1px}
+.map-note:hover{color:#c9a4ff}
+.map-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.vmap{width:100%;height:100%;max-height:100%}
+.vmap-park{fill:rgba(155,108,224,.05);stroke:none}
+.vmap-lake{fill:rgba(58,159,230,.28);stroke:rgba(120,190,255,.4);stroke-width:1.2}
+.vmap-rim{fill:none;stroke:rgba(180,150,240,.55);stroke-width:1.6;stroke-linejoin:round}
+.vmap-label{fill:rgba(240,240,234,.42);font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:.12em;text-anchor:middle;pointer-events:none;text-transform:uppercase}
+.vmap-st{cursor:pointer;outline:none}
+.vmap-halo{opacity:.22;transform-box:fill-box;transform-origin:center;animation:vpulse 3.4s ease-in-out infinite}
+.vmap-st:nth-child(3n) .vmap-halo{animation-delay:-1.1s}
+.vmap-st:nth-child(3n+1) .vmap-halo{animation-delay:-2.2s}
+.vmap-st:hover .vmap-halo,.vmap-st:focus .vmap-halo{opacity:.4}
+@keyframes vpulse{0%,100%{transform:scale(.7);opacity:.12}50%{transform:scale(1.25);opacity:.34}}
+@media(prefers-reduced-motion:reduce){.vmap-halo{animation:none}}
+
+.map-leg{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim);margin-top:9px;flex:none}
+.map-leg .ramp{flex:0 1 120px;height:6px;border-radius:3px;background:linear-gradient(90deg,rgb(26,20,46),rgb(74,52,138),rgb(176,130,240),rgb(214,190,255))}
+.map-leg-r{margin-left:auto;color:var(--muted);letter-spacing:.04em}
+
+/* station tooltip — floats over the map */
+.vmap-tip{position:fixed;z-index:60;width:228px;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .15s;background:linear-gradient(180deg,rgba(14,11,22,.97),rgba(9,8,14,.98));border:1px solid rgba(155,108,224,.4);border-radius:11px;padding:11px 13px;box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.vmap-tip.on{opacity:1;transform:none}
+.vmap-tip b{display:block;font-size:12.5px;font-weight:700;color:#f0efe9;margin-bottom:7px;line-height:1.3}
+.vmap-tip .tp-row{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;padding:2px 0}
+.vmap-tip .tp-row em{font-style:normal;font-weight:500;color:var(--muted)}
+.vmap-tip .tp-cite{display:block;margin-top:7px;padding-top:7px;border-top:1px solid rgba(240,240,234,.1);font-size:10px;line-height:1.45;color:var(--dim)}
+.vmap-tip .tp-cite sup{color:#c9a4ff;font-weight:700;margin-left:1px}
+
+/* sources popover — the subtle citation list */
+.src-pop{position:fixed;z-index:61;width:320px;opacity:0;pointer-events:none;transform:translateY(4px);transition:opacity .18s;background:linear-gradient(180deg,rgba(14,11,22,.98),rgba(9,8,14,.99));border:1px solid rgba(155,108,224,.35);border-radius:12px;padding:13px 15px;box-shadow:0 20px 50px rgba(0,0,0,.55)}
+.src-pop.on{opacity:1;pointer-events:auto;transform:none}
+.src-pop b{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.src-pop .src-row{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid rgba(240,240,234,.06);font-size:11px;line-height:1.45;color:var(--dim)}
+.src-pop .src-row:last-child{border-bottom:0}
+.src-pop .src-row sup{color:#c9a4ff;font-weight:700;flex:none}
+.src-pop .src-row em{font-style:normal;color:var(--muted)}
+
+/* ── detections — image cards with bounding boxes ─────────────────────────── */
+.det-pane{overflow:hidden}
+.det-count{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.02em;text-transform:none}
+.filters{display:flex;flex-wrap:wrap;gap:3px;margin-left:auto}
+.det-grid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;padding:4px 2px 2px;scrollbar-width:thin;scrollbar-color:rgba(155,108,224,.3) transparent}
+.det-card{position:relative;border:1px solid rgba(240,240,234,.1);border-radius:11px;overflow:hidden;background:rgba(7,10,9,.6);transition:border-color .15s,transform .15s}
+.det-card:hover{border-color:rgba(155,108,224,.45);transform:translateY(-2px)}
+.det-card.hide{display:none}
+.det-frame{position:relative;aspect-ratio:4/3;overflow:hidden;background:#0a0d0c}
+.det-frame img{width:100%;height:100%;object-fit:cover;display:block}
+.det-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  background:repeating-linear-gradient(0deg,rgba(240,240,234,.03) 0 2px,transparent 2px 4px),radial-gradient(120% 90% at 50% 40%,color-mix(in srgb,var(--qh) 14%,transparent),rgba(6,9,8,.9))}
+.det-ph span{font-size:9px;font-weight:800;letter-spacing:.14em;color:color-mix(in srgb,var(--qh) 75%,#fff);opacity:.7}
+.det-box{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.det-box rect{fill:none;stroke-width:1.4;vector-effect:non-scaling-stroke;opacity:.95;filter:drop-shadow(0 0 3px rgba(0,0,0,.6))}
+.det-tag{position:absolute;left:6px;top:6px;font-size:9.5px;font-weight:700;color:#0a0812;background:var(--qh);padding:2px 7px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.det-meta{padding:8px 11px 10px}
+.det-meta b{display:block;font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.det-meta span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.det-hov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,8,14,.5),rgba(9,8,14,.94));backdrop-filter:blur(3px);opacity:0;transition:opacity .2s;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:16px 18px;pointer-events:none}
+.det-card:hover .det-hov{opacity:1}
+.det-hov div{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;border-bottom:1px solid rgba(240,240,234,.09);padding-bottom:5px}
+.det-hov em{font-style:normal;font-weight:500;color:var(--muted);text-transform:uppercase;font-size:9.5px;letter-spacing:.08em}
+
+/* det grid: rows stay natural height at the top, no vertical stretch */
+.det-grid{align-content:start}
+
+/* reports — selectable library + richer preview */
+.doc-list{display:flex;flex-direction:column;overflow-y:auto;min-height:0;flex:1;scrollbar-width:thin;scrollbar-color:rgba(155,108,224,.3) transparent}
+.doc-sel{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:9px;cursor:pointer;padding:9px 8px;font-family:var(--sans);transition:background .14s}
+.doc-sel:hover{background:rgba(155,108,224,.08)}
+.doc-sel.on{background:rgba(155,108,224,.16)}
+.rep-preview{display:flex;flex-direction:column}
+.prev-sec p{font-size:11.5px;line-height:1.5;color:var(--dim);margin:0}
+.prev-cite{margin-top:auto;padding-top:12px;border-top:1px solid rgba(155,108,224,.2);font-size:11px;line-height:1.5;color:var(--muted)}
+.prev-cite::before{content:"◆ ";color:#9B6CE0}

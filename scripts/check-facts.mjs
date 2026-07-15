@@ -15,6 +15,9 @@ const main = read('src/main.js');
 const faqs = read('faqs/index.html');
 const ai = read('ai/index.html');
 const aijs = read('ai/ai.js');
+const mapjs = read('ai/map.js');
+import { existsSync } from 'node:fs';
+const hasGeo = existsSync(join(root, 'public/virunga-geo.json'));
 
 // [fact label, must-match-in-main.js, [page file, must-match-in-page, page text]]
 const CHECKS = [
@@ -46,6 +49,11 @@ if (!/spec sheet in development/.test(faqs)) { failed++; console.error('DRIFT  f
 if (!/sample data/.test(ai)) { failed++; console.error('DRIFT  ai page lost its "sample data" badge'); }
 if (!/Camera Trap Data Analysis Management System/.test(ai)) { failed++; console.error('DRIFT  ai page lost the CTDAMS expansion'); }
 if (!/sample/.test(aijs)) { failed++; console.error('DRIFT  ai.js lost its sample labeling'); }
+if (!hasGeo) { failed++; console.error('DRIFT  public/virunga-geo.json (real OSM boundary) missing'); }
+if (!/OpenStreetMap/.test(mapjs)) { failed++; console.error('DRIFT  map.js lost its OSM source attribution'); }
+if (!/Virunga/.test(ai)) { failed++; console.error('DRIFT  ai page lost the Virunga framing'); }
+// cited population figures must keep their sources in the map SOURCES list
+for (const fig of ['604', '2,700', '27.6']) if (!mapjs.includes(fig)) { failed++; console.error(`DRIFT  map.js lost cited figure ${fig}`); }
 // the 2×AA form factor is founder-stated (2026-07-15), not in DEVICES — it must
 // stay paired with the in-development badge until the spec sheet publishes
 if (/2×AA|two AA/.test(faqs) && !/spec sheet in development/.test(faqs)) {
@@ -53,4 +61,4 @@ if (/2×AA|two AA/.test(faqs) && !/spec sheet in development/.test(faqs)) {
 }
 
 if (failed) { console.error(`\n${failed} fact check(s) failed`); process.exit(1); }
-console.log(`all ${CHECKS.length + 3} fact checks pass`);
+console.log(`all ${CHECKS.length + 9} checks pass`);

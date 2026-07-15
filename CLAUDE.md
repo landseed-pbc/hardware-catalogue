@@ -70,9 +70,17 @@ Two more app pages alongside Catalogue and Demo. Binding rules:
    comparison is a dimensioned SVG sketch — Monitor beside two AA cells; form factor
    founder-stated 2026-07-15, spec-sheet badge stays until dimensions publish), /ai/ is
    the CTDAMS sample workspace — an immersive app, not a framed console: its own app
-   bar (mark · tabs · sample-data badge · clock), four clickable views (Overview with
-   the rangers' phone, Detections with working class filters, Survey, Reports), all
-   interactive as a client would use it. The bay's /#ai shows the brain itself.
+   bar (mark · tabs · sample-data badge · clock), four clickable views: Overview
+   (rangers' phone + the Virunga occupancy twin + metrics), Detections (image cards
+   with bounding boxes, filterable by intrusion/people/vehicle/animal-by-species),
+   Survey (the twin + class bars + acoustics), Reports (a Virunga-titled library,
+   each doc renders its own preview). The occupancy centerpiece is a LIVING TWIN of
+   the group's area: real OSM park boundary (relation 404784) + Lake Edward in
+   public/virunga-geo.json, a modeled occupancy field (inverse-distance from a
+   sensor network at real central-sector locations), interactive stations with
+   subtly-cited real population figures (ai/map.js SOURCES — gorilla/hippo/elephant
+   census, UNESCO biomass; all illustrative sample data, cited numbers are real).
+   Regenerate the geo asset from the virunga-immersive repo's public/boundaries.json. The bay's /#ai shows the brain itself.
    No Three.js on satellites. Desktop fits one viewport; small screens scroll
    (the ≤1080px media block in satellite.css).
 3. **Nav bars are uniform:** every page ends its chip bar with

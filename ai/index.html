@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css?v=30" />
-<link rel="stylesheet" href="/css/satellite.css?v=6" />
+<link rel="stylesheet" href="/css/satellite.css?v=7" />
 <style>
 :root{--fa:#9B6CE0}
 </style>
@@ -67,15 +67,10 @@
         <div class="tg-input"><span>Message</span><i class="tg-mic">&#127908;</i></div>
       </aside>
     </div>
-    <div class="pane">
-      <div class="pane-h">Occupancy · by sector</div>
-      <div class="occ">
-        <div class="occ-y"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
-        <div class="occ-cells" id="occ"></div>
-        <div class="occ-x"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span><span>I</span></div>
-      </div>
-      <div class="occ-leg"><span>low</span><span class="ramp"></span><span>high</span><span style="margin-left:12px">45 sectors · updated continuously</span></div>
-      <div class="chain"><b>Ingest</b><i></i><b>Fuse</b><i></i><b>Estimate</b><i></i><b>Deliver</b></div>
+    <div class="pane map-pane">
+      <div class="pane-h">Occupancy · Virunga National Park<span class="map-note" id="map-src">sources</span></div>
+      <div class="map-wrap" id="map"></div>
+      <div class="map-leg"><span>occupancy ψ</span><span class="ramp"></span><span>0.4 → 0.97</span><span class="map-leg-r">camera-trap network · sample</span></div>
     </div>
     <div class="pane">
       <div class="pane-h">Population metrics<span class="range" id="range"><span data-r="d">24 h</span><span data-r="m">30 d</span><span class="on" data-r="y">12 m</span></span></div>
@@ -89,31 +84,20 @@
 
   <!-- ── DETECTIONS ───────────────────────────────────────────────────────── -->
   <section class="view" id="view-detections">
-    <div class="pane wide">
-      <div class="pane-h">Detections · last 24 h
-        <span class="filters" id="filters">
-          <button class="on" data-f="all">All</button>
-          <button data-f="human">Human</button>
-          <button data-f="elephant">Elephant</button>
-          <button data-f="vehicle">Vehicle</button>
-          <button data-f="acoustic">Acoustic</button>
-        </span>
+    <div class="pane wide det-pane">
+      <div class="pane-h">Detections · last 24 h <span id="det-count" class="det-count"></span>
+        <span class="filters" id="filters"></span>
       </div>
-      <div class="det-head"><span>Time</span><span>Class</span><span>Sensor</span><span>Sector</span><span>Conf</span><span>Routed</span></div>
-      <div class="det-list" id="det-list"></div>
+      <div class="det-grid" id="det-grid"></div>
     </div>
   </section>
 
   <!-- ── SURVEY ───────────────────────────────────────────────────────────── -->
   <section class="view" id="view-survey">
-    <div class="pane">
-      <div class="pane-h">Occupancy · by sector</div>
-      <div class="occ">
-        <div class="occ-y"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
-        <div class="occ-cells" id="occ2"></div>
-        <div class="occ-x"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span><span>I</span></div>
-      </div>
-      <div class="occ-leg"><span>low</span><span class="ramp"></span><span>high</span></div>
+    <div class="pane map-pane">
+      <div class="pane-h">Occupancy &amp; density · Virunga NP<span class="map-note" id="map-src2">sources</span></div>
+      <div class="map-wrap" id="map2"></div>
+      <div class="map-leg"><span>occupancy ψ</span><span class="ramp"></span><span>0.4 → 0.97</span><span class="map-leg-r">27 stations · central sector</span></div>
     </div>
     <div class="pane">
       <div class="pane-h">Detections by class · 30 d</div>
@@ -133,30 +117,19 @@
   <!-- ── REPORTS ──────────────────────────────────────────────────────────── -->
   <section class="view" id="view-reports">
     <div class="pane">
-      <div class="pane-h">Documents · written automatically</div>
-      <div class="doc"><span class="pdf"></span><div><b>Quarterly abundance report · Q2 2026</b><span>presence · occupancy · density · abundance</span></div></div>
-      <div class="doc"><span class="pdf"></span><div><b>Monthly detections digest · June 2026</b><span>every class, every sector</span></div></div>
-      <div class="doc"><span class="pdf"></span><div><b>Alert log · June 2026</b><span>phones · email · operations rooms</span></div></div>
-      <div class="doc"><span class="pdf"></span><div><b>Earth Credits measurement annex · Q2 2026</b><span>the measurement layer, assembled</span></div></div>
-      <p class="sp-note" style="margin-top:auto">Delivery: subscription · annual updates · bundled or standalone · bespoke builds.</p>
-    </div>
-    <div class="pane wide2">
-      <div class="pane-h">Preview · Quarterly abundance report</div>
-      <div class="prev">
-        <b>Quarterly abundance report</b>
-        <span>Q2 2026 · generated 01 Jul · sample programme</span>
-        <div class="prev-mets">
-          <div><span>Presence</span><b>0.82</b></div>
-          <div><span>Occupancy</span><b>0.61</b></div>
-          <div><span>Density /km²</span><b>3.2</b></div>
-          <div><span>Abundance</span><b>214 ±18</b></div>
-        </div>
-        <div class="prev-sec"><span>Methods</span><div class="rl"></div><div class="rl w2"></div></div>
-        <div class="prev-sec"><span>Results · by sector</span><div class="rl"></div><div class="rl"></div><div class="rl w3"></div></div>
-        <div class="prev-sec"><span>Confidence</span><div class="rl w2"></div><div class="rl w3"></div></div>
-        <div class="prev-sec"><span>Annex · Earth Credits measurement layer</span><div class="rl"></div><div class="rl w2"></div></div>
+      <div class="pane-h">Virunga NP · report library<span class="map-note" id="rep-src">sources</span></div>
+      <div class="doc-list">
+        <button class="doc doc-sel on" data-rep="abundance"><span class="pdf"></span><div><b>Quarterly abundance report · Q2 2026</b><span>presence · occupancy · density · abundance</span></div></button>
+        <button class="doc doc-sel" data-rep="detections"><span class="pdf"></span><div><b>Monthly detections digest · June 2026</b><span>every class, every sector · 3,120 detections</span></div></button>
+        <button class="doc doc-sel" data-rep="species"><span class="pdf"></span><div><b>Species occupancy atlas · Q2 2026</b><span>ψ by species across 27 stations</span></div></button>
+        <button class="doc doc-sel" data-rep="alerts"><span class="pdf"></span><div><b>Alert &amp; intrusion log · June 2026</b><span>humans · vehicles · gunshot signatures</span></div></button>
+        <button class="doc doc-sel" data-rep="acoustic"><span class="pdf"></span><div><b>Acoustic survey report · Q2 2026</b><span>leopard · wolf · gunshot triangulation</span></div></button>
+        <button class="doc doc-sel" data-rep="credits"><span class="pdf"></span><div><b>Earth Credits measurement annex · Q2 2026</b><span>the measurement layer, assembled</span></div></button>
+        <button class="doc doc-sel" data-rep="ranger"><span class="pdf"></span><div><b>Ranger deployment brief · weekly</b><span>patrol routing from occupancy &amp; alerts</span></div></button>
       </div>
+      <p class="sp-note" style="margin-top:auto">Every document written automatically on the programme's cadence. Delivery: subscription · bundled or standalone · bespoke builds.</p>
     </div>
+    <div class="pane wide2 rep-preview" id="rep-preview"></div>
   </section>
 
 </main>
@@ -179,6 +152,6 @@
   <a class="chip" href="/faqs/">FAQs</a>
 </nav>
 
-<script type="module" src="./ai.js?v=9"></script>
+<script type="module" src="./ai.js?v=10"></script>
 </body>
 </html>
