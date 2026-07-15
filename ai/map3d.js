@@ -17,18 +17,18 @@ export async function buildTerrain(hostId, tip) {
   if (!host) return null;
 
   const [meta, geo] = await Promise.all([
-    fetch(BASE + 'meta.json?v=1').then(r => r.json()),
+    fetch(BASE + "meta.json?v=2").then(r => r.json()),
     fetch('/public/virunga-geo.json?v=1').then(r => r.json()),
   ]);
   const B = meta.bbox, midLat = (B.n + B.s) / 2;
   const SC = 42;
   const Wx = (B.e - B.w) * KM * Math.cos(midLat * Math.PI / 180) / SC;
   const Wz = (B.n - B.s) * KM / SC;
-  const EX = 2.6;                                            // vertical exaggeration
+  const EX = 5.2;                                            // vertical exaggeration — the relief reads as terrain
   const hSpan = (meta.elevMax - meta.elevMin) / 1000 / SC * EX;
 
   // DEM → heights
-  const demImg = await loadImg(BASE + 'dem.png?v=1');
+  const demImg = await loadImg(BASE + "dem.png?v=2");
   const dc = document.createElement('canvas'); dc.width = demImg.width; dc.height = demImg.height;
   const dctx = dc.getContext('2d', { willReadFrequently: true }); dctx.drawImage(demImg, 0, 0);
   const dem = dctx.getImageData(0, 0, demImg.width, demImg.height).data;
@@ -43,14 +43,16 @@ export async function buildTerrain(hostId, tip) {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(host.clientWidth, host.clientHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMappingExposure = 1.2;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   host.innerHTML = ''; host.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, host.clientWidth / host.clientHeight, .05, 100);
 
   // terrain plane, displaced + real normals
-  const SEG = 220;
+  const SEG = 340;
   const geoP = new THREE.PlaneGeometry(Wx, Wz, Math.round(SEG * Wx / Wz), SEG);
   geoP.rotateX(-Math.PI / 2);
   const pos = geoP.attributes.position;
@@ -59,11 +61,11 @@ export async function buildTerrain(hostId, tip) {
     pos.setY(i, hAt(u, v));
   }
   geoP.computeVertexNormals();
-  const satTex = await loadTex(BASE + 'sat.jpg?v=1');
+  const satTex = await loadTex(BASE + 'sat.jpg?v=2');
   satTex.colorSpace = THREE.SRGBColorSpace; satTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  const mat = new THREE.MeshStandardMaterial({ map: satTex, roughness: .95, metalness: 0 });
+  const mat = new THREE.MeshStandardMaterial({ map: satTex, roughness: 1, metalness: 0 });
   const terrain = new THREE.Mesh(geoP, mat);
-  terrain.receiveShadow = true;
+  terrain.castShadow = true; terrain.receiveShadow = true;
   scene.add(terrain);
 
   // lat/lon → world; height sampled on the terrain
@@ -81,23 +83,28 @@ export async function buildTerrain(hostId, tip) {
     scene.add(rim);
   }
 
-  // lighting — golden hour
-  scene.add(new THREE.HemisphereLight(0xbfd8ff, 0x2a2418, .55));
-  const sun = new THREE.DirectionalLight(0xffe8c4, 2.1);
-  sun.position.set(-Wx, hSpan * 6 + 3, Wz * .3);
+  // lighting — low raking sun for strong relief definition + a soft sky fill
+  scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x2a2418, .5));
+  const sun = new THREE.DirectionalLight(0xfff0d6, 2.4);
+  sun.position.set(-Wx * 1.2, hSpan * 3 + 2, Wz * .1);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = .1; sun.shadow.camera.far = Wz * 4;
+  const sc = sun.shadow.camera; sc.left = -Wx; sc.right = Wx; sc.top = Wz * .7; sc.bottom = -Wz * .7; sc.updateProjectionMatrix();
+  sun.shadow.bias = -0.0006;
   scene.add(sun);
-  scene.add(new THREE.AmbientLight(0x404a5a, .5));
+  scene.add(new THREE.AmbientLight(0x3a4457, .38));
 
-  // camera + controls
+  // camera + controls — a fixed, professional oblique looking north over the
+  // volcanoes toward Lake Edward; the terrain fills the pane, no auto-rotate
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true; controls.dampingFactor = .08;
-  controls.minDistance = Wz * .5; controls.maxDistance = Wz * 1.6;
-  controls.maxPolarAngle = 1.35; controls.minPolarAngle = .2;
-  controls.target.set(0, 0, 0);
-  camera.position.set(Wx * .7, Wz * .85, Wz * .95);
-  controls.autoRotate = true; controls.autoRotateSpeed = .35;
+  controls.enableDamping = true; controls.dampingFactor = .09;
+  controls.minDistance = Wz * .42; controls.maxDistance = Wz * 1.25;
+  controls.maxPolarAngle = 1.28; controls.minPolarAngle = .35;
+  controls.target.set(0, hSpan * .45, -Wz * .12);
+  camera.position.set(Wx * .12, Wz * .44, Wz * .58);
+  controls.autoRotate = false;
   controls.update();
-  renderer.domElement.addEventListener('pointerdown', () => { controls.autoRotate = false; }, { once: true });
 
   // ── species icons + sensor stations, projected as DOM markers ──
   const layer = document.createElement('div');
