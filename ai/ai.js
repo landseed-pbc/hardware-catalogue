@@ -25,11 +25,15 @@ setInterval(() => {
   clock.textContent = `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
 }, 20000);
 
+/* the phone opens on the latest alert, like the demo's live feed */
+const tgBody = document.querySelector('#phone .tg-body');
+if (tgBody) tgBody.scrollTop = tgBody.scrollHeight;
+
 /* headless-verification hook — same doctrine as __hw / __demo (repo CLAUDE.md) */
 window.__ai = {
-  panes: [...document.querySelectorAll('.pane-h')].map(h => h.textContent),
+  panes: [...document.querySelectorAll('.pane-h')].map(h => h.textContent.trim().split('24 h')[0].trim()),
+  phoneBubbles: document.querySelectorAll('#phone .tg-msg').length,
   sectors: heat.length,
-  feedRows: document.querySelectorAll('.feed-row').length,
   sampleBadge: !!document.querySelector('.con-bar .sp-badge'),
   facts: { metrics: 'presence · occupancy · density · abundance' },
   revealed: () => rvs.filter(el => el.classList.contains('in')).length,

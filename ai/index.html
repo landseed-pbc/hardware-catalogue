@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css?v=30" />
-<link rel="stylesheet" href="/css/satellite.css?v=4" />
+<link rel="stylesheet" href="/css/satellite.css?v=5" />
 <style>
 :root{--fa:#9B6CE0}
 </style>
@@ -42,29 +42,38 @@
       <div class="sat-kicker">To understand · The platform brain</div>
       <h1>Landseed AI</h1>
     </div>
-    <p class="sat-stand">Every sensor reports here. Landseed AI — the platform brain, the CTDAMS — fuses optical, acoustic and remotely-sensed data into population metrics, and writes the measurement layer for Earth Credits. The bay shows the brain — <a href="/#ai" style="color:#c9a4ff">/#ai</a>. This is what it delivers.</p>
+    <p class="sat-stand">Every sensor reports here. Landseed AI is <b style="color:rgba(240,240,234,.92)">CTDAMS — the Camera Trap Data Analysis Management System</b>: it fuses optical, acoustic and remotely-sensed data into population metrics, and writes the measurement layer for Earth Credits. The bay shows the brain — <a href="/#ai" style="color:#c9a4ff">/#ai</a>. This is what it delivers.</p>
   </div>
 
   <!-- the operations console — what a programme actually sees -->
   <section class="console rv" aria-label="operations console, sample data">
     <div class="con-bar">
-      <i></i><b>Operations view</b>
+      <img src="/public/landseed-ai-mark.png" alt="" />
+      <b>Landseed AI · CTDAMS</b>
+      <nav class="con-tabs" aria-hidden="true"><span class="on">Overview</span><span>Detections</span><span>Survey</span><span>Reports</span></nav>
       <span class="sp-badge">sample data</span>
       <em id="clock">18:45</em>
     </div>
 
     <div class="con-grid">
 
-      <div class="pane" style="grid-column:1/4">
-        <div class="pane-h">Detections · routed live</div>
-        <div class="feed-row" style="--qh:#FFC800"><b>18:39</b><i></i><span>Elephant ×3 · treeline</span><em>phones</em></div>
-        <div class="feed-row" style="--qh:#00FF64"><b>18:33</b><i></i><span>Human ×4 · river crossing</span><em>ops room</em></div>
-        <div class="feed-row" style="--qh:#1482FF"><b>18:12</b><i></i><span>Vehicle · east road</span><em>phones + email</em></div>
-        <div class="feed-row" style="--qh:#E682E6"><b>17:58</b><i></i><span>Gunshot signature · sector G2</span><em>ops room</em></div>
-        <div class="feed-row" style="--qh:#FFC800"><b>17:41</b><i></i><span>Elephant ×1 · bull, north fence</span><em>phones</em></div>
-        <div class="feed-row" style="--qh:#00FF64"><b>17:22</b><i></i><span>Human ×2 · patrol confirmed</span><em>logged</em></div>
-        <div class="feed-row" style="--qh:#FF8C42"><b>16:58</b><i></i><span>Leopard call · acoustic array</span><em>survey</em></div>
-        <div class="chain"><b>Ingest</b><i></i><b>Fuse</b><i></i><b>Estimate</b><i></i><b>Deliver</b></div>
+      <div class="pane" style="grid-column:1/4;background:transparent;align-items:center;justify-content:center;padding:16px 10px">
+        <aside id="phone" aria-label="live alerts, sample data">
+          <div class="ph-island"></div>
+          <div class="ph-status"><span>18:45</span><span class="ph-icons"><i class="sig"><b></b><b></b><b></b><b></b></i>5G<i class="bat"><b></b></i></span></div>
+          <div class="tg-head">
+            <img class="tg-ava" src="/public/landseed-ai-mark.png" alt="" />
+            <div class="tg-who"><b>Landseed AI</b><span>bot &middot; alerts on</span></div>
+          </div>
+          <div class="tg-body">
+            <div class="tg-day"><span>Today</span></div>
+            <div class="tg-msg"><b>&#x1F6A8; Monitor 01 &middot; alert</b><span>Human &times;4 on the trail &middot; image &rarr; Relay Station over LoRa</span><em>18:33</em></div>
+            <div class="tg-msg"><b>&#x1F9E0; HQ &middot; alert delivered</b><span>LoRa &rarr; Relay Station &rarr; satellite &rarr; HQ &middot; no cell inside the park</span><em>18:35</em></div>
+            <div class="tg-msg"><b>&#x1F418; VillageGuard 01 &middot; alert</b><span>Elephant &times;3 approaching the fields &middot; lights on &middot; unit walking out</span><em>18:39</em></div>
+            <div class="tg-msg"><b>&#x1F43A; Listener array &middot; fix</b><span>Wolf pack call triangulated &middot; bearing lines converged &middot; logged to survey</span><em>18:41</em></div>
+          </div>
+          <div class="tg-input"><span>Message</span><i class="tg-mic">&#127908;</i></div>
+        </aside>
       </div>
 
       <div class="pane" style="grid-column:4/9">
@@ -75,10 +84,11 @@
           <div class="occ-x"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span><span>I</span></div>
         </div>
         <div class="occ-leg"><span>low</span><span class="ramp"></span><span>high</span><span style="margin-left:12px">45 sectors · updated continuously</span></div>
+        <div class="chain"><b>Ingest</b><i></i><b>Fuse</b><i></i><b>Estimate</b><i></i><b>Deliver</b></div>
       </div>
 
       <div class="pane" style="grid-column:9/13">
-        <div class="pane-h">Population metrics</div>
+        <div class="pane-h">Population metrics<span class="range" aria-hidden="true"><span>24 h</span><span>30 d</span><span class="on">12 m</span></span></div>
         <div class="mets">
           <div class="met"><span>Presence</span><b>0.82</b><em>▲ .03</em><svg viewBox="0 0 100 14" preserveAspectRatio="none"><polyline points="0,11 14,10 28,11 42,8 56,9 70,6 84,5 100,3"/></svg></div>
           <div class="met"><span>Occupancy</span><b>0.61</b><em>▲ .02</em><svg viewBox="0 0 100 14" preserveAspectRatio="none"><polyline points="0,10 14,11 28,9 42,10 56,7 70,8 84,6 100,5"/></svg></div>
@@ -86,9 +96,8 @@
           <div class="met"><span>Abundance</span><b>214</b><em>±18</em><svg viewBox="0 0 100 14" preserveAspectRatio="none"><polyline points="0,12 14,11 28,10 42,10 56,8 70,7 84,7 100,6"/></svg></div>
         </div>
         <div class="report">
-          <b>Quarterly abundance report</b>
-          <span>written automatically · programme cadence</span>
-          <div class="rl"></div><div class="rl w2"></div><div class="rl w3"></div>
+          <div class="doc"><span class="pdf"></span><div><b>Quarterly abundance report · Q2 2026</b><span>written automatically · programme cadence</span></div></div>
+          <div class="doc"><span class="pdf"></span><div><b>Monthly detections digest · June 2026</b><span>every class, every sector · sample</span></div></div>
         </div>
       </div>
 
@@ -114,6 +123,6 @@
   <a class="chip" href="/faqs/">FAQs</a>
 </nav>
 
-<script type="module" src="./ai.js?v=5"></script>
+<script type="module" src="./ai.js?v=6"></script>
 </body>
 </html>

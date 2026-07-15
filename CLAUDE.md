@@ -88,7 +88,10 @@ Two more app pages alongside Catalogue and Demo. Binding rules:
    flags, rendered fact values) so changes verify headlessly — same doctrine as
    `__hw` / `__demo.step()`. Console/dashboard graphics are crisp SVG or DOM with
    tabular numbers — no scaled canvas.
-7. **Indexability is per-page:** /demo/ is deliberately noindex; satellites are indexable
+7. **The rangers' phone chrome on /ai/ is a copy of demo.css v45's** `#phone` +
+   `.ph-`/`.tg-` block (only the frame is in-flow instead of fixed). When the demo's
+   phone styling evolves, re-sync satellite.css — or extract a shared phone.css.
+8. **Indexability is per-page:** /demo/ is deliberately noindex; satellites are indexable
    and ship full OG cards, with the OG image generated before first deploy, not after.
 
 Verifying a satellite change:
