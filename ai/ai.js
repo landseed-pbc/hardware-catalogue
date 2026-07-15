@@ -7,17 +7,26 @@
 const tabs = [...document.querySelectorAll('.app-tabs button')];
 const views = [...document.querySelectorAll('.view')];
 let currentView = 'overview';
+function revealView(name) {                                  // smooth staggered reveal, like FAQ
+  const view = document.getElementById('view-' + name);
+  if (!view) return;
+  [...view.querySelectorAll('.rv')].forEach((el, i) => setTimeout(() => el.classList.add('in'), 40 + i * 80));
+}
 function setView(name) {
   if (!document.getElementById('view-' + name)) return;
   currentView = name;
   tabs.forEach(t => t.classList.toggle('on', t.dataset.view === name));
   views.forEach(v => v.classList.toggle('on', v.id === 'view-' + name));
+  revealView(name);
 }
 tabs.forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
+// on load: reveal the header line and the first view
+document.querySelector('.app-sub')?.classList.add('in');
+revealView('overview');
 
 /* ── the Virunga twin — 3D terrain (Overview) + 2D occupancy surface (Survey) ── */
 import { buildMap, sourcesHTML } from './map.js?v=1';
-import { buildTerrain } from './map3d.js?v=1';
+import { buildTerrain } from './map3d.js?v=2';
 
 const tip = document.createElement('div');
 tip.className = 'vmap-tip';
@@ -218,9 +227,10 @@ const REPORTS = {
   credits: {
     title: 'Earth Credits measurement annex', sub: 'Virunga NP · Q2 2026 · the measurement layer',
     mets: [['Presence', '0.82'], ['Occupancy', '0.61'], ['Density /km²', '3.2'], ['Biomass t/km²', '27.6']],
-    secs: [['Measurement layer', 'Population metrics assembled into the Earth Credits standard.'],
-           ['Provenance', 'Every figure traces to a sensor, a station and a survey window.'],
-           ['Audit', 'Confidence intervals and detection probability carried through.']],
+    secs: [['Inputs', 'cameras · acoustics · reports · satellite — fused into the measurement layer.'],
+           ['Measurement layer', 'Population metrics assembled into the Earth Credits standard.'],
+           ['Delivery', 'subscription · annual updates · bundled or standalone · bespoke builds.'],
+           ['Provenance', 'Every figure traces to a sensor, a station and a survey window.']],
     cite: 'Savanna biomass ~27.6 t/km² — among the highest on Earth⁵.',
   },
   ranger: {

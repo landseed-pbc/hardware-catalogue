@@ -49,7 +49,8 @@ export async function buildTerrain(hostId, tip) {
   host.innerHTML = ''; host.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(38, host.clientWidth / host.clientHeight, .05, 100);
+  scene.fog = new THREE.Fog(0x0a0812, Wz * .9, Wz * 2.3);   // atmospheric depth
+  const camera = new THREE.PerspectiveCamera(40, host.clientWidth / host.clientHeight, .05, 100);
 
   // terrain plane, displaced + real normals
   const SEG = 340;
@@ -61,7 +62,7 @@ export async function buildTerrain(hostId, tip) {
     pos.setY(i, hAt(u, v));
   }
   geoP.computeVertexNormals();
-  const satTex = await loadTex(BASE + 'sat.jpg?v=2');
+  const satTex = await loadTex(BASE + 'sat.jpg?v=3');
   satTex.colorSpace = THREE.SRGBColorSpace; satTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const mat = new THREE.MeshStandardMaterial({ map: satTex, roughness: 1, metalness: 0 });
   const terrain = new THREE.Mesh(geoP, mat);
@@ -95,14 +96,14 @@ export async function buildTerrain(hostId, tip) {
   scene.add(sun);
   scene.add(new THREE.AmbientLight(0x3a4457, .38));
 
-  // camera + controls — a fixed, professional oblique looking north over the
-  // volcanoes toward Lake Edward; the terrain fills the pane, no auto-rotate
+  // camera + controls — fixed oblique looking north over the volcanoes toward
+  // Lake Edward, framed so the whole terrain sits in the pane; no auto-rotate
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; controls.dampingFactor = .09;
-  controls.minDistance = Wz * .42; controls.maxDistance = Wz * 1.25;
-  controls.maxPolarAngle = 1.28; controls.minPolarAngle = .35;
-  controls.target.set(0, hSpan * .45, -Wz * .12);
-  camera.position.set(Wx * .12, Wz * .44, Wz * .58);
+  controls.minDistance = Wz * .5; controls.maxDistance = Wz * 1.3;
+  controls.maxPolarAngle = 1.32; controls.minPolarAngle = .35;
+  controls.target.set(0, hSpan * .5, -Wz * .06);
+  camera.position.set(Wx * .08, Wz * .5, Wz * .72);
   controls.autoRotate = false;
   controls.update();
 
@@ -127,7 +128,7 @@ export async function buildTerrain(hostId, tip) {
       el.addEventListener('focus', (e) => { const b = el.getBoundingClientRect(); speciesTip(tip, s, { clientX: b.left, clientY: b.top }); });
       el.addEventListener('blur', () => tip.classList.remove('on'));
       layer.appendChild(el);
-      markers.push({ el, p });
+      markers.push({ el, p, rad: 14, mass: 1 });             // species: bigger, heavier (dots yield)
     }
   }
   // sensor stations — occupancy dots with ψ hovers
@@ -145,22 +146,48 @@ export async function buildTerrain(hostId, tip) {
     el.addEventListener('mousemove', (e) => posTip(tip, e));
     el.addEventListener('mouseleave', () => tip.classList.remove('on'));
     layer.appendChild(el);
-    markers.push({ el, p, st: true });
+    markers.push({ el, p, st: true, rad: 5, mass: .35 });    // station dots: small, light
   }
 
+  // screen-space declutter — markers start at their true projected position and
+  // only push apart where they overlap, so distribution stays real (not gridded)
+  // and nothing collides from any orbit angle; species outweigh dots.
   const v = new THREE.Vector3();
   function project() {
     const w = host.clientWidth, h = host.clientHeight;
     for (const m of markers) {
       v.copy(m.p).project(camera);
-      const behind = v.z > 1;
-      m.el.style.opacity = behind ? '0' : '';
-      m.el.style.left = ((v.x * .5 + .5) * w).toFixed(1) + 'px';
-      m.el.style.top = ((-v.y * .5 + .5) * h).toFixed(1) + 'px';
+      m.behind = v.z > 1;
+      m.sx = (v.x * .5 + .5) * w; m.sy = (-v.y * .5 + .5) * h;
+    }
+    const vis = markers.filter(m => !m.behind);
+    for (let it = 0; it < 12; it++) {
+      for (let a = 0; a < vis.length; a++) for (let b = a + 1; b < vis.length; b++) {
+        const A = vis[a], C = vis[b];
+        const min = A.rad + C.rad;
+        let dx = C.sx - A.sx, dy = C.sy - A.sy, d = Math.hypot(dx, dy) || .01;
+        if (d < min) {
+          const push = (min - d), inv = 1 / (A.mass + C.mass);
+          dx /= d; dy /= d;
+          A.sx -= dx * push * C.mass * inv; A.sy -= dy * push * C.mass * inv;
+          C.sx += dx * push * A.mass * inv; C.sy += dy * push * A.mass * inv;
+        }
+      }
+    }
+    for (const m of markers) {
+      m.el.style.opacity = m.behind ? '0' : '';
+      m.el.style.left = m.sx.toFixed(1) + 'px';
+      m.el.style.top = m.sy.toFixed(1) + 'px';
     }
   }
 
-  let alive = true;
+  // smooth fade-in on load
+  renderer.domElement.style.opacity = '0';
+  renderer.domElement.style.transition = 'opacity 1s ease';
+  layer.style.opacity = '0';
+  layer.style.transition = 'opacity 1s ease .3s';
+
+  let alive = true, faded = false;
   function tick() {
     if (!alive) return;
     requestAnimationFrame(tick);
@@ -168,6 +195,7 @@ export async function buildTerrain(hostId, tip) {
     controls.update();
     renderer.render(scene, camera);
     project();
+    if (!faded) { faded = true; requestAnimationFrame(() => { renderer.domElement.style.opacity = '1'; layer.style.opacity = '1'; }); }
   }
   tick();
 

@@ -193,9 +193,9 @@ body.sat.ai-page{
 .app-sub{position:fixed;top:52px;left:0;right:0;z-index:29;padding:7px 22px;font-size:11.5px;line-height:1.5;color:var(--muted);background:rgba(8,7,13,.6);border-bottom:1px solid rgba(155,108,224,.08)}
 .app-sub a{text-decoration:none}
 
-.app-main{position:fixed;inset:96px 22px 100px}
+.app-main{position:fixed;inset:98px 24px 80px}
 .view{display:none;height:100%}
-.view.on{display:grid;grid-template-columns:repeat(12,1fr);gap:13px}
+.view.on{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
 #view-overview .pane:nth-child(1){grid-column:1/4}
 #view-overview .pane:nth-child(2){grid-column:4/10}
 #view-overview .pane:nth-child(3){grid-column:10/13}
@@ -237,7 +237,7 @@ body.sat.ai-page{
 .prev-mets b{font-size:15px;font-weight:800;color:#eef0ea;font-variant-numeric:tabular-nums}
 .prev .rl{margin-top:8px}
 
-.app-foot{position:fixed;left:22px;right:22px;bottom:66px;border-top:1px solid rgba(155,108,224,.14);background:none;padding:8px 2px}
+
 
 /* small screens: the workspace stacks and scrolls */
 @media(max-width:1080px),(max-height:720px){
@@ -246,7 +246,7 @@ body.sat.ai-page{
   .app-tabs{margin-left:6px}
   .app-tabs button{padding:7px 11px;font-size:12px}
   .app-sub{top:50px}
-  .app-foot{position:static;margin:14px 16px 0}
+  
   .det-head,.det-row{grid-template-columns:50px 1.3fr 1fr 44px 44px .8fr;gap:8px}
   .det-list{max-height:60vh}
 }

@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css?v=30" />
-<link rel="stylesheet" href="/css/satellite.css?v=9" />
+<link rel="stylesheet" href="/css/satellite.css?v=10" />
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 <style>
 :root{--fa:#9B6CE0}
@@ -44,13 +44,13 @@
   <span class="sp-badge">sample data</span>
   <em class="app-clock" id="clock">18:45</em>
 </header>
-<p class="app-sub" style="font-size:12px;color:var(--dim)">CTDAMS — the Camera Trap Data Analysis Management System: fuses optical, acoustic and remotely-sensed data into population metrics, and writes the measurement layer for Earth Credits. Sample workspace — <a href="/#ai" style="color:#c9a4ff">the brain lives in the bay</a>.</p>
+<p class="app-sub rv" style="font-size:12px;color:var(--dim)">CTDAMS — the Camera Trap Data Analysis Management System: fuses optical, acoustic and remotely-sensed data into population metrics, and writes the measurement layer for Earth Credits. Sample workspace — <a href="/#ai" style="color:#c9a4ff">the brain lives in the bay</a>.</p>
 
 <main class="app-main">
 
   <!-- ── OVERVIEW ─────────────────────────────────────────────────────────── -->
   <section class="view on" id="view-overview">
-    <div class="pane phone-pane">
+    <div class="pane phone-pane rv">
       <aside id="phone" aria-label="live alerts, sample data">
         <div class="ph-island"></div>
         <div class="ph-status"><span>18:45</span><span class="ph-icons"><i class="sig"><b></b><b></b><b></b><b></b></i>5G<i class="bat"><b></b></i></span></div>
@@ -68,12 +68,12 @@
         <div class="tg-input"><span>Message</span><i class="tg-mic">&#127908;</i></div>
       </aside>
     </div>
-    <div class="pane map-pane">
+    <div class="pane map-pane rv">
       <div class="pane-h">Occupancy · Virunga National Park<span class="map-note" id="map-src">sources</span></div>
       <div class="map-wrap" id="map"></div>
       <div class="map-leg"><span class="map-leg-l">◆ live 3D terrain · real DEM + ESRI satellite</span><span class="map-leg-r">drag to orbit · tap a species · 27 camera-trap ψ</span></div>
     </div>
-    <div class="pane">
+    <div class="pane rv">
       <div class="pane-h">Population metrics<span class="range" id="range"><span data-r="d">24 h</span><span data-r="m">30 d</span><span class="on" data-r="y">12 m</span></span></div>
       <div class="mets" id="mets"></div>
       <div class="report">
@@ -85,7 +85,7 @@
 
   <!-- ── DETECTIONS ───────────────────────────────────────────────────────── -->
   <section class="view" id="view-detections">
-    <div class="pane wide det-pane">
+    <div class="pane wide det-pane rv">
       <div class="pane-h">Detections · last 24 h <span id="det-count" class="det-count"></span>
         <span class="filters" id="filters"></span>
       </div>
@@ -95,17 +95,17 @@
 
   <!-- ── SURVEY ───────────────────────────────────────────────────────────── -->
   <section class="view" id="view-survey">
-    <div class="pane map-pane">
+    <div class="pane map-pane rv">
       <div class="pane-h">Occupancy &amp; density · Virunga NP<span class="map-note" id="map-src2">sources</span></div>
       <div class="map-wrap" id="map2"></div>
       <div class="map-leg"><span>occupancy ψ</span><span class="ramp"></span><span>0.4 → 0.97</span><span class="map-leg-r">27 stations · central sector</span></div>
     </div>
-    <div class="pane">
+    <div class="pane rv">
       <div class="pane-h">Detections by class · 30 d</div>
       <div id="species"></div>
       <div class="occ-leg" style="margin-top:auto"><span>survey effort · 1,340 camera-nights · sample</span></div>
     </div>
-    <div class="pane">
+    <div class="pane rv">
       <div class="pane-h">Acoustic survey · 30 d</div>
       <div class="feed-row" style="--qh:#FF8C42"><b>412</b><i></i><span>Leopard calls · array north</span><em>triangulated</em></div>
       <div class="feed-row" style="--qh:#E682E6"><b>1,048</b><i></i><span>Wolf pack events · full survey</span><em>logged</em></div>
@@ -117,7 +117,7 @@
 
   <!-- ── REPORTS ──────────────────────────────────────────────────────────── -->
   <section class="view" id="view-reports">
-    <div class="pane">
+    <div class="pane rv">
       <div class="pane-h">Virunga NP · report library<span class="map-note" id="rep-src">sources</span></div>
       <div class="doc-list">
         <button class="doc doc-sel on" data-rep="abundance"><span class="pdf"></span><div><b>Quarterly abundance report · Q2 2026</b><span>presence · occupancy · density · abundance</span></div></button>
@@ -130,21 +130,10 @@
       </div>
       <p class="sp-note" style="margin-top:auto">Every document written automatically on the programme's cadence. Delivery: subscription · bundled or standalone · bespoke builds.</p>
     </div>
-    <div class="pane wide2 rep-preview" id="rep-preview"></div>
+    <div class="pane wide2 rep-preview rv" id="rep-preview"></div>
   </section>
 
 </main>
-
-<!-- the record — app status strip -->
-<footer class="con-foot app-foot">
-  <span><b>Inputs</b> cameras · acoustics · reports · satellite</span>
-  <span><b>Metrics</b> presence · occupancy · density · abundance</span>
-  <span><b>Alerts</b> phones · email · operations rooms</span>
-  <span><b>Delivery</b> subscription · annual updates</span>
-  <span><b>Form</b> bundled or standalone · bespoke builds</span>
-  <span><b>Programme</b> Earth Credits measurement layer</span>
-  <span><b>Roadmap</b> monocular distance · acoustic triangulation</span>
-</footer>
 
 <nav id="chapters" aria-label="pages">
   <a class="chip" href="/">Catalogue</a>
@@ -159,6 +148,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./ai.js?v=11"></script>
+<script type="module" src="./ai.js?v=12"></script>
 </body>
 </html>

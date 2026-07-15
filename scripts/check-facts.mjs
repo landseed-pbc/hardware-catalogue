@@ -31,8 +31,8 @@ const CHECKS = [
   ['underwater proof', /14 days underwater, transmitting/, ['faqs/index.html', /14 days/, faqs]],
   ['CTDAMS line', /fuses optical, acoustic and remotely-sensed data into population metrics/, ['ai/index.html', /fuses optical, acoustic and remotely-sensed data into population metrics/, ai]],
   ['AI metrics', /presence · occupancy · density · abundance/, ['ai/index.html', /presence · occupancy · density · abundance/, ai]],
-  ['AI inputs', /cameras · acoustics · reports · satellite/, ['ai/index.html', /cameras · acoustics · reports · satellite/, ai]],
-  ['AI delivery', /subscription · annual updates/, ['ai/index.html', /subscription · annual updates/, ai]],
+  ['AI inputs', /cameras · acoustics · reports · satellite/, ['ai/ai.js', /cameras · acoustics · reports · satellite/, aijs]],
+  ['AI delivery', /subscription · annual updates/, ['ai/ai.js', /subscription · annual updates/, aijs]],
   ['AI roadmap', /monocular distance · acoustic triangulation/, ['ai/index.html', /monocular distance · acoustic triangulation/, ai]],
 ];
 
