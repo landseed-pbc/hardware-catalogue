@@ -56,6 +56,32 @@ Canonical remote is **GitHub** (`landseed-pbc/hardware-catalogue`); **Forgejo**
 (`forge.aroessner.com/Landseed-PBC/hardware-catalogue`) is the sovereign mirror. Push
 GitHub first, then forge. Conventional commits (`type(scope): why`).
 
+## Satellite pages (planned: Why Landseed · Landseed AI — see scope doc before building)
+
+Two scroll pages are planned alongside the app pages (Catalogue, Demo). Binding rules,
+settled regardless of the open naming/URL decisions:
+
+1. **Satellites import `css/styles.css` read-only** — it IS the design system (tokens,
+   chips incl. the purple `.chip.dive`, caption card, HUD, responsive tiers). Never edit
+   it for a satellite need; overrides live in `css/satellite.css` + per-page files.
+   `.chip.cta` exists only in `demo.css` — copy it byte-identical into `satellite.css`,
+   don't fork a third variant.
+2. **Satellites scroll; app pages don't.** That split is deliberate — don't add scrolling
+   to Catalogue/Demo, don't add app-style fixed layouts to satellites.
+3. **Chip-bar grammar:** in-page nav first, then `.chip-div`, then outbound `.chip.cta`
+   links. Never a self-label chip. `#9B6CE0` purple only where content is semantically
+   Landseed AI.
+4. **Facts trace to `DEVICES` in `main.js`** (or its successor data module) and the source
+   docs — same as invariant 3 above. Unconfirmed numbers get the exact phrase
+   "spec sheet in development". Every illustrative dashboard carries a "sample data" chip —
+   convincing fake interfaces ship labeled, always.
+5. **`?v=N` discipline extends to satellites** — including any prefetch/preload hints
+   pointing at versioned files (the hint version must match the reference it warms).
+6. **Every satellite ships a `window.__why` / `__ai` hook** (current section, rendered
+   fact values) so changes verify headlessly — same doctrine as `__hw` / `__demo.step()`.
+7. **Indexability is per-page:** /demo/ is deliberately noindex; satellites are indexable
+   and ship full OG cards, with the OG image generated before first deploy, not after.
+
 ## /demo — the field demonstration
 
 Standalone cinematic page (`demo/index.html` + `demo.js` + `demo.css`), linked
