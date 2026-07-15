@@ -35,13 +35,14 @@ No build step. Three.js (ESM importmap) + GSAP (UMD) from CDN.
 - `src/devices.js` — the seven products, procedural geometry only (no model files)
 - `demo/` — the field-demonstration film (see CLAUDE.md)
 
-**Satellite pages** (fixed viewport like the catalogue; import `css/styles.css`
-read-only + `css/satellite.css`, reuse the device-view chrome over a live bay canvas):
+**Satellite pages** (flat, one viewport at desktop; import `css/styles.css` read-only
++ `css/satellite.css`; each surface has its own form — no device-view replication):
 
-- `faqs/` — FAQs: the Monitor staged at true scale beside two AA batteries (drag to
-  orbit), five facts each with its own micro-graphic, seven-question accordion.
-- `ai/` — Landseed AI: the live Shaman orb, the chain, the record, and three sample
-  dashboards opened from the purple dive chips (every panel labeled "sample data").
+- `faqs/` — the field sheet: seven questions and five facts on one gridded screen,
+  the size comparison drawn as a dimensioned sketch (Monitor beside two AA cells).
+- `ai/` — the operations console: detections routed, occupancy by sector, population
+  metrics, the automated report — what the subscription delivers ("sample data"
+  labeled; the bay's /#ai shows the brain itself).
 - `scripts/check-facts.mjs` — satellite copy restates facts whose source of truth is
   `DEVICES` in `main.js`; run before deploying any satellite change.
 - `_redirects` — the retired /why/ URLs 301 to /faqs/.

@@ -63,12 +63,13 @@ Two more app pages alongside Catalogue and Demo. Binding rules:
 1. **Satellites import `css/styles.css` read-only** — it IS the design system (tokens,
    chips incl. the purple `.chip.dive`, caption card, HUD, responsive tiers). Never edit
    it for a satellite need; overrides live in `css/satellite.css` + per-page files.
-2. **No page scrolls, anywhere.** Satellites are fixed-viewport like the catalogue: a
-   live bay canvas (`createWorld` + the real `devices.js` builders), the device-view
-   chrome reused verbatim (`#caption` left rail, `#specs` right rail, `body.devview`),
-   internal panel scrolling only. FAQs stages the Monitor at true scale beside two AA
-   batteries (form factor founder-stated 2026-07-15 — keep the spec-sheet badge until
-   dimensions publish); /ai/ stages the live Shaman orb.
+2. **Each surface has its own form — satellites never replicate the device-view.**
+   The bay is 3D, the demo is a film, /faqs/ is a flat gridded field sheet (the size
+   comparison is a dimensioned SVG sketch — Monitor beside two AA cells; form factor
+   founder-stated 2026-07-15, spec-sheet badge stays until dimensions publish), /ai/ is
+   a flat operations console (what the subscription delivers — the bay's /#ai already
+   shows the brain itself). No Three.js on satellites. Desktop fits one viewport;
+   small screens scroll (the ≤1080px media block in satellite.css).
 3. **Nav bars are uniform:** every page ends its chip bar with
    `Catalogue · Demo · Landseed AI · FAQs`, current page as a solid-green `.chip.on`
    self-chip. In-page chips (Demo's chapters, /ai/'s purple dashboard dive chips) come
@@ -81,9 +82,10 @@ Two more app pages alongside Catalogue and Demo. Binding rules:
    convincing fake interfaces ship labeled, always.
 5. **`?v=N` discipline extends to satellites** — including any prefetch/preload hints
    pointing at versioned files (the hint version must match the reference it warms).
-6. **Every satellite ships a `window.__faq` / `__ai` hook** (open state, scene flags,
-   rendered fact values) so changes verify headlessly — same doctrine as `__hw` /
-   `__demo.step()`.
+6. **Every satellite ships a `window.__faq` / `__ai` hook** (cell/pane counts, badge
+   flags, rendered fact values) so changes verify headlessly — same doctrine as
+   `__hw` / `__demo.step()`. Console/dashboard graphics are crisp SVG or DOM with
+   tabular numbers — no scaled canvas.
 7. **Indexability is per-page:** /demo/ is deliberately noindex; satellites are indexable
    and ship full OG cards, with the OG image generated before first deploy, not after.
 

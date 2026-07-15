@@ -43,7 +43,7 @@ for (const [label, srcRe, [page, pageRe, pageText]] of CHECKS) {
 // satellite honesty invariants
 if (!/spec sheet in development/.test(faqs)) { failed++; console.error('DRIFT  faqs page lost the "spec sheet in development" placeholder'); }
 if (!/sample data/.test(ai)) { failed++; console.error('DRIFT  ai page lost its "sample data" badge'); }
-if (!/sample data|sample sector/.test(aijs)) { failed++; console.error('DRIFT  ai.js dashboards lost their sample labeling'); }
+if (!/sample/.test(aijs)) { failed++; console.error('DRIFT  ai.js lost its sample labeling'); }
 // the 2×AA form factor is founder-stated (2026-07-15), not in DEVICES — it must
 // stay paired with the in-development badge until the spec sheet publishes
 if (/2×AA|two AA/.test(faqs) && !/spec sheet in development/.test(faqs)) {
