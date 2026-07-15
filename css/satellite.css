@@ -181,7 +181,7 @@ body.sat.ai-page{
 
 /* ── the CTDAMS app shell (/ai/) — the page IS the product ─────────────────── */
 .app-bar{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;gap:12px;padding:11px 22px;background:rgba(8,7,13,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(155,108,224,.18)}
-.app-mark{width:26px;height:26px;border-radius:7px;background:#0e1216;padding:3px}
+.app-mark{height:26px;width:auto;object-fit:contain;flex:none}
 .app-name{font-size:14px;font-weight:800;letter-spacing:.02em;color:#f4f3ee;white-space:nowrap}
 .app-name span{font-weight:600;color:var(--dim)}
 .app-tabs{display:flex;gap:4px;margin-left:18px}

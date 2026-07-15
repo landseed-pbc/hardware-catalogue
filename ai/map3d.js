@@ -50,7 +50,7 @@ export async function buildTerrain(hostId, tip) {
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x0a0812, Wz * .9, Wz * 2.3);   // atmospheric depth
-  const camera = new THREE.PerspectiveCamera(40, host.clientWidth / host.clientHeight, .05, 100);
+  const camera = new THREE.PerspectiveCamera(60, host.clientWidth / host.clientHeight, .05, 100);
 
   // terrain plane, displaced + real normals
   const SEG = 340;
@@ -103,8 +103,8 @@ export async function buildTerrain(hostId, tip) {
   controls.enableDamping = true; controls.dampingFactor = .09;
   controls.minDistance = Wz * .55; controls.maxDistance = Wz * 1.5;
   controls.maxPolarAngle = 1.46; controls.minPolarAngle = .35;
-  controls.target.set(-Wx * .28, hSpan * .34, -Wz * .02);
-  camera.position.set(Wx * .5, Wz * .5, Wz * .7);
+  controls.target.set(-Wx * .075, hSpan * .2, -Wz * .02);
+  camera.position.set(Wx * .15, Wz * .34, Wz * .82);
   controls.autoRotate = false;
   controls.update();
   const refDist = camera.position.distanceTo(controls.target);   // depth-scale reference
