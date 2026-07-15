@@ -951,8 +951,10 @@ eles.forEach((e, i) => { e.position.set(-i * 2.1 - (i % 2) * .4, 0, (i % 2) * 1.
 // drop-in: place a licensed animated rig at demo/assets/elephant.glb and the
 // procedural family is replaced automatically (Walk clip auto-selected)
 new GLTFLoader().load('./assets/elephant.glb', (g) => {
-  const box = new THREE.Box3().setFromObject(g.scene);
-  const sc0 = 3.4 / (box.max.y - box.min.y);
+  // Box3.setFromObject can't see skinned deformation (this rig stores bind-space
+  // geometry at 1/100 scale), so the bounds are baked: height 2.16, feet at y=-1.02.
+  const ELE_H = 2.16, ELE_MINY = -1.02;
+  const sc0 = 3.4 / ELE_H;
   const clips = g.animations;
   const walk = clips.find(c => /walk/i.test(c.name)) || clips[0];
   eles.forEach(e => herd.remove(e));
@@ -960,8 +962,10 @@ new GLTFLoader().load('./assets/elephant.glb', (g) => {
   const spots = [[0, 0, 0], [-2.3, 1.4, 1], [-1.9, -1.6, 2]];
   for (const [px, pz, i] of spots) {
     const e = SkeletonUtils.clone(g.scene);
-    e.scale.setScalar(sc0 * (1 - i * .18));
-    e.position.set(px, 0, pz);
+    const sc = sc0 * (1 - i * .18);
+    e.scale.setScalar(sc);
+    e.position.set(px, -ELE_MINY * sc, pz);                      // bind-pose feet sit below origin
+    e.rotation.y = Math.PI / 2;                                  // rig faces +Z; herd travel is +X
     e.traverse(o => { if (o.isMesh) o.castShadow = true; });
     if (walk) {
       const mixer = new THREE.AnimationMixer(e);
@@ -2201,6 +2205,7 @@ window.__demo = {
     return out;
   },
   tl, camera, camP, camL, CH, ICONS,
+  herd, get eles() { return eles; },              // herd inspection for automation
   // manual frame-step for automation: render an exact timeline moment even
   // when the tab is backgrounded and requestAnimationFrame is paused
   step(T) { tl.pause(); tl.time(T, false); tick(1 / 60, T); },
