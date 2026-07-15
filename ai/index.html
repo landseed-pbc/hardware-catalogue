@@ -3,118 +3,174 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Landseed AI — the platform brain</title>
-<meta name="description" content="Landseed AI — the CTDAMS, seen from the operations room. Optical, acoustic and remotely-sensed data fused into presence, occupancy, density and abundance; live alerts routed, reports written automatically. Sample console view." />
+<title>Landseed AI — CTDAMS</title>
+<meta name="description" content="Landseed AI is CTDAMS — the Camera Trap Data Analysis Management System. An interactive sample workspace: detections routed live, occupancy by sector, population metrics, automated reporting — the measurement layer for Earth Credits." />
 <meta name="theme-color" content="#070F07" />
 <link rel="canonical" href="https://hardware-catalogue.pages.dev/ai/" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Landseed" />
-<meta property="og:title" content="Landseed AI — the platform brain" />
-<meta property="og:description" content="The operations console: detections routed, occupancy by sector, population metrics, automated reporting — the measurement layer for Earth Credits." />
+<meta property="og:title" content="Landseed AI — CTDAMS" />
+<meta property="og:description" content="The Camera Trap Data Analysis Management System, as a client sees it — detections, occupancy, metrics, reports. Sample workspace." />
 <meta property="og:url" content="https://hardware-catalogue.pages.dev/ai/" />
-<meta property="og:image" content="https://hardware-catalogue.pages.dev/public/og-ai.jpg?v=3" />
+<meta property="og:image" content="https://hardware-catalogue.pages.dev/public/og-ai.jpg?v=4" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="The Landseed AI operations console — detections, occupancy, metrics, automated reporting. Sample data." />
+<meta property="og:image:alt" content="The Landseed AI CTDAMS workspace — detections, occupancy, metrics, reports. Sample data." />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Landseed AI — the platform brain" />
-<meta name="twitter:image" content="https://hardware-catalogue.pages.dev/public/og-ai.jpg?v=3" />
+<meta name="twitter:title" content="Landseed AI — CTDAMS" />
+<meta name="twitter:image" content="https://hardware-catalogue.pages.dev/public/og-ai.jpg?v=4" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css?v=30" />
-<link rel="stylesheet" href="/css/satellite.css?v=5" />
+<link rel="stylesheet" href="/css/satellite.css?v=6" />
 <style>
 :root{--fa:#9B6CE0}
 </style>
 </head>
 <body class="sat ai-page">
 
-<header class="hud">
-  <a class="brand" href="/" title="Back to the catalogue"><img class="b-word" src="/public/landseed-wordmark.svg" alt="Landseed" /></a>
-  <div class="hud-right"><span class="hud-tag">Technology Ecosystem · Landseed AI</span></div>
+<!-- the app bar IS the page header — Landseed AI branding, live views, sample flag -->
+<header class="app-bar">
+  <img class="app-mark" src="/public/landseed-ai-mark.png" alt="Landseed AI" />
+  <b class="app-name">Landseed AI <span>· CTDAMS</span></b>
+  <nav class="app-tabs" aria-label="workspace views">
+    <button class="on" data-view="overview">Overview</button>
+    <button data-view="detections">Detections</button>
+    <button data-view="survey">Survey</button>
+    <button data-view="reports">Reports</button>
+  </nav>
+  <span class="sp-badge">sample data</span>
+  <em class="app-clock" id="clock">18:45</em>
 </header>
+<p class="app-sub" style="font-size:12px;color:var(--dim)">CTDAMS — the Camera Trap Data Analysis Management System: fuses optical, acoustic and remotely-sensed data into population metrics, and writes the measurement layer for Earth Credits. Sample workspace — <a href="/#ai" style="color:#c9a4ff">the brain lives in the bay</a>.</p>
 
-<main class="sat-wrap">
+<main class="app-main">
 
-  <div class="sat-head rv">
-    <div>
-      <div class="sat-kicker">To understand · The platform brain</div>
-      <h1>Landseed AI</h1>
-    </div>
-    <p class="sat-stand">Every sensor reports here. Landseed AI is <b style="color:rgba(240,240,234,.92)">CTDAMS — the Camera Trap Data Analysis Management System</b>: it fuses optical, acoustic and remotely-sensed data into population metrics, and writes the measurement layer for Earth Credits. The bay shows the brain — <a href="/#ai" style="color:#c9a4ff">/#ai</a>. This is what it delivers.</p>
-  </div>
-
-  <!-- the operations console — what a programme actually sees -->
-  <section class="console rv" aria-label="operations console, sample data">
-    <div class="con-bar">
-      <img src="/public/landseed-ai-mark.png" alt="" />
-      <b>Landseed AI · CTDAMS</b>
-      <nav class="con-tabs" aria-hidden="true"><span class="on">Overview</span><span>Detections</span><span>Survey</span><span>Reports</span></nav>
-      <span class="sp-badge">sample data</span>
-      <em id="clock">18:45</em>
-    </div>
-
-    <div class="con-grid">
-
-      <div class="pane" style="grid-column:1/4;background:transparent;align-items:center;justify-content:center;padding:16px 10px">
-        <aside id="phone" aria-label="live alerts, sample data">
-          <div class="ph-island"></div>
-          <div class="ph-status"><span>18:45</span><span class="ph-icons"><i class="sig"><b></b><b></b><b></b><b></b></i>5G<i class="bat"><b></b></i></span></div>
-          <div class="tg-head">
-            <img class="tg-ava" src="/public/landseed-ai-mark.png" alt="" />
-            <div class="tg-who"><b>Landseed AI</b><span>bot &middot; alerts on</span></div>
-          </div>
-          <div class="tg-body">
-            <div class="tg-day"><span>Today</span></div>
-            <div class="tg-msg"><b>&#x1F6A8; Monitor 01 &middot; alert</b><span>Human &times;4 on the trail &middot; image &rarr; Relay Station over LoRa</span><em>18:33</em></div>
-            <div class="tg-msg"><b>&#x1F9E0; HQ &middot; alert delivered</b><span>LoRa &rarr; Relay Station &rarr; satellite &rarr; HQ &middot; no cell inside the park</span><em>18:35</em></div>
-            <div class="tg-msg"><b>&#x1F418; VillageGuard 01 &middot; alert</b><span>Elephant &times;3 approaching the fields &middot; lights on &middot; unit walking out</span><em>18:39</em></div>
-            <div class="tg-msg"><b>&#x1F43A; Listener array &middot; fix</b><span>Wolf pack call triangulated &middot; bearing lines converged &middot; logged to survey</span><em>18:41</em></div>
-          </div>
-          <div class="tg-input"><span>Message</span><i class="tg-mic">&#127908;</i></div>
-        </aside>
-      </div>
-
-      <div class="pane" style="grid-column:4/9">
-        <div class="pane-h">Occupancy · by sector</div>
-        <div class="occ">
-          <div class="occ-y"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
-          <div class="occ-cells" id="occ"></div>
-          <div class="occ-x"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span><span>I</span></div>
+  <!-- ── OVERVIEW ─────────────────────────────────────────────────────────── -->
+  <section class="view on" id="view-overview">
+    <div class="pane phone-pane">
+      <aside id="phone" aria-label="live alerts, sample data">
+        <div class="ph-island"></div>
+        <div class="ph-status"><span>18:45</span><span class="ph-icons"><i class="sig"><b></b><b></b><b></b><b></b></i>5G<i class="bat"><b></b></i></span></div>
+        <div class="tg-head">
+          <img class="tg-ava" src="/public/landseed-ai-mark.png" alt="" />
+          <div class="tg-who"><b>Landseed AI</b><span>bot &middot; alerts on</span></div>
         </div>
-        <div class="occ-leg"><span>low</span><span class="ramp"></span><span>high</span><span style="margin-left:12px">45 sectors · updated continuously</span></div>
-        <div class="chain"><b>Ingest</b><i></i><b>Fuse</b><i></i><b>Estimate</b><i></i><b>Deliver</b></div>
-      </div>
-
-      <div class="pane" style="grid-column:9/13">
-        <div class="pane-h">Population metrics<span class="range" aria-hidden="true"><span>24 h</span><span>30 d</span><span class="on">12 m</span></span></div>
-        <div class="mets">
-          <div class="met"><span>Presence</span><b>0.82</b><em>▲ .03</em><svg viewBox="0 0 100 14" preserveAspectRatio="none"><polyline points="0,11 14,10 28,11 42,8 56,9 70,6 84,5 100,3"/></svg></div>
-          <div class="met"><span>Occupancy</span><b>0.61</b><em>▲ .02</em><svg viewBox="0 0 100 14" preserveAspectRatio="none"><polyline points="0,10 14,11 28,9 42,10 56,7 70,8 84,6 100,5"/></svg></div>
-          <div class="met"><span>Density /km²</span><b>3.2</b><em>▬</em><svg viewBox="0 0 100 14" preserveAspectRatio="none"><polyline points="0,8 14,7 28,9 42,8 56,8 70,9 84,7 100,8"/></svg></div>
-          <div class="met"><span>Abundance</span><b>214</b><em>±18</em><svg viewBox="0 0 100 14" preserveAspectRatio="none"><polyline points="0,12 14,11 28,10 42,10 56,8 70,7 84,7 100,6"/></svg></div>
+        <div class="tg-body">
+          <div class="tg-day"><span>Today</span></div>
+          <div class="tg-msg"><b>&#x1F6A8; Monitor 01 &middot; alert</b><span>Human &times;4 on the trail &middot; image &rarr; Relay Station over LoRa</span><em>18:33</em></div>
+          <div class="tg-msg"><b>&#x1F9E0; HQ &middot; alert delivered</b><span>LoRa &rarr; Relay Station &rarr; satellite &rarr; HQ &middot; no cell inside the park</span><em>18:35</em></div>
+          <div class="tg-msg"><b>&#x1F418; VillageGuard 01 &middot; alert</b><span>Elephant &times;3 approaching the fields &middot; lights on &middot; unit walking out</span><em>18:39</em></div>
+          <div class="tg-msg"><b>&#x1F43A; Listener array &middot; fix</b><span>Wolf pack call triangulated &middot; bearing lines converged &middot; logged to survey</span><em>18:41</em></div>
         </div>
-        <div class="report">
-          <div class="doc"><span class="pdf"></span><div><b>Quarterly abundance report · Q2 2026</b><span>written automatically · programme cadence</span></div></div>
-          <div class="doc"><span class="pdf"></span><div><b>Monthly detections digest · June 2026</b><span>every class, every sector · sample</span></div></div>
-        </div>
-      </div>
-
+        <div class="tg-input"><span>Message</span><i class="tg-mic">&#127908;</i></div>
+      </aside>
     </div>
+    <div class="pane">
+      <div class="pane-h">Occupancy · by sector</div>
+      <div class="occ">
+        <div class="occ-y"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+        <div class="occ-cells" id="occ"></div>
+        <div class="occ-x"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span><span>I</span></div>
+      </div>
+      <div class="occ-leg"><span>low</span><span class="ramp"></span><span>high</span><span style="margin-left:12px">45 sectors · updated continuously</span></div>
+      <div class="chain"><b>Ingest</b><i></i><b>Fuse</b><i></i><b>Estimate</b><i></i><b>Deliver</b></div>
+    </div>
+    <div class="pane">
+      <div class="pane-h">Population metrics<span class="range" id="range"><span data-r="d">24 h</span><span data-r="m">30 d</span><span class="on" data-r="y">12 m</span></span></div>
+      <div class="mets" id="mets"></div>
+      <div class="report">
+        <div class="doc"><span class="pdf"></span><div><b>Quarterly abundance report · Q2 2026</b><span>written automatically · programme cadence</span></div></div>
+        <div class="doc"><span class="pdf"></span><div><b>Monthly detections digest · June 2026</b><span>every class, every sector · sample</span></div></div>
+      </div>
+    </div>
+  </section>
 
-    <div class="con-foot">
-      <span><b>Inputs</b> cameras · acoustics · reports · satellite</span>
-      <span><b>Metrics</b> presence · occupancy · density · abundance</span>
-      <span><b>Alerts</b> phones · email · operations rooms</span>
-      <span><b>Delivery</b> subscription · annual updates</span>
-      <span><b>Form</b> bundled or standalone · bespoke builds</span>
-      <span><b>Programme</b> Earth Credits measurement layer</span>
-      <span><b>Roadmap</b> monocular distance · acoustic triangulation</span>
+  <!-- ── DETECTIONS ───────────────────────────────────────────────────────── -->
+  <section class="view" id="view-detections">
+    <div class="pane wide">
+      <div class="pane-h">Detections · last 24 h
+        <span class="filters" id="filters">
+          <button class="on" data-f="all">All</button>
+          <button data-f="human">Human</button>
+          <button data-f="elephant">Elephant</button>
+          <button data-f="vehicle">Vehicle</button>
+          <button data-f="acoustic">Acoustic</button>
+        </span>
+      </div>
+      <div class="det-head"><span>Time</span><span>Class</span><span>Sensor</span><span>Sector</span><span>Conf</span><span>Routed</span></div>
+      <div class="det-list" id="det-list"></div>
+    </div>
+  </section>
+
+  <!-- ── SURVEY ───────────────────────────────────────────────────────────── -->
+  <section class="view" id="view-survey">
+    <div class="pane">
+      <div class="pane-h">Occupancy · by sector</div>
+      <div class="occ">
+        <div class="occ-y"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+        <div class="occ-cells" id="occ2"></div>
+        <div class="occ-x"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span><span>I</span></div>
+      </div>
+      <div class="occ-leg"><span>low</span><span class="ramp"></span><span>high</span></div>
+    </div>
+    <div class="pane">
+      <div class="pane-h">Detections by class · 30 d</div>
+      <div id="species"></div>
+      <div class="occ-leg" style="margin-top:auto"><span>survey effort · 1,340 camera-nights · sample</span></div>
+    </div>
+    <div class="pane">
+      <div class="pane-h">Acoustic survey · 30 d</div>
+      <div class="feed-row" style="--qh:#FF8C42"><b>412</b><i></i><span>Leopard calls · array north</span><em>triangulated</em></div>
+      <div class="feed-row" style="--qh:#E682E6"><b>1,048</b><i></i><span>Wolf pack events · full survey</span><em>logged</em></div>
+      <div class="feed-row" style="--qh:#00FF64"><b>36</b><i></i><span>Gunshot signatures · sector G</span><em>ops room</em></div>
+      <div class="feed-row" style="--qh:#9B6CE0"><b>7</b><i></i><span>Unknown signatures · queued for review</span><em>review</em></div>
+      <p class="sp-note" style="margin-top:auto">Roadmap: monocular distance · acoustic triangulation.</p>
+    </div>
+  </section>
+
+  <!-- ── REPORTS ──────────────────────────────────────────────────────────── -->
+  <section class="view" id="view-reports">
+    <div class="pane">
+      <div class="pane-h">Documents · written automatically</div>
+      <div class="doc"><span class="pdf"></span><div><b>Quarterly abundance report · Q2 2026</b><span>presence · occupancy · density · abundance</span></div></div>
+      <div class="doc"><span class="pdf"></span><div><b>Monthly detections digest · June 2026</b><span>every class, every sector</span></div></div>
+      <div class="doc"><span class="pdf"></span><div><b>Alert log · June 2026</b><span>phones · email · operations rooms</span></div></div>
+      <div class="doc"><span class="pdf"></span><div><b>Earth Credits measurement annex · Q2 2026</b><span>the measurement layer, assembled</span></div></div>
+      <p class="sp-note" style="margin-top:auto">Delivery: subscription · annual updates · bundled or standalone · bespoke builds.</p>
+    </div>
+    <div class="pane wide2">
+      <div class="pane-h">Preview · Quarterly abundance report</div>
+      <div class="prev">
+        <b>Quarterly abundance report</b>
+        <span>Q2 2026 · generated 01 Jul · sample programme</span>
+        <div class="prev-mets">
+          <div><span>Presence</span><b>0.82</b></div>
+          <div><span>Occupancy</span><b>0.61</b></div>
+          <div><span>Density /km²</span><b>3.2</b></div>
+          <div><span>Abundance</span><b>214 ±18</b></div>
+        </div>
+        <div class="prev-sec"><span>Methods</span><div class="rl"></div><div class="rl w2"></div></div>
+        <div class="prev-sec"><span>Results · by sector</span><div class="rl"></div><div class="rl"></div><div class="rl w3"></div></div>
+        <div class="prev-sec"><span>Confidence</span><div class="rl w2"></div><div class="rl w3"></div></div>
+        <div class="prev-sec"><span>Annex · Earth Credits measurement layer</span><div class="rl"></div><div class="rl w2"></div></div>
+      </div>
     </div>
   </section>
 
 </main>
+
+<!-- the record — app status strip -->
+<footer class="con-foot app-foot">
+  <span><b>Inputs</b> cameras · acoustics · reports · satellite</span>
+  <span><b>Metrics</b> presence · occupancy · density · abundance</span>
+  <span><b>Alerts</b> phones · email · operations rooms</span>
+  <span><b>Delivery</b> subscription · annual updates</span>
+  <span><b>Form</b> bundled or standalone · bespoke builds</span>
+  <span><b>Programme</b> Earth Credits measurement layer</span>
+  <span><b>Roadmap</b> monocular distance · acoustic triangulation</span>
+</footer>
 
 <nav id="chapters" aria-label="pages">
   <a class="chip" href="/">Catalogue</a>
@@ -123,6 +179,6 @@
   <a class="chip" href="/faqs/">FAQs</a>
 </nav>
 
-<script type="module" src="./ai.js?v=8"></script>
+<script type="module" src="./ai.js?v=9"></script>
 </body>
 </html>

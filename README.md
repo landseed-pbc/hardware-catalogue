@@ -40,9 +40,9 @@ No build step. Three.js (ESM importmap) + GSAP (UMD) from CDN.
 
 - `faqs/` — the field sheet: seven questions and six facts on one gridded screen,
   the size comparison drawn as a dimensioned sketch (Monitor beside two AA cells).
-- `ai/` — the operations console: detections routed, occupancy by sector, population
-  metrics, the automated report — what the subscription delivers ("sample data"
-  labeled; the bay's /#ai shows the brain itself).
+- `ai/` — the CTDAMS sample workspace: an app with four clickable views — Overview
+  (the rangers' phone + occupancy + metrics), Detections (filterable table), Survey,
+  Reports — every number sample-labeled; the bay's /#ai shows the brain itself.
 - `scripts/check-facts.mjs` — satellite copy restates facts whose source of truth is
   `DEVICES` in `main.js`; run before deploying any satellite change.
 - `_redirects` — the retired /why/ URLs 301 to /faqs/.

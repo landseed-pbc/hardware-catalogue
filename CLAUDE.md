@@ -69,9 +69,12 @@ Two more app pages alongside Catalogue and Demo. Binding rules:
    The bay is 3D, the demo is a film, /faqs/ is a flat gridded field sheet (the size
    comparison is a dimensioned SVG sketch — Monitor beside two AA cells; form factor
    founder-stated 2026-07-15, spec-sheet badge stays until dimensions publish), /ai/ is
-   a flat operations console (what the subscription delivers — the bay's /#ai already
-   shows the brain itself). No Three.js on satellites. Desktop fits one viewport;
-   small screens scroll (the ≤1080px media block in satellite.css).
+   the CTDAMS sample workspace — an immersive app, not a framed console: its own app
+   bar (mark · tabs · sample-data badge · clock), four clickable views (Overview with
+   the rangers' phone, Detections with working class filters, Survey, Reports), all
+   interactive as a client would use it. The bay's /#ai shows the brain itself.
+   No Three.js on satellites. Desktop fits one viewport; small screens scroll
+   (the ≤1080px media block in satellite.css).
 3. **Nav bars are uniform:** every page ends its chip bar with
    `Catalogue · Demo · Landseed AI · FAQs`, current page as a solid-green `.chip.on`
    self-chip. In-page chips (Demo's chapters, /ai/'s purple dashboard dive chips) come

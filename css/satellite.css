@@ -178,3 +178,87 @@ body.sat.ai-page{
 .doc div{flex:1;min-width:0}
 .doc b{display:block;font-size:11.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .doc span{display:block;font-size:10px;color:var(--muted);margin-top:1px}
+
+/* ── the CTDAMS app shell (/ai/) — the page IS the product ─────────────────── */
+.app-bar{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;gap:12px;padding:11px 22px;background:rgba(8,7,13,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(155,108,224,.18)}
+.app-mark{width:26px;height:26px;border-radius:7px;background:#0e1216;padding:3px}
+.app-name{font-size:14px;font-weight:800;letter-spacing:.02em;color:#f4f3ee;white-space:nowrap}
+.app-name span{font-weight:600;color:var(--dim)}
+.app-tabs{display:flex;gap:4px;margin-left:18px}
+.app-tabs button{font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--dim);background:none;border:0;cursor:pointer;padding:8px 16px;border-radius:999px;transition:.18s}
+.app-tabs button:hover{color:var(--text)}
+.app-tabs button.on{color:#fff;background:rgba(155,108,224,.26);font-weight:700}
+.app-bar .sp-badge{margin:0 0 0 auto;font-size:10px;padding:4px 10px}
+.app-clock{font-style:normal;font-size:12.5px;font-weight:700;color:var(--dim);font-variant-numeric:tabular-nums;letter-spacing:.05em}
+.app-sub{position:fixed;top:52px;left:0;right:0;z-index:29;padding:7px 22px;font-size:11.5px;line-height:1.5;color:var(--muted);background:rgba(8,7,13,.6);border-bottom:1px solid rgba(155,108,224,.08)}
+.app-sub a{text-decoration:none}
+
+.app-main{position:fixed;inset:96px 22px 100px}
+.view{display:none;height:100%}
+.view.on{display:grid;grid-template-columns:repeat(12,1fr);gap:13px}
+#view-overview .pane:nth-child(1){grid-column:1/4}
+#view-overview .pane:nth-child(2){grid-column:4/9}
+#view-overview .pane:nth-child(3){grid-column:9/13}
+#view-detections .pane{grid-column:1/13}
+#view-survey .pane:nth-child(1){grid-column:1/6}
+#view-survey .pane:nth-child(2){grid-column:6/10}
+#view-survey .pane:nth-child(3){grid-column:10/13}
+#view-reports .pane:nth-child(1){grid-column:1/6}
+#view-reports .pane:nth-child(2){grid-column:6/13}
+
+/* immersive panes — quiet purple-edged surfaces, no console frame */
+.view .pane{background:linear-gradient(180deg,rgba(10,9,16,.8),rgba(7,8,12,.86));border:1px solid rgba(155,108,224,.16);border-radius:14px;padding:14px 16px}
+.phone-pane{background:none !important;border:0 !important;display:flex;align-items:center;justify-content:center;padding:6px}
+
+/* detections table — scrolls like the real thing */
+.filters{display:flex;gap:3px;margin-left:16px}
+.filters button{font-family:var(--sans);font-size:11px;font-weight:700;color:var(--muted);background:none;border:0;cursor:pointer;padding:4px 11px;border-radius:999px;transition:.15s}
+.filters button:hover{color:var(--text)}
+.filters button.on{color:var(--deep);background:#9B6CE0}
+.det-head,.det-row{display:grid;grid-template-columns:58px 1.5fr 1.1fr 58px 52px 1fr;gap:12px;align-items:center;padding:8px 6px}
+.det-head{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid rgba(240,240,234,.1);flex:none}
+.det-list{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(155,108,224,.3) transparent}
+.det-row{font-size:12.5px;color:var(--dim);border-bottom:1px solid rgba(240,240,234,.05);transition:background .12s}
+.det-row:hover{background:rgba(155,108,224,.07)}
+.det-row.hide{display:none}
+.det-row b{font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;font-size:12px}
+.det-row .dc{display:flex;align-items:center;gap:8px;color:var(--text);font-weight:600}
+.det-row .dc i{width:7px;height:7px;border-radius:50%;background:var(--qh);box-shadow:0 0 6px var(--qh);flex:none}
+.det-row em{font-style:normal;font-variant-numeric:tabular-nums;font-weight:700;color:#c9a4ff}
+.det-row .rt{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+
+/* report preview — the document, larger */
+.prev{flex:1;border:1px solid rgba(240,240,234,.1);border-radius:12px;padding:18px 20px;background:rgba(240,240,234,.02);display:flex;flex-direction:column;gap:6px}
+.prev>b{font-size:16px;font-weight:800;color:#f0efe9}
+.prev>span{font-size:11px;color:var(--dim)}
+.prev-mets{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0 14px}
+.prev-mets div{border:1px solid rgba(155,108,224,.22);border-radius:9px;padding:8px 10px}
+.prev-mets span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.prev-mets b{font-size:15px;font-weight:800;color:#eef0ea;font-variant-numeric:tabular-nums}
+.prev .rl{margin-top:8px}
+
+.app-foot{position:fixed;left:22px;right:22px;bottom:66px;border-top:1px solid rgba(155,108,224,.14);background:none;padding:8px 2px}
+
+/* small screens: the workspace stacks and scrolls */
+@media(max-width:1080px),(max-height:720px){
+  .app-main{position:static;padding:118px 16px 120px;height:auto}
+  .view.on{display:flex;flex-direction:column}
+  .app-tabs{margin-left:6px}
+  .app-tabs button{padding:7px 11px;font-size:12px}
+  .app-sub{top:50px}
+  .app-foot{position:static;margin:14px 16px 0}
+  .det-head,.det-row{grid-template-columns:50px 1.3fr 1fr 44px 44px .8fr;gap:8px}
+  .det-list{max-height:60vh}
+}
+
+/* class-count bars (survey) — label · track · tabular count */
+.bar-row{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid rgba(240,240,234,.05);font-size:12.5px}
+.bar-row:last-child{border-bottom:0}
+.bar-row b{color:var(--text);font-weight:600;min-width:128px;font-size:12.5px}
+.bar-row .bar{flex:1;height:6px;border-radius:3px;background:rgba(240,240,234,.08);overflow:hidden}
+.bar-row .bar i{display:block;height:100%;border-radius:3px;background:var(--qh,#9B6CE0)}
+.bar-row em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--text);font-weight:700;min-width:44px;text-align:right}
+
+/* report preview skeleton sections */
+.prev-sec{margin-top:12px}
+.prev-sec span{display:block;font-size:9px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
