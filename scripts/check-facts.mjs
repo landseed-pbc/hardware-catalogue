@@ -16,6 +16,7 @@ const faqs = read('faqs/index.html');
 const ai = read('ai/index.html');
 const aijs = read('ai/ai.js');
 const mapjs = read('ai/map.js');
+const map3d = existsSync(join(root, 'ai/map3d.js')) ? read('ai/map3d.js') : '';
 import { existsSync } from 'node:fs';
 const hasGeo = existsSync(join(root, 'public/virunga-geo.json'));
 const hasTerrain = existsSync(join(root, 'public/terrain-vir/sat.jpg')) && existsSync(join(root, 'public/terrain-vir/dem.png'));
@@ -57,6 +58,7 @@ if (!/Virunga/.test(ai)) { failed++; console.error('DRIFT  ai page lost the Viru
 if (!hasTerrain) { failed++; console.error('DRIFT  public/terrain-vir (real DEM + ESRI satellite) missing'); }
 if (!/SPECIES|SPSVG/.test(species)) { failed++; console.error('DRIFT  ai/species.js lost the Virunga species registry'); }
 if (!/Gorilla beringei beringei/.test(species)) { failed++; console.error('DRIFT  species.js lost verified species data'); }
+if (!/buildSerengeti|buildVillageGuard|buildGateway|buildShaman/.test(map3d)) { failed++; console.error('DRIFT  map3d.js lost the deployed-device (sensors) layer'); }
 // cited population figures must keep their sources in the map SOURCES list
 for (const fig of ['604', '2,700', '27.6']) if (!mapjs.includes(fig)) { failed++; console.error(`DRIFT  map.js lost cited figure ${fig}`); }
 // the 2×AA form factor is founder-stated (2026-07-15), not in DEVICES — it must
@@ -66,4 +68,4 @@ if (/2×AA|two AA/.test(faqs) && !/spec sheet in development/.test(faqs)) {
 }
 
 if (failed) { console.error(`\n${failed} fact check(s) failed`); process.exit(1); }
-console.log(`all ${CHECKS.length + 12} checks pass`);
+console.log(`all ${CHECKS.length + 13} checks pass`);

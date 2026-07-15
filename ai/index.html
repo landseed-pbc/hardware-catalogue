@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css?v=30" />
-<link rel="stylesheet" href="/css/satellite.css?v=12" />
+<link rel="stylesheet" href="/css/satellite.css?v=14" />
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 <style>
 :root{--fa:#9B6CE0}
@@ -71,7 +71,7 @@
     <div class="pane map-pane rv">
       <div class="pane-h">Occupancy · Virunga National Park<span class="map-note" id="map-src">sources</span></div>
       <div class="map-wrap" id="map"></div>
-      <div class="map-leg"><span class="map-leg-l">◆ live 3D terrain · real DEM + ESRI satellite</span><span class="map-leg-r">drag to orbit · tap a species · 27 camera-trap ψ</span></div>
+      <div class="map-leg"><span class="map-leg-l">◆ live 3D terrain · real DEM + ESRI satellite</span><span class="map-leg-r">drag to orbit · toggle layers · tap to inspect</span></div>
     </div>
     <div class="pane rv">
       <div class="pane-h">Population metrics<span class="range" id="range"><span data-r="d">24 h</span><span data-r="m">30 d</span><span class="on" data-r="y">12 m</span></span></div>
@@ -148,6 +148,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./ai.js?v=18"></script>
+<script type="module" src="./ai.js?v=20"></script>
 </body>
 </html>

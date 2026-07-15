@@ -7,6 +7,20 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SPECIES, iconSVG } from './species.js?v=1';
+import { buildSerengeti, buildVillageGuard, buildGateway, buildShaman } from '/src/devices.js?v=146';
+
+// the deployed hardware, placed strategically across the park — the same 3D
+// models as the catalogue & demo. [lat, lon]
+const DEVLAYERS = {
+  monitor:      { build: buildSerengeti,   hue: 0x00FF64, name: 'Monitor',       role: 'AI camera-alert · park protection', h: .18,
+    pts: [[-.88, 29.33], [-.83, 29.37], [-.66, 29.44], [-.55, 29.48], [-1.00, 29.45], [-.30, 29.50], [-.13, 29.52]] },
+  villageguard: { build: buildVillageGuard, hue: 0xFFC800, name: 'VillageGuard',  role: 'multi-species · coexistence',       h: .20,
+    pts: [[-1.10, 29.50], [-.95, 29.60], [-1.30, 29.52], [-.78, 29.56]] },
+  gateway:      { build: buildGateway,      hue: 0x32C8FF, name: 'Relay Station',  role: 'LoRa → LTE / satellite hub',        h: .24,
+    pts: [[-.50, 29.46], [-.95, 29.40], [-.20, 29.58]] },
+  ai:           { build: buildShaman,       hue: 0x9B6CE0, name: 'Landseed AI',    role: 'the platform brain · HQ',           h: .34,
+    pts: [[-.66, 29.49]] },
+};
 
 const BASE = '/public/terrain-vir/';
 const KM = 111;
@@ -140,23 +154,54 @@ export async function buildTerrain(hostId, tip) {
       markers.push({ el, p, rad: 15, mass: 1 });             // species: bigger, heavier (dots yield)
     }
   }
-  // sensor stations — occupancy dots with ψ hovers
-  const SPP = geo.species;
-  for (const st of geo.stations) {
-    const [lon, lat, id, dom, psi, det] = st;
-    if (lat >= B.n || lat <= B.s || lon <= B.w || lon >= B.e) continue;
-    const p = lonlat(lat, lon); p.y += 0.04;
-    const el = document.createElement('button');
-    el.className = 'vt-st';
-    const col = (SPP[dom] || [, , '#9B6CE0'])[2];
-    el.style.setProperty('--fa', col);
-    el.style.setProperty('--r', (3 + psi * 4).toFixed(1) + 'px');
-    el.addEventListener('mouseenter', (e) => stationTip(tip, st, SPP, e));
-    el.addEventListener('mousemove', (e) => posTip(tip, e));
-    el.addEventListener('mouseleave', () => tip.classList.remove('on'));
-    layer.appendChild(el);
-    markers.push({ el, p, st: true, rad: 7.5, mass: .35 });    // station dots: small, light
+
+  // ── sensors layer — the real 3D device models placed across the park ──
+  const _box = new THREE.Box3();
+  const deviceGroups = {}, hotspots = [];
+  for (const [type, def] of Object.entries(DEVLAYERS)) {
+    const grp = new THREE.Group();
+    const hex = '#' + def.hue.toString(16).padStart(6, '0');
+    for (const [lat, lon] of def.pts) {
+      if (lat >= B.n || lat <= B.s || lon <= B.w || lon >= B.e) continue;
+      const model = def.build(def.hue);
+      _box.setFromObject(model);
+      const sz = (_box.max.y - _box.min.y) || 1, s = def.h / sz;
+      model.scale.setScalar(s);
+      const wp = lonlat(lat, lon);
+      model.position.set(wp.x, wp.y - _box.min.y * s, wp.z);
+      model.traverse(o => { if (o.isMesh) o.castShadow = false; });
+      grp.add(model);
+      const hp = document.createElement('button');
+      hp.className = 'vt-dev';
+      hp.style.setProperty('--fa', hex);
+      const dp = wp.clone(); dp.y += def.h * 1.05;
+      hp.addEventListener('mouseenter', (e) => deviceTip(tip, def, e));
+      hp.addEventListener('mousemove', (e) => posTip(tip, e));
+      hp.addEventListener('mouseleave', () => tip.classList.remove('on'));
+      layer.appendChild(hp);
+      hotspots.push({ el: hp, p: dp, type });
+    }
+    scene.add(grp);
+    deviceGroups[type] = grp;
   }
+
+  // ── layers panel (top-right) — biodiversity + sensors with per-asset subs ──
+  const state = { bio: true, sensors: true, dev: { monitor: true, villageguard: true, gateway: true, ai: true } };
+  const panel = document.createElement('div');
+  panel.className = 'layers';
+  panel.innerHTML =
+    `<button class="lyr on" data-l="bio"><span class="ly-k"></span>Biodiversity</button>` +
+    `<button class="lyr on" data-l="sensors"><span class="ly-k"></span>Sensors</button>` +
+    `<div class="lyr-sub" id="lyr-sub">` +
+    Object.entries(DEVLAYERS).map(([t, d]) =>
+      `<button class="sub on" data-d="${t}"><i style="--c:#${d.hue.toString(16).padStart(6, '0')}"></i>${d.name}</button>`).join('') +
+    `</div>`;
+  host.appendChild(panel);
+  const applyDevices = () => { for (const t in deviceGroups) deviceGroups[t].visible = state.sensors && state.dev[t]; };
+  panel.querySelector('[data-l="bio"]').addEventListener('click', (e) => { state.bio = !state.bio; e.currentTarget.classList.toggle('on', state.bio); });
+  panel.querySelector('[data-l="sensors"]').addEventListener('click', (e) => { state.sensors = !state.sensors; e.currentTarget.classList.toggle('on', state.sensors); panel.querySelector('#lyr-sub').classList.toggle('off', !state.sensors); applyDevices(); });
+  panel.querySelectorAll('[data-d]').forEach(btn => btn.addEventListener('click', () => { const t = btn.dataset.d; state.dev[t] = !state.dev[t]; btn.classList.toggle('on', state.dev[t]); applyDevices(); }));
+  applyDevices();
 
   // screen-space declutter — markers start at their true projected position and
   // only push apart where they overlap, so distribution stays real (not gridded)
@@ -165,6 +210,8 @@ export async function buildTerrain(hostId, tip) {
   function project() {
     const w = host.clientWidth, h = host.clientHeight;
     for (const m of markers) {
+      if (!state.bio) { m.el.style.opacity = '0'; m.skip = true; continue; }
+      m.skip = false;
       v.copy(m.p).project(camera);
       m.behind = v.z > 1;
       m.sx = (v.x * .5 + .5) * w; m.sy = (-v.y * .5 + .5) * h;
@@ -172,7 +219,7 @@ export async function buildTerrain(hostId, tip) {
       m.s = Math.max(.72, Math.min(1.28, refDist / camera.position.distanceTo(m.p)));
       m.rr = m.rad * m.s;
     }
-    const vis = markers.filter(m => !m.behind);
+    const vis = markers.filter(m => !m.skip && !m.behind);
     for (let it = 0; it < 44; it++) {
       for (let a = 0; a < vis.length; a++) for (let b = a + 1; b < vis.length; b++) {
         const A = vis[a], C = vis[b];
@@ -187,10 +234,22 @@ export async function buildTerrain(hostId, tip) {
       }
     }
     for (const m of markers) {
+      if (m.skip) continue;
       m.el.style.opacity = m.behind ? '0' : '';
       m.el.style.left = m.sx.toFixed(1) + 'px';
       m.el.style.top = m.sy.toFixed(1) + 'px';
       m.el.style.setProperty('--s', m.s.toFixed(2));
+    }
+    // device hotspots — visibility tracks the sensors layer + per-asset sub
+    for (const d of hotspots) {
+      if (!state.sensors || !state.dev[d.type]) { d.el.style.opacity = '0'; continue; }
+      v.copy(d.p).project(camera);
+      if (v.z > 1) { d.el.style.opacity = '0'; continue; }
+      const sc = Math.max(.75, Math.min(1.3, refDist / camera.position.distanceTo(d.p)));
+      d.el.style.opacity = '';
+      d.el.style.left = ((v.x * .5 + .5) * w).toFixed(1) + 'px';
+      d.el.style.top = ((-v.y * .5 + .5) * h).toFixed(1) + 'px';
+      d.el.style.setProperty('--s', sc.toFixed(2));
     }
   }
 
@@ -200,11 +259,13 @@ export async function buildTerrain(hostId, tip) {
   layer.style.opacity = '0';
   layer.style.transition = 'opacity 1s ease .3s';
 
-  let alive = true, faded = false;
+  const aiGroup = deviceGroups.ai;
+  let alive = true, faded = false, t0 = 0;
   function tick() {
     if (!alive) return;
     requestAnimationFrame(tick);
     if (host.offsetParent === null) return;                 // paused when its view is hidden
+    if (aiGroup && aiGroup.visible) { t0 += .01; aiGroup.rotation.y = t0; }   // the HQ brain turns
     controls.update();
     renderer.render(scene, camera);
     project();
@@ -233,14 +294,11 @@ function speciesTip(tip, s, e) {
   tip.className = 'vmap-tip vt-tip on';
   posTip(tip, e);
 }
-function stationTip(tip, st, SPP, e) {
-  const [lon, lat, id, dom, psi, det] = st;
-  const name = (SPP[dom] || [dom])[0];
+function deviceTip(tip, def, e) {
   tip.innerHTML =
-    `<b>${id} · camera-trap</b>` +
-    `<span class="tp-row"><em>dominant</em>${name}</span>` +
-    `<span class="tp-row"><em>occupancy ψ</em>${psi.toFixed(2)}</span>` +
-    `<span class="tp-row"><em>detections · 30 d</em>${det.toLocaleString()}</span>`;
+    `<b style="color:${'#' + def.hue.toString(16).padStart(6, '0')}">${def.name}</b>` +
+    `<span class="tp-row"><em>role</em>${def.role}</span>` +
+    `<span class="tp-range">deployed across Virunga · sample placement</span>`;
   tip.className = 'vmap-tip vt-tip on';
   posTip(tip, e);
 }
