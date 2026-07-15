@@ -38,7 +38,7 @@ No build step. Three.js (ESM importmap) + GSAP (UMD) from CDN.
 **Satellite pages** (flat, one viewport at desktop; import `css/styles.css` read-only
 + `css/satellite.css`; each surface has its own form — no device-view replication):
 
-- `faqs/` — the field sheet: seven questions and five facts on one gridded screen,
+- `faqs/` — the field sheet: seven questions and six facts on one gridded screen,
   the size comparison drawn as a dimensioned sketch (Monitor beside two AA cells).
 - `ai/` — the operations console: detections routed, occupancy by sector, population
   metrics, the automated report — what the subscription delivers ("sample data"

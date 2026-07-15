@@ -23,6 +23,7 @@ const CHECKS = [
   ['battery life', />12 mo/, ['faqs/index.html', /&gt;12 mo/, faqs]],
   ['battery chemistry', /LiFePO4/, ['faqs/index.html', /LiFePO4/, faqs]],
   ['transmission links', /LTE · LoRa · Wi-Fi · satellite/, ['faqs/index.html', /cell · LoRa · Wi-Fi · satellite/, faqs]],
+  ['underwater proof', /14 days underwater, transmitting/, ['faqs/index.html', /14 days/, faqs]],
   ['CTDAMS line', /fuses optical, acoustic and remotely-sensed data into population metrics/, ['ai/index.html', /fuses optical, acoustic and remotely-sensed data into population metrics/, ai]],
   ['AI metrics', /presence · occupancy · density · abundance/, ['ai/index.html', /presence · occupancy · density · abundance/, ai]],
   ['AI inputs', /cameras · acoustics · reports · satellite/, ['ai/index.html', /cameras · acoustics · reports · satellite/, ai]],
