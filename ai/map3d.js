@@ -113,10 +113,17 @@ export async function buildTerrain(hostId, tip) {
   host.appendChild(layer);
 
   const markers = [];
-  // species (real Virunga icons + data) — only those inside the frame
+  // species (real Virunga icons + data) — only those inside the frame; collapse
+  // near-coincident points of the same species so one local population reads as
+  // one icon (keeps distribution real without stacking markers)
   for (const [key, s] of Object.entries(SPECIES)) {
+    const kept = [];
     for (const [lat, lon] of s.pts) {
       if (lat >= B.n || lat <= B.s || lon <= B.w || lon >= B.e) continue;
+      if (kept.some(([la, lo]) => Math.hypot(la - lat, lo - lon) < 0.07)) continue;
+      kept.push([lat, lon]);
+    }
+    for (const [lat, lon] of kept) {
       const p = lonlat(lat, lon); p.y += hSpan * .06 + 0.05;
       const el = document.createElement('button');
       el.className = 'vt-sp';
@@ -161,7 +168,7 @@ export async function buildTerrain(hostId, tip) {
       m.sx = (v.x * .5 + .5) * w; m.sy = (-v.y * .5 + .5) * h;
     }
     const vis = markers.filter(m => !m.behind);
-    for (let it = 0; it < 12; it++) {
+    for (let it = 0; it < 26; it++) {
       for (let a = 0; a < vis.length; a++) for (let b = a + 1; b < vis.length; b++) {
         const A = vis[a], C = vis[b];
         const min = A.rad + C.rad;
