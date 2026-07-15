@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Landseed AI — the platform brain</title>
+<meta name="description" content="Landseed AI — the CTDAMS. Every sensor reports here: optical, acoustic and remotely-sensed data fused into presence, occupancy, density and abundance, with live alerts, automated reporting, and the measurement layer for Earth Credits." />
+<meta name="theme-color" content="#070F07" />
+<link rel="canonical" href="https://hardware-catalogue.pages.dev/ai/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Landseed" />
+<meta property="og:title" content="Landseed AI — the platform brain" />
+<meta property="og:description" content="Every sensor reports here. Optical, acoustic and remotely-sensed data fused into population metrics — the measurement layer for Earth Credits." />
+<meta property="og:url" content="https://hardware-catalogue.pages.dev/ai/" />
+<meta property="og:image" content="https://hardware-catalogue.pages.dev/public/og-ai.jpg?v=1" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Landseed AI — the platform brain, fusing every sensor into one measurement layer." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Landseed AI — the platform brain" />
+<meta name="twitter:image" content="https://hardware-catalogue.pages.dev/public/og-ai.jpg?v=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css?v=30" />
+<link rel="stylesheet" href="/css/satellite.css?v=1" />
+<style>
+/* page accent: everything on this page is semantically Landseed AI */
+:root{--fa:#9B6CE0}
+</style>
+</head>
+<body class="sat">
+
+<header class="hud">
+  <a class="brand" href="/" title="Back to the catalogue"><img class="b-word" src="/public/landseed-wordmark.svg" alt="Landseed" /></a>
+  <div class="hud-right"><span class="hud-tag">To understand · The platform brain</span></div>
+</header>
+
+<div id="verb" class="show" aria-hidden="true">Understand</div>
+
+<main class="sat-wrap">
+
+  <section class="sat-hero rv" id="story">
+    <div class="sat-kicker">To understand · The platform brain</div>
+    <h1>Landseed AI</h1>
+    <p class="sat-line">Every sensor reports here. Landseed AI — the platform brain, the CTDAMS — fuses optical, acoustic and remotely-sensed data into population metrics, and writes the measurement layer for Earth Credits.</p>
+    <p class="rv" style="margin-top:14px">
+      <span class="sp-badge">subscription</span>
+      <span class="sp-badge">standalone or bundled</span>
+      <span class="sp-badge">bespoke builds</span>
+    </p>
+  </section>
+
+  <h2 class="sat-h rv">The chain</h2>
+  <section class="sat-card rv" aria-label="how it works">
+    <div class="sp-step"><i>1</i><div><b>Ingest</b><span>Cameras, acoustics, reports, satellite feeds.</span></div></div>
+    <div class="sp-step"><i>2</i><div><b>Fuse</b><span>All layers read together.</span></div></div>
+    <div class="sp-step"><i>3</i><div><b>Estimate</b><span>Presence, occupancy, density, abundance.</span></div></div>
+    <div class="sp-step"><i>4</i><div><b>Deliver</b><span>Live alerts + automated reports.</span></div></div>
+  </section>
+
+  <h2 class="sat-h rv" id="dashboards">Dashboards</h2>
+  <p class="sat-line rv" style="margin-bottom:18px">What the operations room sees. Illustrative views built in the system's own chrome — every panel below runs on sample data until it runs on yours.</p>
+  <section class="dash-grid rv" aria-label="example dashboards">
+    <article class="dash">
+      <div class="dash-h"><i></i><b>Detections · 24 h</b><span class="sp-badge">sample data</span></div>
+      <div class="dash-b">
+        <canvas id="spark" width="520" height="128" aria-label="detection timeline sparkline"></canvas>
+        <div class="dash-row"><b>Human</b><span class="bar"><i data-w="72"></i></span><em data-n="14">0</em></div>
+        <div class="dash-row"><b>Elephant</b><span class="bar"><i data-w="34"></i></span><em data-n="6">0</em></div>
+        <div class="dash-row"><b>Vehicle</b><span class="bar"><i data-w="18"></i></span><em data-n="3">0</em></div>
+      </div>
+      <div class="dash-foot">every alert from the field network, streamed live</div>
+    </article>
+    <article class="dash">
+      <div class="dash-h"><i></i><b>Occupancy · sector grid</b><span class="sp-badge">sample data</span></div>
+      <div class="dash-b">
+        <div class="dash-grid9" id="grid" aria-label="sector occupancy heat grid"></div>
+      </div>
+      <div class="dash-foot">occupancy, density and abundance, always current</div>
+    </article>
+    <article class="dash">
+      <div class="dash-h"><i></i><b>Alerts routed</b><span class="sp-badge">sample data</span></div>
+      <div class="dash-b">
+        <div class="dash-row"><b>18:39</b><span style="flex:1;color:var(--dim)">Elephant ×3 · treeline → phones</span></div>
+        <div class="dash-row"><b>18:33</b><span style="flex:1;color:var(--dim)">Human ×4 · river crossing → ops room</span></div>
+        <div class="dash-row"><b>18:12</b><span style="flex:1;color:var(--dim)">Vehicle · east road → phones + email</span></div>
+        <div class="dash-row"><b>17:58</b><span style="flex:1;color:var(--dim)">Gunshot signature · sector 7 → ops room</span></div>
+      </div>
+      <div class="dash-foot">phones · email · operations rooms</div>
+    </article>
+  </section>
+
+  <h2 class="sat-h rv" id="workflow">Workflow &amp; reporting</h2>
+  <section class="sat-card rv" aria-label="workflow">
+    <div class="sp-step"><i>1</i><div><b>Ingestion</b><span>Every device in the landscape reports in — alerts in seconds, survey data continuously.</span></div></div>
+    <div class="sp-step"><i>2</i><div><b>Fusion</b><span>Optical, acoustic and satellite layers read together — one landscape, one record.</span></div></div>
+    <div class="sp-step"><i>3</i><div><b>Delivery</b><span>Dashboards live, alerts routed, reports written automatically on the programme's cadence.</span></div></div>
+  </section>
+  <section class="sat-card rv" style="margin-top:14px" aria-label="reporting record">
+    <div class="pan-h">The record</div>
+    <div class="sp-row"><span>Inputs</span><b>cameras · acoustics · reports · satellite</b></div>
+    <div class="sp-row"><span>Metrics</span><b>presence · occupancy · density · abundance</b></div>
+    <div class="sp-row"><span>Alerts</span><b>phones · email · operations rooms</b></div>
+    <div class="sp-row"><span>Reporting</span><b>automated</b></div>
+    <div class="sp-row"><span>Programme</span><b>Earth Credits measurement layer</b></div>
+    <div class="sp-row"><span>Delivery</span><b>subscription · annual updates</b></div>
+    <div class="sp-row"><span>Form</span><b>bundled or standalone · bespoke builds</b></div>
+    <div class="sp-row"><span>Roadmap</span><b>monocular distance · acoustic triangulation</b></div>
+    <p class="sp-note">Sold as a package with the hardware or standalone; annual updates, with bespoke versions built to a programme's needs. Workflow and outputs only — model internals stay internal.</p>
+  </section>
+
+  <h2 class="sat-h rv">Next</h2>
+  <nav class="sat-next rv" aria-label="next steps">
+    <a class="cap-link" href="/#ai">See it in the bay →</a>
+    <a class="cap-link" href="/demo/">See the system run →</a>
+    <a class="cap-link" href="https://landseed.earth/contact">Talk to the team →</a>
+  </nav>
+
+</main>
+
+<nav id="chapters" aria-label="pages">
+  <a class="chip dive" href="#story">Story</a>
+  <a class="chip dive" href="#dashboards">Dashboards</a>
+  <a class="chip dive" href="#workflow">Workflow &amp; Reporting</a>
+  <span class="chip-div"></span>
+  <a class="chip cta" href="/">Catalogue</a>
+  <a class="chip cta" href="/demo/">Demo</a>
+  <a class="chip cta" href="/why/">Why Landseed</a>
+</nav>
+
+<script type="module" src="./ai.js?v=2"></script>
+</body>
+</html>
