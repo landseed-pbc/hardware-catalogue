@@ -29,9 +29,8 @@ setInterval(() => {
    re-anchored on load: the font swap reflows bubble heights */
 const tgBody = document.querySelector('#phone .tg-body');
 const anchor = () => { if (tgBody) tgBody.scrollTop = tgBody.scrollHeight; };
-anchor();
-addEventListener('load', anchor);
-if (document.fonts?.ready) document.fonts.ready.then(anchor);
+let settle = 0;
+(function keep() { anchor(); if (++settle < 40) requestAnimationFrame(keep); })();
 
 /* headless-verification hook — same doctrine as __hw / __demo (repo CLAUDE.md) */
 window.__ai = {
