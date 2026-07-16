@@ -118,7 +118,7 @@ export async function buildTerrain(hostId, tip) {
   controls.minDistance = Wz * .55; controls.maxDistance = Wz * 1.5;
   controls.maxPolarAngle = 1.46; controls.minPolarAngle = .05;
   controls.target.set(0, hSpan * .12, 0);
-  camera.position.set(Wx * 1.65, Wz * .73, 0);
+  camera.position.set(Wx * 1.75, Wz * .775, 0);
   controls.autoRotate = false;
   controls.update();
   const refDist = camera.position.distanceTo(controls.target);   // depth-scale reference

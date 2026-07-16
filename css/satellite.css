@@ -150,7 +150,7 @@ body.sat.ai-page{
 .tg-who b{display:block;font-size:13.5px;color:#fff;letter-spacing:0}
 .tg-who span{display:block;font-size:10.5px;color:#6c7883;margin-top:1px}
 .tg-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:12px;background:#0e1621;scrollbar-width:thin;scrollbar-color:rgba(240,240,234,.18) transparent}
-.tg-body>:first-child{margin-top:auto}
+.tg-body>:first-child{margin-top:0}
 .tg-day{display:flex;justify-content:center;padding:2px 0 3px}
 .tg-day span{font-size:10px;font-weight:600;color:#8b98a5;background:rgba(23,33,43,.85);padding:3px 10px;border-radius:999px}
 .tg-msg{max-width:96%;align-self:flex-start;background:#182533;border-radius:15px 15px 15px 5px;padding:9px 13px 8px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.25)}
@@ -159,6 +159,8 @@ body.sat.ai-page{
 .tg-msg em{position:absolute;right:10px;bottom:7px;font-style:normal;font-size:10px;color:#6c7883;font-variant-numeric:tabular-nums}
 .tg-input{display:flex;align-items:center;justify-content:space-between;margin:0 10px 12px;padding:8px 14px;border-radius:20px;background:#17212b;color:#6c7883;font-size:12.5px}
 .tg-mic{font-style:normal;filter:grayscale(1) brightness(1.4);opacity:.75}
+.tg-photo img{display:block;width:100%;border-radius:9px;margin-top:7px}
+.tg-photo span{margin-top:6px;padding-right:0}
 
 /* console product chrome — the CTDAMS app bar */
 .con-bar img{width:20px;height:20px;border-radius:5px;background:#0e1216;padding:2px}

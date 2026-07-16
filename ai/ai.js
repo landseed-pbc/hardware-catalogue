@@ -26,7 +26,7 @@ revealView('overview');
 
 /* ── the Virunga twin — 3D terrain (Overview) + 2D occupancy surface (Survey) ── */
 import { buildMap, sourcesHTML } from './map.js?v=1';
-import { buildTerrain } from './map3d.js?v=27';
+import { buildTerrain } from './map3d.js?v=28';
 
 const tip = document.createElement('div');
 tip.className = 'vmap-tip';
@@ -272,10 +272,9 @@ setInterval(() => {
   clock.textContent = `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 }, 20000);
 
-/* the phone opens on the latest alert — settle across the font-swap reflow */
+/* the phone opens at the top of the day's feed */
 const tgBody = document.querySelector('#phone .tg-body');
-let settle = 0;
-(function keep() { if (tgBody) tgBody.scrollTop = tgBody.scrollHeight; if (++settle < 40) requestAnimationFrame(keep); })();
+if (tgBody) tgBody.scrollTop = 0;
 
 /* headless-verification hook — same doctrine as __hw / __demo (repo CLAUDE.md) */
 window.__ai = {
