@@ -64,7 +64,7 @@ export async function buildTerrain(hostId, tip) {
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x0a0812, Wz * .9, Wz * 2.3);   // atmospheric depth
-  const camera = new THREE.PerspectiveCamera(45, host.clientWidth / host.clientHeight, .05, 100);
+  const camera = new THREE.PerspectiveCamera(40, host.clientWidth / host.clientHeight, .05, 100);
 
   // terrain plane, displaced + real normals
   const SEG = 340;
@@ -117,8 +117,8 @@ export async function buildTerrain(hostId, tip) {
   controls.enableDamping = true; controls.dampingFactor = .09;
   controls.minDistance = Wz * .55; controls.maxDistance = Wz * 1.5;
   controls.maxPolarAngle = 1.46; controls.minPolarAngle = .05;
-  controls.target.set(0, hSpan * .13, 0);
-  camera.position.set(Wx * .5, Wz * .82, Wz * .12);
+  controls.target.set(0, hSpan * .12, 0);
+  camera.position.set(Wx * 1.35, Wz * .6, 0);
   controls.autoRotate = false;
   controls.update();
   const refDist = camera.position.distanceTo(controls.target);   // depth-scale reference
@@ -156,7 +156,17 @@ export async function buildTerrain(hostId, tip) {
   }
 
   // ── sensors layer — the real 3D device models placed across the park ──
+  // Anchored to the true terrain surface by raycasting straight down onto the
+  // displaced mesh (DEM nearest-pixel sampling drifts from the interpolated
+  // surface, so units would otherwise float or sink on relief).
   const _box = new THREE.Box3();
+  const _ray = new THREE.Raycaster();
+  const DOWN = new THREE.Vector3(0, -1, 0);
+  const groundAt = (x, z) => {
+    _ray.set(new THREE.Vector3(x, hSpan * 20 + 5, z), DOWN);
+    const hit = _ray.intersectObject(terrain, false)[0];
+    return hit ? hit.point.y : hAt(x / Wx + 0.5, 0.5 - z / Wz);
+  };
   const deviceGroups = {}, hotspots = [];
   for (const [type, def] of Object.entries(DEVLAYERS)) {
     const grp = new THREE.Group();
@@ -168,13 +178,14 @@ export async function buildTerrain(hostId, tip) {
       const sz = (_box.max.y - _box.min.y) || 1, s = def.h / sz;
       model.scale.setScalar(s);
       const wp = lonlat(lat, lon);
-      model.position.set(wp.x, wp.y - _box.min.y * s, wp.z);
+      const gy = groundAt(wp.x, wp.z);                       // exact surface height
+      model.position.set(wp.x, gy - _box.min.y * s, wp.z);   // base on the ground
       model.traverse(o => { if (o.isMesh) o.castShadow = false; });
       grp.add(model);
       const hp = document.createElement('button');
       hp.className = 'vt-dev';
       hp.style.setProperty('--fa', hex);
-      const dp = wp.clone(); dp.y += def.h * 1.05;
+      const dp = new THREE.Vector3(wp.x, gy + 0.01, wp.z);   // dot sits ON THE GROUND under the unit
       hp.addEventListener('mouseenter', (e) => deviceTip(tip, def, e));
       hp.addEventListener('mousemove', (e) => posTip(tip, e));
       hp.addEventListener('mouseleave', () => tip.classList.remove('on'));
