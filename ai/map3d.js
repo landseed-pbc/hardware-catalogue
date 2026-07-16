@@ -118,7 +118,7 @@ export async function buildTerrain(hostId, tip) {
   controls.minDistance = Wz * .55; controls.maxDistance = Wz * 1.5;
   controls.maxPolarAngle = 1.46; controls.minPolarAngle = .05;
   controls.target.set(0, hSpan * .12, 0);
-  camera.position.set(Wx * 1.75, Wz * .775, 0);
+  camera.position.set(Wx * 1.84, Wz * .814, 0);
   controls.autoRotate = false;
   controls.update();
   const refDist = camera.position.distanceTo(controls.target);   // depth-scale reference
@@ -182,10 +182,18 @@ export async function buildTerrain(hostId, tip) {
       model.position.set(wp.x, gy - _box.min.y * s, wp.z);   // base on the ground
       model.traverse(o => { if (o.isMesh) o.castShadow = false; });
       grp.add(model);
+      // ground-halo ring — a flat marker lying on the terrain AROUND the base, so
+      // the sensor sits inside it and stays visible from above (no covering dot)
+      const oR = def.h * 0.55, iR = def.h * 0.40;
+      const ring = new THREE.Mesh(new THREE.RingGeometry(iR, oR, 32),
+        new THREE.MeshBasicMaterial({ color: def.hue, transparent: true, opacity: .95, side: THREE.DoubleSide, depthWrite: false }));
+      ring.rotation.x = -Math.PI / 2; ring.renderOrder = 2;
+      ring.position.set(wp.x, gy + 0.006, wp.z);
+      grp.add(ring);
       const hp = document.createElement('button');
       hp.className = 'vt-dev';
       hp.style.setProperty('--fa', hex);
-      const dp = new THREE.Vector3(wp.x, gy + 0.01, wp.z);   // dot sits ON THE GROUND under the unit
+      const dp = new THREE.Vector3(wp.x, gy + def.h * 0.5, wp.z);   // hover hit-area over the unit
       hp.addEventListener('mouseenter', (e) => deviceTip(tip, def, e));
       hp.addEventListener('mousemove', (e) => posTip(tip, e));
       hp.addEventListener('mouseleave', () => tip.classList.remove('on'));
