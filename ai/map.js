@@ -1,13 +1,15 @@
 /* Virunga occupancy twin — a multi-layer scientific surface over the real OSM
-   park boundary (relation 404784) + Lake Edward. Four togglable layers, each
-   derived directly from the camera-trap station network (public/virunga-geo.json):
+   park boundary (relation 404784) + Lake Edward. The surface is an inverse-
+   distance-weighted hexbin raster (6 discrete classes, cartographic — not a
+   glow), togglable across four layers derived directly from the camera-trap
+   station network (public/virunga-geo.json):
      · Occupancy ψ        — modeled presence probability (real per-station ψ)
      · Detection density  — 30-day detection counts (real per-station)
      · Species richness   — derived from detection load, ψ and habitat guild
      · Human pressure     — derived from sector, low ψ and edge exposure
-   Lightweight: one SVG, blurred inverse-distance fields, a smooth crossfade on
-   toggle, station markers recoloured/resized per layer. Figures are sample/
-   illustrative; the cited population numbers are real and sourced (SOURCES). */
+   Fully labelled: coordinate graticule, sector names, station points, a scale
+   bar and a north arrow. One SVG, no tiles. Figures are sample/illustrative;
+   the cited population numbers are real and sourced (SOURCES). */
 
 const SOURCES = [
   ['Boundary & Lake Edward geometry', 'OpenStreetMap — Virunga NP relation 404784'],
@@ -61,14 +63,15 @@ function derive(s) {
 }
 
 // each layer: display label, full name, unit, a low→high colour ramp, an accent
-// dot, the field-blur radius, the station key it reads, and a value formatter
+// dot, the station key it reads, and a value formatter
 const LAYERS = {
-  occupancy: { label: 'Occupancy', name: 'Occupancy ψ', unit: 'presence probability', stops: [[26, 20, 46], [74, 52, 138], [176, 130, 240], [214, 190, 255]], dot: '#B682F0', blur: 30, key: '_occ', fmt: (v) => v.toFixed(2) },
-  density: { label: 'Density', name: 'Detection density', unit: 'detections · 30 d', stops: [[24, 16, 10], [120, 58, 18], [228, 138, 30], [255, 214, 96]], dot: '#F0A030', blur: 19, key: '_den', fmt: (v) => Math.round(v).toLocaleString() },
-  richness: { label: 'Richness', name: 'Species richness', unit: 'species per station', stops: [[10, 26, 20], [24, 90, 58], [64, 196, 116], [176, 240, 196]], dot: '#4FD17A', blur: 26, key: '_ric', fmt: (v) => Math.round(v) },
-  pressure: { label: 'Pressure', name: 'Human pressure', unit: 'intrusion index', stops: [[34, 12, 14], [128, 30, 36], [228, 68, 58], [255, 158, 120]], dot: '#F0604A', blur: 23, key: '_pre', fmt: (v) => v.toFixed(2) },
+  occupancy: { label: 'Occupancy', name: 'Occupancy ψ', unit: 'presence probability', stops: [[24, 20, 44], [72, 50, 132], [150, 108, 220], [214, 190, 255]], dot: '#B682F0', key: '_occ', fmt: (v) => v.toFixed(2) },
+  density: { label: 'Density', name: 'Detection density', unit: 'detections · 30 d', stops: [[26, 18, 12], [126, 62, 20], [226, 138, 32], [255, 214, 110]], dot: '#F0A030', key: '_den', fmt: (v) => Math.round(v).toLocaleString() },
+  richness: { label: 'Richness', name: 'Species richness', unit: 'species per station', stops: [[12, 28, 22], [26, 96, 62], [70, 190, 118], [180, 240, 200]], dot: '#4FD17A', key: '_ric', fmt: (v) => Math.round(v) },
+  pressure: { label: 'Pressure', name: 'Human pressure', unit: 'intrusion index', stops: [[32, 14, 16], [132, 32, 38], [226, 70, 60], [255, 168, 130]], dot: '#F0604A', key: '_pre', fmt: (v) => v.toFixed(2) },
 };
 const ORDER = ['occupancy', 'density', 'richness', 'pressure'];
+const NC = 6;                                                  // surface classes
 
 function ramp(stops, t) {
   t = clamp(t, 0, 1);
@@ -77,7 +80,6 @@ function ramp(stops, t) {
   const [r, g, b] = [0, 1, 2].map((k) => c(stops[i][k], stops[i + 1][k]));
   return `rgb(${r},${g},${b})`;
 }
-const gradCss = (stops) => `linear-gradient(90deg,${stops.map((s, i) => `rgb(${s[0]},${s[1]},${s[2]}) ${Math.round(i / (stops.length - 1) * 100)}%`).join(',')})`;
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 const el = (n, a = {}) => { const e = document.createElementNS(SVGNS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
@@ -97,50 +99,81 @@ export async function buildMap(geo, hostId, tip, opts = {}) {
 
   const inView = geo.stations.filter((s) => { const x = px(s[0]), y = py(s[1]); return x >= -60 && x <= W + 60 && y >= -60 && y <= H + 60; });
   inView.forEach(derive);
-  const norm = {};
-  for (const k of ORDER) { const key = LAYERS[k].key; const vs = inView.map((s) => s[key]); const mn = Math.min(...vs), mx = Math.max(...vs); norm[k] = { mn, mx, t: (v) => (mx > mn ? (v - mn) / (mx - mn) : 0.5) }; }
+  const spx = inView.map((st) => ({ x: px(st[0]), y: py(st[1]), _occ: st._occ, _den: st._den, _ric: st._ric, _pre: st._pre }));
+
+  // ── inverse-distance hexbin surface ──────────────────────────────────────
+  const hs = 30;                                              // hex radius (viewBox units)
+  const dxC = 1.5 * hs, dyC = Math.sqrt(3) * hs;
+  const hexD = (cx, cy) => { let d = ''; for (let a = 0; a < 6; a++) { const ang = Math.PI / 3 * a; d += (a ? 'L' : 'M') + (cx + hs * Math.cos(ang)).toFixed(1) + ' ' + (cy + hs * Math.sin(ang)).toFixed(1); } return d + 'Z'; };
+  const cells = [];
+  for (let col = 0; col * dxC <= W + dxC; col++) {
+    const cx = col * dxC, off = (col % 2) ? dyC / 2 : 0;
+    for (let cy = off - dyC; cy <= H + dyC; cy += dyC) {
+      let sw = 0, so = 0, sd = 0, sr = 0, sp = 0;
+      for (const st of spx) { const ex = cx - st.x, ey = cy - st.y; const w = 1 / (ex * ex + ey * ey + 70); sw += w; so += w * st._occ; sd += w * st._den; sr += w * st._ric; sp += w * st._pre; }
+      cells.push({ cx, cy, v: { occupancy: so / sw, density: sd / sw, richness: sr / sw, pressure: sp / sw } });
+    }
+  }
+  const rng = {};
+  for (const k of ORDER) { let mn = 1e9, mx = -1e9; for (const c of cells) { const v = c.v[k]; if (v < mn) mn = v; if (v > mx) mx = v; } rng[k] = { mn, mx }; }
+  const cls = (k, v) => { const { mn, mx } = rng[k]; return Math.min(NC - 1, Math.floor((mx > mn ? (v - mn) / (mx - mn) : 0.5) * NC)); };
+  for (const c of cells) { c.c = {}; for (const k of ORDER) c.c[k] = cls(k, c.v[k]); }
 
   const sp = geo.species;
   const ctrlEl = opts.ctrl ? document.getElementById(opts.ctrl) : null;
   const legendEl = opts.legend ? document.getElementById(opts.legend) : null;
   let curLayer = opts.default || 'occupancy';
-  function tpRow(lab, val, active) { return `<span class="tp-row${active ? ' on' : ''}"><em>${lab}</em>${val}</span>`; }
+  const tpRow = (lab, val, active) => `<span class="tp-row${active ? ' on' : ''}"><em>${lab}</em>${val}</span>`;
 
   const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'vmap', preserveAspectRatio: 'xMidYMid meet' });
   const defs = el('defs');
   const clip = el('clipPath', { id: `clip-${uid}` }); clip.appendChild(el('path', { d: path(geo.park) })); defs.appendChild(clip);
-  for (const k of ORDER) { const f = el('filter', { id: `blur-${uid}-${k}`, x: '-25%', y: '-25%', width: '150%', height: '150%' }); f.appendChild(el('feGaussianBlur', { stdDeviation: LAYERS[k].blur })); defs.appendChild(f); }
   svg.appendChild(defs);
 
   svg.appendChild(el('path', { d: path(geo.park), class: 'vmap-park' }));
 
-  // four inverse-distance fields, stacked; the active one is shown (CSS crossfade)
-  const fields = {};
-  for (const k of ORDER) {
-    const L = LAYERS[k];
-    const g = el('g', { class: 'vfield', 'data-layer': k, 'clip-path': `url(#clip-${uid})`, filter: `url(#blur-${uid}-${k})` });
-    g.appendChild(el('rect', { x: 0, y: 0, width: W, height: H, fill: ramp(L.stops, 0) }));
-    for (const s of inView) { const t = norm[k].t(s[L.key]); const x = px(s[0]), y = py(s[1]); g.appendChild(el('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: (30 + t * 54).toFixed(0), fill: ramp(L.stops, t), opacity: (0.32 + t * 0.56).toFixed(2) })); }
-    fields[k] = g; svg.appendChild(g);
-  }
+  // hexbin surface — one geometry, recoloured per layer (classed choropleth)
+  const surf = el('g', { class: 'vsurf', 'clip-path': `url(#clip-${uid})` });
+  for (const c of cells) { const p = el('path', { class: 'hexc', d: hexD(c.cx, c.cy) }); c.el = p; surf.appendChild(p); }
+  svg.appendChild(surf);
 
-  // Lake Edward over the field (water, not habitat), then the park rim on top
+  // Lake Edward over the surface (water, not habitat), then the park rim
   svg.appendChild(el('path', { d: path(geo.edward), class: 'vmap-lake', 'clip-path': `url(#clip-${uid})` }));
   svg.appendChild(el('path', { d: path(geo.park), class: 'vmap-rim' }));
 
-  const labels = [['RWINDI', 29.35, -0.9], ['RUTSHURU', 29.45, -1.03], ['LAKE EDWARD', 29.5, -0.4], ['ISHASHA', 29.64, -0.58], ['CENTRAL', 29.55, -0.76]];
-  for (const [t, lon, lat] of labels) { const x = px(lon), y = py(lat); if (x < 0 || x > W || y < 0 || y > H) continue; const tx = el('text', { x: x.toFixed(0), y: y.toFixed(0), class: 'vmap-label' }); tx.textContent = t; svg.appendChild(tx); }
+  // coordinate graticule with edge labels
+  const grat = el('g', { class: 'vgrat' });
+  for (const lon of [29.4, 29.6, 29.8]) { const x = px(lon); if (x < 8 || x > W - 8) continue; grat.appendChild(el('line', { x1: x, y1: 0, x2: x, y2: H, class: 'grat-l' })); const t = el('text', { x: x.toFixed(0), y: 15, class: 'grat-t', 'text-anchor': 'middle' }); t.textContent = lon.toFixed(1) + '°E'; grat.appendChild(t); }
+  for (const lat of [-0.2, -0.4, -0.6, -0.8, -1.0]) { const y = py(lat); if (y < 12 || y > H - 8) continue; grat.appendChild(el('line', { x1: 0, y1: y, x2: W, y2: y, class: 'grat-l' })); const t = el('text', { x: 7, y: (y - 4).toFixed(0), class: 'grat-t', 'text-anchor': 'start' }); t.textContent = Math.abs(lat).toFixed(1) + '°S'; grat.appendChild(t); }
+  svg.appendChild(grat);
 
-  // stations — cores recoloured/resized per active layer, tooltip lists all four
-  const cores = [];
+  // sector labels
+  const labels = [['RWINDI', 29.34, -0.9], ['RUTSHURU', 29.45, -1.04], ['LAKE EDWARD', 29.49, -0.42], ['ISHASHA', 29.64, -0.57], ['CENTRAL', 29.55, -0.76]];
+  const secG = el('g', { class: 'vsec' });
+  for (const [t, lon, lat] of labels) { const x = px(lon), y = py(lat); if (x < 0 || x > W || y < 0 || y > H) continue; const tx = el('text', { x: x.toFixed(0), y: y.toFixed(0), class: 'vmap-label', 'text-anchor': 'middle' }); tx.textContent = t; secG.appendChild(tx); }
+  svg.appendChild(secG);
+
+  // scale bar (10 km) + north arrow
+  const kmPerU = (V.e - V.w) * 111.32 * Math.cos(Math.PI / 180 * ((V.n + V.s) / 2)) / W;
+  const barU = 10 / kmPerU, bx = 34, by = H - 30;
+  const sb = el('g', { class: 'vscale' });
+  sb.appendChild(el('line', { x1: bx, y1: by, x2: bx + barU, y2: by, class: 'sb-line' }));
+  sb.appendChild(el('line', { x1: bx, y1: by - 5, x2: bx, y2: by + 5, class: 'sb-line' }));
+  sb.appendChild(el('line', { x1: bx + barU, y1: by - 5, x2: bx + barU, y2: by + 5, class: 'sb-line' }));
+  const sbt = el('text', { x: (bx + barU / 2).toFixed(0), y: (by - 9).toFixed(0), class: 'sb-t', 'text-anchor': 'middle' }); sbt.textContent = '10 km'; sb.appendChild(sbt);
+  svg.appendChild(sb);
+  const na = el('g', { class: 'vnorth' });
+  na.appendChild(el('path', { d: `M${W - 32} 30 L${W - 39} 52 L${W - 32} 45 L${W - 25} 52 Z`, class: 'na-tri' }));
+  const nat = el('text', { x: W - 32, y: 24, class: 'na-t', 'text-anchor': 'middle' }); nat.textContent = 'N'; na.appendChild(nat);
+  svg.appendChild(na);
+
+  // stations — cartographic points with IDs; tooltip lists all four metrics
   const dots = el('g');
   for (const s of inView) {
     const x = px(s[0]), y = py(s[1]);
     const g = el('g', { class: 'vmap-st', tabindex: '0', role: 'button' });
-    const halo = el('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 11, class: 'vmap-halo' });
-    const core = el('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 3.6, class: 'vmap-core', stroke: '#0a0812', 'stroke-width': 1 });
-    g.appendChild(halo); g.appendChild(core);
-    cores.push({ s, halo, core });
+    g.appendChild(el('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 3.4, class: 'vstat' }));
+    const lbl = el('text', { x: (x + 5.5).toFixed(1), y: (y - 4).toFixed(1), class: 'vstat-t' }); lbl.textContent = s[2]; g.appendChild(lbl);
     const show = (ev) => {
       const [name, status] = sp[s[3]] || [s[3], ''];
       const cite = CITE[s[3]];
@@ -171,18 +204,11 @@ export async function buildMap(geo, hostId, tip, opts = {}) {
     if (!LAYERS[k]) return;
     curLayer = k;
     const L = LAYERS[k];
-    for (const kk of ORDER) fields[kk].classList.toggle('on', kk === k);
-    for (const { s, halo, core } of cores) {
-      const t = norm[k].t(s[L.key]);
-      const col = ramp(L.stops, 0.28 + t * 0.72);
-      core.style.fill = col;
-      core.setAttribute('r', (2.8 + t * 3.4).toFixed(1));
-      halo.style.fill = col;
-    }
+    for (const c of cells) c.el.style.fill = ramp(L.stops, (c.c[k] + 0.5) / NC);
     if (legendEl) legendEl.innerHTML =
       `<span class="mleg-name" style="--c:${L.dot}">${L.name}</span>` +
-      `<span class="mleg-ramp" style="background:${gradCss(L.stops)}"></span>` +
-      `<span class="mleg-sc">${L.fmt(norm[k].mn)} → ${L.fmt(norm[k].mx)}</span>` +
+      `<span class="mleg-steps">${Array.from({ length: NC }, (_, i) => `<i style="background:${ramp(L.stops, (i + 0.5) / NC)}"></i>`).join('')}</span>` +
+      `<span class="mleg-sc">${L.fmt(rng[k].mn)} → ${L.fmt(rng[k].mx)}</span>` +
       `<span class="map-leg-r">${inView.length} stations · ${L.unit}</span>`;
     if (ctrlEl) [...ctrlEl.children].forEach((b) => b.classList.toggle('on', b.dataset.k === k));
   }

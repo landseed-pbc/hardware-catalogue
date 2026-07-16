@@ -25,7 +25,7 @@ document.querySelector('.app-sub')?.classList.add('in');
 revealView('overview');
 
 /* ── the Virunga twin — 3D terrain (Overview) + 2D occupancy surface (Survey) ── */
-import { buildMap, sourcesHTML } from './map.js?v=2';
+import { buildMap, sourcesHTML } from './map.js?v=3';
 import { buildTerrain } from './map3d.js?v=32';
 
 const tip = document.createElement('div');
