@@ -315,12 +315,12 @@ body.sat.ai-page{
 .det-card.hide{display:none}
 .det-frame{position:relative;aspect-ratio:4/3;overflow:hidden;background:#0a0d0c}
 .det-frame img{width:100%;height:100%;object-fit:cover;display:block}
-.det-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-  background:repeating-linear-gradient(0deg,rgba(240,240,234,.03) 0 2px,transparent 2px 4px),radial-gradient(120% 90% at 50% 40%,color-mix(in srgb,var(--qh) 14%,transparent),rgba(6,9,8,.9))}
-.det-ph span{font-size:9px;font-weight:800;letter-spacing:.14em;color:color-mix(in srgb,var(--qh) 75%,#fff);opacity:.7}
-.det-box{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.det-box rect{fill:none;stroke-width:1.4;vector-effect:non-scaling-stroke;opacity:.95;filter:drop-shadow(0 0 3px rgba(0,0,0,.6))}
-.det-tag{position:absolute;left:6px;top:6px;font-size:9.5px;font-weight:700;color:#0a0812;background:var(--qh);padding:2px 7px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.det-ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;padding:0 10px;
+  background:repeating-linear-gradient(0deg,rgba(240,240,234,.03) 0 2px,transparent 2px 4px),radial-gradient(120% 90% at 50% 40%,color-mix(in srgb,var(--qh) 16%,transparent),rgba(6,9,8,.92))}
+.det-ph::before{content:"";position:absolute;inset:9px;border:1px solid color-mix(in srgb,var(--qh) 34%,transparent);border-radius:6px;opacity:.55}
+.det-ph-cls{font-size:12px;font-weight:800;letter-spacing:.02em;color:color-mix(in srgb,var(--qh) 55%,#fff);line-height:1.15}
+.det-ph-sub{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.8;font-variant-numeric:tabular-nums}
+.det-conf{position:absolute;right:6px;top:6px;font-size:10px;font-weight:800;color:#e9ffe9;background:rgba(6,10,8,.72);border:1px solid rgba(0,255,100,.4);padding:2px 7px;border-radius:20px;letter-spacing:.02em;font-variant-numeric:tabular-nums;backdrop-filter:blur(2px)}
 .det-meta{padding:8px 11px 10px}
 .det-meta b{display:block;font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .det-meta span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
@@ -339,8 +339,71 @@ body.sat.ai-page{
 .doc-sel.on{background:rgba(155,108,224,.16)}
 .rep-preview{display:flex;flex-direction:column}
 .prev-sec p{font-size:11.5px;line-height:1.5;color:var(--dim);margin:0}
-.prev-cite{margin-top:auto;padding-top:12px;border-top:1px solid rgba(155,108,224,.2);font-size:11px;line-height:1.5;color:var(--muted)}
+.prev-cite{margin-top:14px;padding-top:12px;border-top:1px solid rgba(155,108,224,.2);font-size:11px;line-height:1.5;color:var(--muted)}
 .prev-cite::before{content:"◆ ";color:#9B6CE0}
+
+/* ── pane subtitle (survey / reports headers) ─────────────────────────────── */
+.pane-sub{font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:none;color:var(--muted);opacity:.85;margin-left:2px}
+.pane-sub::before{content:"· ";opacity:.6}
+
+/* ── report preview · richer document ─────────────────────────────────────── */
+.prev-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.prev-top b{font-size:16px;font-weight:800;color:#f0efe9;line-height:1.15}
+.prev-ref{flex:none;font-size:9px;font-weight:800;letter-spacing:.08em;color:#c9a4ff;border:1px solid rgba(155,108,224,.35);border-radius:20px;padding:2px 9px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.prev-sub{font-size:11px;color:var(--dim);margin-top:2px}
+.prev-tbl{width:100%;border-collapse:collapse;margin-top:14px;font-size:11px;font-variant-numeric:tabular-nums}
+.prev-tbl th{text-align:right;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:0 0 6px;border-bottom:1px solid rgba(155,108,224,.22)}
+.prev-tbl th:first-child{text-align:left}
+.prev-tbl td{text-align:right;padding:6px 0;color:var(--dim);border-bottom:1px solid rgba(240,240,234,.05)}
+.prev-tbl td:first-child{text-align:left;color:var(--text);font-weight:600}
+.prev-tbl tr:last-child td{border-bottom:0}
+.prev-foot{margin-top:12px;font-size:9.5px;letter-spacing:.02em;color:var(--muted);opacity:.7}
+
+/* ── survey · single-season occupancy model ───────────────────────────────── */
+.occ-tbl{display:flex;flex-direction:column;flex:none;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(155,108,224,.3) transparent}
+.accum{flex:none;margin-top:8px}
+.accum-svg{width:100%;height:76px;display:block}
+.accum-fill{fill:color-mix(in srgb,#9B6CE0 16%,transparent)}
+.accum-line{fill:none;stroke:#9B6CE0;stroke-width:1.4;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 2px rgba(155,108,224,.6))}
+.accum-asym{stroke:rgba(240,240,234,.32);stroke-width:.6;stroke-dasharray:2.4 2.4;vector-effect:non-scaling-stroke}
+.accum-obs{fill:#fff;stroke:#9B6CE0;stroke-width:1.1}
+.accum-tag{fill:var(--muted);font-size:4.2px;font-weight:700;letter-spacing:.04em}
+.accum-ax{display:flex;justify-content:space-between;font-size:8.5px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-top:4px}
+.accum-asym-t{color:color-mix(in srgb,#9B6CE0 55%,#fff)}
+.occ-row{display:grid;grid-template-columns:minmax(64px,1fr) 2.7em minmax(72px,1.7fr) 2.4em 2.4em 2.6em;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid rgba(240,240,234,.05);font-size:12px}
+.occ-row:last-child{border-bottom:0}
+.occ-row b{color:var(--text);font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.occ-row b::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--qh);box-shadow:0 0 5px var(--qh);margin-right:6px;vertical-align:middle}
+.occ-n{text-align:right;font-variant-numeric:tabular-nums;color:var(--text);font-weight:700}
+.occ-dim{color:var(--muted);font-weight:600}
+.occ-est{color:color-mix(in srgb,var(--qh) 62%,#fff)}
+.occ-rai{color:var(--dim);font-weight:600}
+.occ-hd{border-bottom:1px solid rgba(155,108,224,.22);padding-bottom:7px;margin-bottom:2px}
+.occ-hd b,.occ-hd .occ-n,.occ-ci-h{font-size:8.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.occ-hd b::before{display:none}
+.occ-ci-h{text-align:center}
+.occ-ci{position:relative;height:13px;border-radius:7px;background:rgba(240,240,234,.05)}
+.occ-ci-bar{position:absolute;top:50%;transform:translateY(-50%);height:4px;border-radius:2px;background:color-mix(in srgb,var(--qh) 50%,transparent)}
+.occ-ci-nv{position:absolute;top:50%;transform:translate(-50%,-50%);width:2px;height:9px;border-radius:1px;background:rgba(240,240,234,.4)}
+.occ-ci-pt{position:absolute;top:50%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:var(--qh);box-shadow:0 0 6px var(--qh);border:1px solid rgba(6,10,8,.7)}
+
+/* diversity + effort chips (foot of the map pane) */
+.occ-foot{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;flex:none}
+.occ-chip{font-size:10px;font-weight:800;color:var(--text);background:rgba(155,108,224,.1);border:1px solid rgba(155,108,224,.24);border-radius:20px;padding:3px 9px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.occ-chip em{font-style:normal;font-weight:700;letter-spacing:.03em;text-transform:uppercase;font-size:8px;color:var(--muted);margin-right:5px}
+
+/* ── survey · diel activity kernels ───────────────────────────────────────── */
+.diel{display:flex;flex-direction:column;gap:2px}
+.diel-row{display:grid;grid-template-columns:96px 1fr 34px;align-items:center;gap:9px;padding:4px 0}
+.diel-lab b{display:block;font-size:11.5px;font-weight:700;color:var(--text)}
+.diel-lab span{display:block;font-size:8.5px;color:var(--muted);letter-spacing:.02em;margin-top:1px}
+.diel-svg{width:100%;height:30px;overflow:visible}
+.diel-grid{stroke:rgba(240,240,234,.08);stroke-width:.5}
+.diel-area{fill:color-mix(in srgb,var(--qh) 22%,transparent)}
+.diel-line{fill:none;stroke:var(--qh);stroke-width:1.3;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 2px color-mix(in srgb,var(--qh) 70%,transparent))}
+.diel-peak{fill:#fff;stroke:var(--qh);stroke-width:1}
+.diel-peak-t{font-size:10px;font-weight:800;color:color-mix(in srgb,var(--qh) 62%,#fff);font-variant-numeric:tabular-nums;text-align:right}
+.diel-axis{display:flex;justify-content:space-between;padding:2px 34px 0 96px;margin-left:9px;font-size:8px;font-weight:700;color:var(--muted);letter-spacing:.06em}
 
 /* ── 3D terrain twin (Overview) — WebGL canvas + projected DOM markers ────── */
 .map-pane .map-wrap{position:relative;overflow:hidden;border-radius:10px}

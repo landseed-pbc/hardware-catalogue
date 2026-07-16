@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css?v=30" />
-<link rel="stylesheet" href="/css/satellite.css?v=19" />
+<link rel="stylesheet" href="/css/satellite.css?v=21" />
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 <style>
 :root{--fa:#9B6CE0}
@@ -125,21 +125,26 @@
   <!-- ── SURVEY ───────────────────────────────────────────────────────────── -->
   <section class="view" id="view-survey">
     <div class="pane map-pane rv">
-      <div class="pane-h">Occupancy &amp; density · Virunga NP<span class="map-note" id="map-src2">sources</span></div>
+      <div class="pane-h">Occupancy surface ψ<span class="map-note" id="map-src2">sources</span></div>
       <div class="map-wrap" id="map2"></div>
-      <div class="map-leg"><span>occupancy ψ</span><span class="ramp"></span><span>0.4 → 0.97</span><span class="map-leg-r">27 stations · central sector</span></div>
+      <div class="map-leg"><span>ψ</span><span class="ramp"></span><span>0.18 → 0.71</span><span class="map-leg-r">27 stations · Rwindi–Rutshuru–central</span></div>
+      <div class="occ-foot" id="occ-foot"></div>
     </div>
     <div class="pane rv">
-      <div class="pane-h">Detections by class · 30 d</div>
-      <div id="species"></div>
-      <div class="occ-leg" style="margin-top:auto"><span>survey effort · 1,340 camera-nights · sample</span></div>
+      <div class="pane-h">Single-season occupancy<span class="pane-sub">MacKenzie 2002 · 1,340 cam-nights</span></div>
+      <div class="occ-tbl" id="occ-model"></div>
+      <p class="sp-note" style="margin-top:8px">ψ̂ detection-corrected · elusive species carry the largest correction · 95% CI whiskers. Sample data.</p>
+      <div class="pane-h" style="margin-top:auto">Species accumulation<span class="pane-sub">rarefaction → Chao2 asymptote</span></div>
+      <div class="accum" id="accum"></div>
     </div>
     <div class="pane rv">
-      <div class="pane-h">Acoustic survey · 30 d</div>
-      <div class="feed-row" style="--qh:#FF8C42"><b>412</b><i></i><span>Leopard calls · array north</span><em>triangulated</em></div>
-      <div class="feed-row" style="--qh:#E682E6"><b>1,048</b><i></i><span>Wolf pack events · full survey</span><em>logged</em></div>
-      <div class="feed-row" style="--qh:#00FF64"><b>36</b><i></i><span>Gunshot signatures · sector G</span><em>ops room</em></div>
-      <div class="feed-row" style="--qh:#9B6CE0"><b>7</b><i></i><span>Unknown signatures · queued for review</span><em>review</em></div>
+      <div class="pane-h">Diel activity · detection kernels</div>
+      <div class="diel" id="diel"></div>
+      <div class="pane-h" style="margin-top:6px">Acoustic array · 30 d</div>
+      <div class="feed-row" style="--qh:#EF7A3C"><b>412</b><i></i><span>Leopard calls · array north</span><em>triangulated</em></div>
+      <div class="feed-row" style="--qh:#E682E6"><b>1,048</b><i></i><span>Bio-acoustic events · full survey</span><em>logged</em></div>
+      <div class="feed-row" style="--qh:#E0902C"><b>36</b><i></i><span>Gunshot signatures · sector G</span><em>ops room</em></div>
+      <div class="feed-row" style="--qh:#9B6CE0"><b>7</b><i></i><span>Unknown · queued for analyst review</span><em>review</em></div>
       <p class="sp-note" style="margin-top:auto">Roadmap: monocular distance · acoustic triangulation.</p>
     </div>
   </section>
@@ -177,6 +182,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./ai.js?v=34"></script>
+<script type="module" src="./ai.js?v=36"></script>
 </body>
 </html>

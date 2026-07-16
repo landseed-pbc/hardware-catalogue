@@ -105,6 +105,7 @@ const CLASS_HUE = {
   human: '#00FF64', vehicle: '#1482FF', gunshot: '#E0902C',
   elephant: '#F0C244', buffalo: '#8B5B2D', kob: '#C8A24B', hippo: '#3A9FE6',
   lion: '#E0902C', topi: '#CF5A44', warthog: '#B98F5B', waterbuck: '#4FD17A', leopard: '#EF7A3C',
+  gorilla: '#4FD17A',
 };
 // [time, category, class, label, sensor, sector, conf, route, image, boxes]
 // category: intrusion | people | vehicle | animal ; boxes: [x,y,w,h] fractions
@@ -154,15 +155,13 @@ filters.innerHTML = FILTERS.map(([f, label], i) =>
 function card(d) {
   const [t, cat, cls, label, sensor, sector, conf, route, img, boxes] = d;
   const col = CLASS_HUE[cls] || '#9B6CE0';
+  // real captures already carry their own boxes+labels — never redraw over them.
+  // placeholders get a styled IR frame + a class tag (image pending), no drawn box.
   const frame = img
-    ? `<img src="${img}" alt="" loading="lazy" />`
-    : `<div class="det-ph" style="--qh:${col}"><span>${cls === 'gunshot' ? 'ACOUSTIC · NO IMAGE' : 'IR CAPTURE · SAMPLE'}</span></div>`;
-  const svg = boxes.length
-    ? `<svg class="det-box" viewBox="0 0 100 100" preserveAspectRatio="none">` +
-      boxes.map(([x, y, w, h]) => `<rect x="${x * 100}" y="${y * 100}" width="${w * 100}" height="${h * 100}" style="stroke:${col}"/>`).join('') +
-      `</svg><span class="det-tag" style="--qh:${col}">${label} · ${conf}</span>` : '';
+    ? `<img src="${img}" alt="" loading="lazy" /><span class="det-conf">${conf}</span>`
+    : `<div class="det-ph" style="--qh:${col}"><span class="det-ph-cls">${cls === 'gunshot' ? 'ACOUSTIC EVENT' : label}</span><span class="det-ph-sub">${cls === 'gunshot' ? 'no image · triangulated' : 'image pending · ' + conf}</span></div>`;
   return `<article class="det-card" data-cls="${cls}" data-cat="${cat}">
-    <div class="det-frame">${frame}${svg}</div>
+    <div class="det-frame">${frame}</div>
     <div class="det-meta"><b>${label}</b><span>${sensor} · ${sector} · ${t}</span></div>
     <div class="det-hov">
       <div><em>Confidence</em>${conf}</div>
@@ -190,72 +189,161 @@ function applyFilter(f) {
 filters.addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (b) applyFilter(b.dataset.f); });
 applyFilter('all');
 
-/* ── survey — detections by class, 30 d ───────────────────────────────────── */
-const species = document.getElementById('species');
-if (species) {
-  const rows = [['Human', 'human', 412, 86], ['Elephant', 'elephant', 231, 48], ['Vehicle', 'vehicle', 88, 18], ['Leopard · acoustic', 'acoustic', 57, 12], ['Wolf · acoustic', 'acoustic', 143, 30]];
-  species.innerHTML = rows.map(([label, cls, n, w]) =>
-    `<div class="bar-row" style="--qh:${CLASS_HUE[cls]}"><b>${label}</b><span class="bar"><i style="width:${w}%"></i></span><em>${n}</em></div>`).join('');
+/* ── survey — single-season occupancy model + diel activity + diversity ──────
+   Sample survey: 27 passive-IR stations, 1,340 camera-nights (20 May–01 Jul).
+   ψ̂ is detection-corrected (MacKenzie et al. 2002) so it exceeds the naïve
+   proportion of stations with a detection; elusive, low-p species carry the
+   largest correction. RAI = detections per 100 camera-nights. All illustrative. */
+// [species, class, naïve ψ, est ψ̂, 95% CI ±, per-night p̂, RAI]
+const OCC = [
+  ['Buffalo', 'buffalo', 0.63, 0.71, 0.09, 0.28, 30.7],
+  ['Elephant', 'elephant', 0.52, 0.61, 0.08, 0.22, 17.2],
+  ['Hippopotamus', 'hippo', 0.30, 0.34, 0.07, 0.41, 14.0],
+  ['Ugandan kob', 'kob', 0.44, 0.52, 0.09, 0.19, 10.7],
+  ['Warthog', 'warthog', 0.41, 0.48, 0.10, 0.16, 9.6],
+  ['Gorilla', 'gorilla', 0.15, 0.24, 0.10, 0.12, 7.2],
+  ['Waterbuck', 'waterbuck', 0.33, 0.39, 0.09, 0.14, 6.7],
+  ['Topi', 'topi', 0.30, 0.36, 0.10, 0.13, 6.3],
+  ['Leopard', 'leopard', 0.19, 0.31, 0.11, 0.09, 4.3],
+  ['Lion', 'lion', 0.11, 0.18, 0.09, 0.08, 1.6],
+];
+const occModel = document.getElementById('occ-model');
+if (occModel) {
+  const AX = 0.85;                                   // ψ axis max for the CI track
+  const pct = (v) => (Math.max(0, Math.min(AX, v)) / AX * 100).toFixed(1);
+  const head = `<div class="occ-row occ-hd"><b>Species</b><span class="occ-n">ψ&nbsp;nv</span><span class="occ-ci-h">95% CI</span><span class="occ-n">ψ̂</span><span class="occ-n">p̂</span><span class="occ-n">RAI</span></div>`;
+  occModel.innerHTML = head + OCC.map(([sp, cls, nv, psi, ci, p, rai]) => {
+    const lo = pct(psi - ci), hi = pct(psi + ci), mid = pct(psi), nvx = pct(nv);
+    return `<div class="occ-row" style="--qh:${CLASS_HUE[cls]}">` +
+      `<b>${sp}</b>` +
+      `<span class="occ-n occ-dim">${nv.toFixed(2)}</span>` +
+      `<span class="occ-ci" title="ψ̂ ${psi.toFixed(2)} (95% CI ${(psi - ci).toFixed(2)}–${(psi + ci).toFixed(2)})"><i class="occ-ci-bar" style="left:${lo}%;width:${(hi - lo).toFixed(1)}%"></i>` +
+        `<i class="occ-ci-nv" style="left:${nvx}%"></i><i class="occ-ci-pt" style="left:${mid}%"></i></span>` +
+      `<span class="occ-n occ-est">${psi.toFixed(2)}</span>` +
+      `<span class="occ-n">${p.toFixed(2)}</span>` +
+      `<span class="occ-n occ-rai">${rai.toFixed(1)}</span></div>`;
+  }).join('');
+}
+// diversity + effort chips (foot of the map pane)
+const occFoot = document.getElementById('occ-foot');
+if (occFoot) {
+  const chips = [['Richness S', '14'], ['Chao2', '15.8 ±2.1'], ['Shannon H′', '2.11'], ['Pielou J′', '0.80'], ['mean p̂', '0.18']];
+  occFoot.innerHTML = chips.map(([l, v]) => `<span class="occ-chip"><em>${l}</em>${v}</span>`).join('');
+}
+// diel activity — hourly detection kernels (0–24 h), normalised to peak
+const DIEL = [
+  ['Elephant', 'elephant', 'crepuscular · dawn & dusk', [.20, .15, .12, .10, .15, .40, .75, .60, .40, .30, .25, .20, .20, .22, .25, .30, .45, .70, .85, .60, .40, .30, .25, .20]],
+  ['Buffalo', 'buffalo', 'diurnal · midday grazing', [.05, .05, .05, .06, .10, .20, .35, .50, .65, .80, .90, .95, .90, .80, .70, .55, .40, .30, .20, .12, .08, .06, .05, .05]],
+  ['Leopard', 'leopard', 'nocturnal · overlap Δ 0.31', [.80, .85, .70, .60, .45, .30, .15, .08, .05, .04, .04, .05, .05, .06, .08, .10, .15, .25, .40, .55, .70, .82, .88, .85]],
+];
+const diel = document.getElementById('diel');
+if (diel) {
+  diel.innerHTML = DIEL.map(([sp, cls, note, k]) => {
+    const peak = k.indexOf(Math.max(...k));
+    const W = 100, H = 26;
+    const pts = k.map((v, i) => `${(i / 23 * W).toFixed(1)},${(H - v * (H - 3)).toFixed(1)}`).join(' ');
+    const area = `0,${H} ${pts} ${W},${H}`;
+    return `<div class="diel-row" style="--qh:${CLASS_HUE[cls]}">` +
+      `<div class="diel-lab"><b>${sp}</b><span>${note}</span></div>` +
+      `<svg class="diel-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
+        `<line class="diel-grid" x1="25" y1="0" x2="25" y2="${H}"/><line class="diel-grid" x1="50" y1="0" x2="50" y2="${H}"/><line class="diel-grid" x1="75" y1="0" x2="75" y2="${H}"/>` +
+        `<polygon class="diel-area" points="${area}"/><polyline class="diel-line" points="${pts}"/>` +
+        `<circle class="diel-peak" cx="${(peak / 23 * W).toFixed(1)}" cy="${(H - k[peak] * (H - 3)).toFixed(1)}" r="1.6"/></svg>` +
+      `<span class="diel-peak-t">${String(peak).padStart(2, '0')}:00</span></div>`;
+  }).join('') + `<div class="diel-axis"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>`;
+}
+// species accumulation — rarefaction curve rising to the Chao2 asymptote (S≈14
+// observed at 1,340 camera-nights; Chao2 15.8 places 1–2 rare species below floor)
+const accum = document.getElementById('accum');
+if (accum) {
+  const NMAX = 1340, SMAX = 15.8, kk = 0.00162, W = 100, H = 44, YT = 16;
+  const yv = (s) => (H - 2 - (s / YT) * (H - 5)), xv = (n) => (n / NMAX) * W;
+  const pts = [];
+  for (let n = 0; n <= NMAX; n += NMAX / 24) pts.push(`${xv(n).toFixed(1)},${yv(SMAX * (1 - Math.exp(-kk * n))).toFixed(1)}`);
+  const asym = yv(SMAX).toFixed(1), obs = yv(14).toFixed(1);
+  accum.innerHTML = `<svg class="accum-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
+    `<polygon class="accum-fill" points="0,${H} ${pts.join(' ')} ${W},${H}"/>` +
+    `<line class="accum-asym" x1="0" y1="${asym}" x2="${W}" y2="${asym}"/>` +
+    `<polyline class="accum-line" points="${pts.join(' ')}"/>` +
+    `<circle class="accum-obs" cx="${xv(NMAX).toFixed(1)}" cy="${obs}" r="1.7"/></svg>` +
+    `<div class="accum-ax"><span>observed S = 14</span><span>1,340 camera-nights</span><span class="accum-asym-t">Chao2 15.8 ±2.1</span></div>`;
 }
 
-/* ── reports — a Virunga-titled library; each doc renders its own preview ──── */
+/* ── reports — a Virunga-titled library; each doc renders its own preview.
+   Written automatically by CTDAMS on the programme's cadence. Sample data;
+   the cited population figures are real and sourced (see the sources popover).
+   Optional `tbl` renders a small data table inside the preview. ──────────────*/
 const REPORTS = {
   abundance: {
-    title: 'Quarterly abundance report', sub: 'Virunga NP · Central Sector · Q2 2026 · generated 01 Jul',
-    mets: [['Presence ψ', '0.82'], ['Occupancy', '0.61'], ['Density /km²', '3.2'], ['Abundance', '214 ±18']],
-    secs: [['Methods', 'Royle–Nichols occupancy across 27 camera-trap stations, 1,340 camera-nights.'],
-           ['Results · by sector', 'Rwindi & Rutshuru plains carry the highest occupancy; Lake Edward shore dominated by hippo.'],
-           ['Confidence', 'Detection probability p̂ = 0.74; 95% CI reported per species.'],
-           ['Annex · Earth Credits', 'Population metrics assembled into the measurement layer.']],
+    title: 'Quarterly abundance report', ref: 'CTDAMS·ABD·2026·Q2 · rev 3',
+    sub: 'Virunga NP · Central Sector · 20 May – 01 Jul 2026 · issued 03 Jul',
+    mets: [['Presence ψ̄', '0.82'], ['Occupancy ψ̂', '0.61 ±.06'], ['Density', '3.2 /km²'], ['Abundance N̂', '214 ±18']],
+    secs: [['Survey design', '27 passive-IR stations on a 2.5-km grid, 1,340 camera-nights (mean 49.6 nights/station, 96% uptime). Rwindi, Rutshuru and central-savanna strata.'],
+           ['Model', 'Single-season occupancy (MacKenzie et al. 2002); Royle–Nichols abundance-induced heterogeneity for density. Covariates: distance-to-water, NDVI, patrol effort. Model-averaged by AICc.'],
+           ['Detection', 'Community mean p̂ = 0.18 (0.08 lion → 0.41 hippo). Naïve ψ underestimates true occupancy by 0.06–0.12 for elusive species; corrected in ψ̂.'],
+           ['Earth Credits annex', 'Metrics assembled into the measurement layer; every value retains provenance to sensor, station and survey window.']],
+    tbl: ['Stratum', 'ψ̂', 'N̂', [['Rwindi plains', '0.71', '78 ±9'], ['Rutshuru', '0.64', '61 ±8'], ['Central savanna', '0.58', '52 ±7'], ['Lake Edward shore', '0.34', '23 ±5']]],
     cite: 'Large-mammal populations up to +400% from the low point (joint aerial surveys)⁶.',
   },
   detections: {
-    title: 'Monthly detections digest', sub: 'Virunga NP · June 2026 · 3,120 detections',
+    title: 'Monthly detections digest', ref: 'CTDAMS·DET·2026·06',
+    sub: 'Virunga NP · June 2026 · 3,120 sequences · 27 stations',
     mets: [['Total', '3,120'], ['Animal', '2,488'], ['Human', '412'], ['Vehicle', '88']],
-    secs: [['By class', 'Elephant, buffalo, kob, hippo, topi, warthog, waterbuck, lion, leopard.'],
-           ['By sensor', 'Monitor, VillageGuard and Listener units across the network.'],
-           ['Routing', 'Alerts to phones, email and operations rooms; survey data logged.']],
+    secs: [['Sequencing', 'Independent events defined by a 30-min quiet threshold; bursts collapsed to a single sequence. 132 acoustic-only events cross-referenced from the Listener array.'],
+           ['Top classes', 'Buffalo 412 · elephant 231 · hippo 188 · kob 144 · gorilla 96 · warthog 129 · waterbuck 90 · leopard 57 · lion 22. RAI in the survey view.'],
+           ['Routing', 'Wildlife → survey log; humans/vehicles/gunshot → ranger phones, email and operations rooms. Median alert latency 1–2 min via LoRa → satellite.']],
+    tbl: ['Class', 'Count', 'Δ vs May', [['Animal', '2,488', '+6%'], ['Human', '412', '−3%'], ['Vehicle', '88', '+11%'], ['Acoustic', '132', '+4%']]],
     cite: 'Savanna elephants: 580+ returned — highest in 30 years⁴.',
   },
   species: {
-    title: 'Species occupancy atlas', sub: 'Virunga NP · Q2 2026 · ψ across 27 stations',
-    mets: [['Species', '14'], ['Stations', '27'], ['Peak ψ', '0.97'], ['Camera-nights', '1,340']],
-    secs: [['Hippo · Lake Edward', 'ψ 0.90–0.97 along the shore stations.'],
-           ['Elephant · plains', 'ψ 0.77–0.94 across Rwindi & central savanna.'],
-           ['Lion · central', 'ψ 0.41–0.44 — a re-established breeding pair.']],
+    title: 'Species occupancy atlas', ref: 'CTDAMS·OCC·2026·Q2',
+    sub: 'Virunga NP · Q2 2026 · ψ̂ across 27 stations · 14 species',
+    mets: [['Species S', '14'], ['Chao2', '15.8 ±2.1'], ['Shannon H′', '2.11'], ['Pielou J′', '0.80']],
+    secs: [['Community', 'Species accumulation approaches its asymptote by ~1,100 camera-nights; Chao2 places 1–2 rare species (serval, golden cat) below the detection floor.'],
+           ['Grazers', 'Buffalo ψ̂ 0.71 and kob 0.52 track the recovering Rwindi grassland as elephants reopen it.'],
+           ['Carnivores', 'Leopard ψ̂ 0.31 (naïve 0.19 — a 0.12 detection correction); lion 0.18, a re-established central breeding pair.']],
+    tbl: ['Species', 'ψ naïve', 'ψ̂ (95% CI)', [['Buffalo', '0.63', '0.71 ±.09'], ['Elephant', '0.52', '0.61 ±.08'], ['Leopard', '0.19', '0.31 ±.11'], ['Lion', '0.11', '0.18 ±.09']]],
     cite: 'Mountain gorillas: 604 in the Virunga Massif (2024)²; Lake Edward hippos 2,700+³.',
   },
   alerts: {
-    title: 'Alert & intrusion log', sub: 'Virunga NP · June 2026 · humans · vehicles · gunshot',
-    mets: [['Intrusions', '500'], ['People', '412'], ['Vehicles', '88'], ['Gunshot', '43']],
-    secs: [['Response', 'Median alert to ranger phone: 1–2 min via LoRa → satellite.'],
-           ['Hotspots', 'Rutshuru approaches and the Ishasha corridor.'],
-           ['Escalation', 'Gunshot signatures routed direct to operations rooms.']],
+    title: 'Alert & intrusion log', ref: 'CTDAMS·ALT·2026·06',
+    sub: 'Virunga NP · June 2026 · humans · vehicles · gunshot',
+    mets: [['Intrusions', '543'], ['People', '412'], ['Vehicles', '88'], ['Gunshot', '43']],
+    secs: [['Response', 'Median alert-to-phone 1–2 min; 94% delivered inside 5 min. Confirmed intrusions handed to the nearest patrol with a station fix and thumbnail.'],
+           ['Hotspots', 'Rutshuru approaches (RUT-02, RUT-04) and the Ishasha corridor (ISH-01) carry 61% of human detections; night ratio 2.3× day.'],
+           ['Escalation', 'Gunshot signatures routed direct to operations rooms; 7 unknown acoustic events held for analyst review, none confirmed as fire.']],
+    tbl: ['Sector', 'Events', 'Night %', [['Rutshuru', '188', '71%'], ['Ishasha', '146', '66%'], ['Rwindi', '121', '58%'], ['Central', '88', '49%']]],
     cite: 'Over 200 rangers lost since 2006 protecting the park⁵.',
   },
   acoustic: {
-    title: 'Acoustic survey report', sub: 'Virunga NP · Q2 2026 · array triangulation',
-    mets: [['Events', '1,532'], ['Leopard', '412'], ['Wolf', '1,048'], ['Gunshot', '36']],
-    secs: [['Triangulation', 'Bearing lines from the Listener array converge to a fix.'],
-           ['Review queue', 'Unknown signatures flagged for analyst review.'],
-           ['Roadmap', 'Acoustic triangulation and monocular distance in development.']],
+    title: 'Acoustic survey report', ref: 'CTDAMS·ACU·2026·Q2',
+    sub: 'Virunga NP · Q2 2026 · Listener array · 30-day window',
+    mets: [['Events', '1,532'], ['Leopard', '412'], ['Bio-acoustic', '1,048'], ['Gunshot', '36']],
+    secs: [['Array', '9 Listener units, continuous edge classification; a 20-species call model runs on-device with confirmed events uplinked. Duty cycle 100%, mean SNR 14 dB.'],
+           ['Triangulation', 'Bearing lines from ≥3 units converge to a fix (median error ±180 m in the current geometry); single-unit events logged as bearings only.'],
+           ['Review queue', '7 unknown signatures flagged; roadmap adds acoustic triangulation and monocular distance to sharpen localisation.']],
+    tbl: ['Signature', 'Events', 'Fixes', [['Leopard call', '412', '311'], ['Bio-acoustic', '1,048', '—'], ['Gunshot', '36', '34'], ['Unknown', '7', '2']]],
     cite: 'Park biodiversity: 218 mammal and 706 bird species recorded⁵.',
   },
   credits: {
-    title: 'Earth Credits measurement annex', sub: 'Virunga NP · Q2 2026 · the measurement layer',
+    title: 'Earth Credits measurement annex', ref: 'CTDAMS·ECX·2026·Q2',
+    sub: 'Virunga NP · Q2 2026 · the measurement layer, assembled',
     mets: [['Presence', '0.82'], ['Occupancy', '0.61'], ['Density /km²', '3.2'], ['Biomass t/km²', '27.6']],
-    secs: [['Inputs', 'cameras · acoustics · reports · satellite — fused into the measurement layer.'],
-           ['Measurement layer', 'Population metrics assembled into the Earth Credits standard.'],
-           ['Delivery', 'subscription · annual updates · bundled or standalone · bespoke builds.'],
-           ['Provenance', 'Every figure traces to a sensor, a station and a survey window.']],
+    secs: [['Inputs', 'cameras · acoustics · reports · satellite — fused into the measurement layer, each stream weighted by its detection reliability.'],
+           ['Measurement layer', 'Population metrics assembled into the Earth Credits standard; uncertainty propagated from per-species 95% CIs into a single confidence band.'],
+           ['Delivery', 'subscription · annual updates · bundled or standalone · bespoke builds. Cadence matched to the survey window.'],
+           ['Provenance', 'Every figure traces to a sensor, a station and a survey window; the audit trail ships with the annex.']],
+    tbl: ['Metric', 'Value', 'Source', [['Presence ψ̄', '0.82', 'camera'], ['Occupancy ψ̂', '0.61', 'model'], ['Density', '3.2 /km²', 'RN model'], ['Biomass', '27.6 t/km²', 'UNESCO']]],
     cite: 'Savanna biomass ~27.6 t/km² — among the highest on Earth⁵.',
   },
   ranger: {
-    title: 'Ranger deployment brief', sub: 'Virunga NP · weekly · patrol routing',
+    title: 'Ranger deployment brief', ref: 'CTDAMS·RGR·2026·W27',
+    sub: 'Virunga NP · week 27 · patrol routing from occupancy & alerts',
     mets: [['Patrols', '18'], ['Priority sectors', '5'], ['Open alerts', '7'], ['Coverage', '92%']],
-    secs: [['Routing', 'Patrols weighted by occupancy, recent intrusions and alert density.'],
-           ['Priority', 'Rutshuru approaches, Ishasha corridor, Rwindi core.'],
-           ['Safety', 'No-go zones flagged from armed-group activity.']],
+    secs: [['Routing', 'Patrols weighted by occupancy, 7-day intrusion density and alert recency; the optimiser returns a ranked sector list each morning, not a fixed roster.'],
+           ['Priority', 'Rutshuru approaches and the Ishasha corridor lead this week on night-time human detections; Rwindi core held for the recovering herds.'],
+           ['Safety', 'No-go zones flagged from reported armed-group activity; routes auto-avoid them and never surface exact wildlife locations to unsecured channels.']],
+    tbl: ['Sector', 'Priority', 'Patrols', [['Rutshuru', 'high', '5'], ['Ishasha', 'high', '4'], ['Rwindi core', 'med', '5'], ['Central', 'med', '4']]],
     cite: 'A breeding lion pair re-established in the central savanna⁴.',
   },
 };
@@ -263,12 +351,20 @@ const repPrev = document.getElementById('rep-preview');
 function renderReport(key) {
   const r = REPORTS[key];
   if (!r || !repPrev) return;
+  const tbl = r.tbl ? (() => {
+    const [c0, c1, c2, rows] = r.tbl;
+    return `<table class="prev-tbl"><thead><tr><th>${c0}</th><th>${c1}</th><th>${c2}</th></tr></thead><tbody>` +
+      rows.map(([a, b, c]) => `<tr><td>${a}</td><td>${b}</td><td>${c}</td></tr>`).join('') + `</tbody></table>`;
+  })() : '';
   repPrev.innerHTML =
-    `<div class="pane-h">Preview · ${r.title}</div>` +
-    `<div class="prev"><b>${r.title}</b><span>${r.sub}</span>` +
+    `<div class="pane-h">Preview<span class="pane-sub">auto-generated · sample</span></div>` +
+    `<div class="prev"><div class="prev-top"><b>${r.title}</b><span class="prev-ref">${r.ref}</span></div>` +
+    `<span class="prev-sub">${r.sub}</span>` +
     `<div class="prev-mets">${r.mets.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>` +
     r.secs.map(([h, body]) => `<div class="prev-sec"><span>${h}</span><p>${body}</p></div>`).join('') +
-    `<div class="prev-cite">${r.cite}</div></div>`;
+    tbl +
+    `<div class="prev-cite">${r.cite}</div>` +
+    `<div class="prev-foot">Written automatically by Landseed CTDAMS · sample data · every figure traces to a station, a sensor and a survey window.</div></div>`;
 }
 const docList = document.querySelector('.doc-list');
 if (docList) {
