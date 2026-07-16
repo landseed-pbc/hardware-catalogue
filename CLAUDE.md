@@ -81,8 +81,9 @@ Two more app pages alongside Catalogue and Demo. Binding rules:
    Species icons and hover data are the site's OWN, lifted verbatim into
    ai/species.js (SPSVG field-guide icons + SPECIES registry — accurate, identical
    iconography, verified population figures). The map has toggleable LAYERS (top-right panel): Biodiversity (the species
-   icons) and Sensors — with per-asset sub-toggles for the four deployed
-   products (Monitor, VillageGuard, Relay Station, Landseed AI), rendered as the
+   icons) and Sensors — with per-asset sub-toggles for the deployed
+   field products (Monitor, VillageGuard, Listener, Relay Station — clicking a unit
+   deep-links to its catalogue page via DEVLAYERS[].cat), rendered as the
    REAL 3D device models from src/devices.js placed across the park (DEVLAYERS
    in map3d.js). Both layers default on. Survey keeps a lightweight 2D occupancy surface (ai/map.js) as a
    second lens. Regenerate terrain-vir with the procterrain script (crop+downsample

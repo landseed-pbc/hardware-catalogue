@@ -26,7 +26,7 @@ revealView('overview');
 
 /* ── the Virunga twin — 3D terrain (Overview) + 2D occupancy surface (Survey) ── */
 import { buildMap, sourcesHTML } from './map.js?v=1';
-import { buildTerrain } from './map3d.js?v=29';
+import { buildTerrain } from './map3d.js?v=32';
 
 const tip = document.createElement('div');
 tip.className = 'vmap-tip';
@@ -80,6 +80,23 @@ range.addEventListener('click', (e) => {
   [...range.children].forEach(c => c.classList.toggle('on', c === b));
   renderMetrics(b.dataset.r);
 });
+
+/* ── right rail — network breakdown, species bars, report links ───────────── */
+const netBars = document.getElementById('net-bars');
+if (netBars) {
+  const cats = [['Animal', '#00FF64', 2488, 100], ['Human', '#FFC800', 412, 17], ['Vehicle', '#32C8FF', 88, 6], ['Acoustic', '#E682E6', 132, 9]];
+  netBars.innerHTML = cats.map(([l, c, n, w]) =>
+    `<div class="nb-row"><i style="--c:${c}"></i><b>${l}</b><span class="nb-bar"><i style="--c:${c};width:${w}%"></i></span><em>${n.toLocaleString()}</em></div>`).join('');
+}
+const railSp = document.getElementById('rail-species');
+if (railSp) {
+  const rows = [['Buffalo', '#8B5B2D', 412, 100], ['Elephant', '#F0C244', 231, 56], ['Hippo', '#3A9FE6', 188, 46], ['Ugandan kob', '#C8A24B', 144, 35],
+    ['Gorilla', '#4FD17A', 96, 24], ['Leopard', '#EF7A3C', 57, 14], ['Lion', '#E0902C', 22, 6]];
+  railSp.innerHTML = rows.map(([l, c, n, w]) =>
+    `<div class="bar-row" style="--qh:${c}"><b>${l}</b><span class="bar"><i style="width:${w}%"></i></span><em>${n}</em></div>`).join('');
+}
+document.querySelectorAll('[data-view-link]').forEach(a =>
+  a.addEventListener('click', (e) => { e.preventDefault(); setView(a.dataset.viewLink); }));
 
 /* ── detections — image cards with bounding boxes, filterable by category &
    species. Field imagery is real (demo/assets/field, project archive); classes

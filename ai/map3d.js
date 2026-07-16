@@ -7,19 +7,21 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SPECIES, iconSVG } from './species.js?v=1';
-import { buildSerengeti, buildVillageGuard, buildGateway } from '/src/devices.js?v=146';
+import { buildSerengeti, buildVillageGuard, buildGateway, buildWolf } from '/src/devices.js?v=146';
 
 // the deployed field hardware, placed strategically across the park — the same
-// 3D models as the catalogue & demo. Spaced into the gaps, clear of the wildlife
-// area-markers. Landseed AI is the platform brain, not a field unit, so it is
-// not placed on the map. [lat, lon]
+// 3D models & catalogue hues as the catalogue/demo. `cat` deep-links to the
+// device's catalogue page on click. Landseed AI is the platform brain, not a
+// field unit, so it is not placed on the map. [lat, lon]
 const DEVLAYERS = {
-  monitor:      { build: buildSerengeti,   hue: 0x00FF64, name: 'Monitor',      role: 'AI camera-alert · park protection', h: .12,
-    pts: [[-1.2, 29.3], [-1.15, 29.545], [-1.05, 29.685], [-.95, 29.51], [-.6, 29.3], [-.3, 29.3], [-.3, 29.79]] },
-  villageguard: { build: buildVillageGuard, hue: 0xFFC800, name: 'VillageGuard', role: 'multi-species · coexistence',       h: .13,
-    pts: [[-1.4, 29.3], [-1.4, 29.65], [-1.4, 29.79], [-1.35, 29.405]] },
-  gateway:      { build: buildGateway,      hue: 0x32C8FF, name: 'Relay Station', role: 'LoRa → LTE / satellite hub',        h: .16,
-    pts: [[-1.25, 29.615], [-1.15, 29.755], [-.75, 29.685]] },
+  monitor:      { build: buildSerengeti,    hue: 0x00FF64, name: 'Monitor',       cat: 'serengeti',    role: 'AI camera-alert · park protection', h: .12,
+    pts: [[-1.285, 29.3], [-1.015, 29.3], [-1.06, 29.45], [-.88, 29.51], [-.38, 29.58], [-.5, 29.68], [-1.105, 29.75]] },
+  villageguard: { build: buildVillageGuard, hue: 0xFFC800, name: 'VillageGuard',  cat: 'villageguard', role: 'multi-species · coexistence',       h: .13,
+    pts: [[-1.42, 29.3], [-1.42, 29.66], [-1.375, 29.78], [-1.33, 29.57]] },
+  listener:     { build: buildWolf,         hue: 0xE682E6, name: 'Listener',       cat: 'wolf',         role: 'bio-acoustic monitor',              h: .12,
+    pts: [[-1.15, 29.3], [-1.195, 29.54], [-1.24, 29.72], [-.22, 29.7]] },
+  gateway:      { build: buildGateway,      hue: 0x32C8FF, name: 'Relay Station',  cat: 'gateway',      role: 'LoRa → LTE / satellite hub',        h: .16,
+    pts: [[-.55, 29.42], [-.79, 29.63], [-.34, 29.66]] },
 };
 
 const BASE = '/public/terrain-vir/';
@@ -194,9 +196,11 @@ export async function buildTerrain(hostId, tip) {
       hp.className = 'vt-dev';
       hp.style.setProperty('--fa', hex);
       const dp = new THREE.Vector3(wp.x, gy + def.h * 0.5, wp.z);   // hover hit-area over the unit
+      hp.title = def.name;
       hp.addEventListener('mouseenter', (e) => deviceTip(tip, def, e));
       hp.addEventListener('mousemove', (e) => posTip(tip, e));
       hp.addEventListener('mouseleave', () => tip.classList.remove('on'));
+      hp.addEventListener('click', () => { location.href = '/#' + def.cat; });   // → catalogue device page
       layer.appendChild(hp);
       hotspots.push({ el: hp, p: dp, type });
     }
@@ -205,7 +209,7 @@ export async function buildTerrain(hostId, tip) {
   }
 
   // ── layers panel (top-right) — biodiversity + sensors with per-asset subs ──
-  const state = { bio: true, sensors: true, dev: { monitor: true, villageguard: true, gateway: true } };
+  const state = { bio: true, sensors: true, dev: { monitor: true, villageguard: true, listener: true, gateway: true } };
   const panel = document.createElement('div');
   panel.className = 'layers';
   panel.innerHTML =

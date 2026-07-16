@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css?v=30" />
-<link rel="stylesheet" href="/css/satellite.css?v=18" />
+<link rel="stylesheet" href="/css/satellite.css?v=19" />
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 <style>
 :root{--fa:#9B6CE0}
@@ -83,12 +83,31 @@
       <div class="map-wrap" id="map"></div>
       <div class="map-leg"><span class="map-leg-l">◆ live 3D terrain · real DEM + ESRI satellite</span><span class="map-leg-r">drag to orbit · toggle layers · tap to inspect</span></div>
     </div>
-    <div class="pane rv">
-      <div class="pane-h">Population metrics<span class="range" id="range"><span data-r="d">24 h</span><span data-r="m">30 d</span><span class="on" data-r="y">12 m</span></span></div>
-      <div class="mets" id="mets"></div>
-      <div class="report">
-        <div class="doc"><span class="pdf"></span><div><b>Quarterly abundance report · Q2 2026</b><span>written automatically · programme cadence</span></div></div>
-        <div class="doc"><span class="pdf"></span><div><b>Monthly detections digest · June 2026</b><span>every class, every sector · sample</span></div></div>
+    <div class="pane rv col-rail">
+      <div class="rail-sec">
+        <div class="pane-h">Network<span class="net-live">live</span></div>
+        <div class="netstat">
+          <div><b>18</b><span>units online</span></div>
+          <div><b>1,340</b><span>camera-nights</span></div>
+          <div><b>43</b><span>alerts · 24 h</span></div>
+        </div>
+        <div class="net-bars" id="net-bars"></div>
+      </div>
+      <div class="rail-sec">
+        <div class="pane-h">Population metrics<span class="range" id="range"><span data-r="d">24 h</span><span data-r="m">30 d</span><span class="on" data-r="y">12 m</span></span></div>
+        <div class="mets" id="mets"></div>
+      </div>
+      <div class="rail-sec">
+        <div class="pane-h">Detections by species · 30 d</div>
+        <div id="rail-species"></div>
+      </div>
+      <div class="rail-sec">
+        <div class="pane-h">Automated reports</div>
+        <div class="report">
+          <a class="doc" href="#" data-view-link="reports"><span class="pdf"></span><div><b>Quarterly abundance report · Q2 2026</b><span>presence · occupancy · density · abundance</span></div></a>
+          <a class="doc" href="#" data-view-link="reports"><span class="pdf"></span><div><b>Monthly detections digest · June 2026</b><span>every class, every sector · sample</span></div></a>
+          <a class="doc" href="#" data-view-link="reports"><span class="pdf"></span><div><b>Earth Credits measurement annex · Q2 2026</b><span>the measurement layer, assembled</span></div></a>
+        </div>
       </div>
     </div>
   </section>
@@ -158,6 +177,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./ai.js?v=32"></script>
+<script type="module" src="./ai.js?v=34"></script>
 </body>
 </html>

@@ -386,3 +386,26 @@ body.sat.ai-page{
 .vt-dev:hover{border-color:var(--fa);background:color-mix(in srgb,var(--fa) 16%,transparent);z-index:4}
 
 @media(max-width:560px){ .layers{top:8px;right:8px} .layers .lyr{font-size:11px;padding:5px 10px 5px 8px} .lyr-sub .sub{font-size:10px} }
+
+/* ── overhauled right rail — a scrolling dashboard column ──────────────────── */
+.col-rail{overflow-y:auto;gap:0;scrollbar-width:thin;scrollbar-color:rgba(155,108,224,.3) transparent}
+.col-rail::-webkit-scrollbar{width:5px}.col-rail::-webkit-scrollbar-thumb{background:rgba(155,108,224,.3);border-radius:99px}
+.rail-sec{padding:0 0 15px;margin-bottom:15px;border-bottom:1px solid rgba(240,240,234,.07)}
+.rail-sec:last-child{border-bottom:0;margin-bottom:0;padding-bottom:2px}
+.rail-sec .pane-h{margin-bottom:11px}
+.net-live{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#00FF64}
+.net-live::before{content:"";width:6px;height:6px;border-radius:50%;background:#00FF64;box-shadow:0 0 7px #00FF64;animation:netpulse 2s ease-in-out infinite}
+@keyframes netpulse{0%,100%{opacity:1}50%{opacity:.35}}
+.netstat{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.netstat div{border:1px solid rgba(240,240,234,.08);border-radius:10px;padding:9px 11px}
+.netstat b{display:block;font-size:19px;font-weight:800;color:#eef0ea;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.netstat span{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.net-bars{display:flex;flex-direction:column;gap:5px}
+.nb-row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--dim)}
+.nb-row>i{width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 6px var(--c);flex:none}
+.nb-row b{color:var(--text);font-weight:600;min-width:62px}
+.nb-row .nb-bar{flex:1;height:5px;border-radius:3px;background:rgba(240,240,234,.08);overflow:hidden}
+.nb-row .nb-bar i{display:block;height:100%;border-radius:3px;background:var(--c);width:0;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.nb-row em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--text);font-weight:700;min-width:38px;text-align:right;font-size:11px}
+.col-rail .report{margin-top:0}
+.col-rail .doc{text-decoration:none}
