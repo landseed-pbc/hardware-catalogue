@@ -25,7 +25,7 @@ document.querySelector('.app-sub')?.classList.add('in');
 revealView('overview');
 
 /* ── the Virunga twin — 3D terrain (Overview) + 2D occupancy surface (Survey) ── */
-import { buildMap, sourcesHTML } from './map.js?v=1';
+import { buildMap, sourcesHTML } from './map.js?v=2';
 import { buildTerrain } from './map3d.js?v=32';
 
 const tip = document.createElement('div');
@@ -38,7 +38,7 @@ buildTerrain('map', tip).then(t => { if (t) mapStations = t.stations; })
   .catch(() => fetch('/public/virunga-geo.json?v=1').then(r => r.json()).then(g => buildMap(g, 'map', tip)));
 
 fetch('/public/virunga-geo.json?v=1').then(r => r.json()).then(async (geo) => {
-  await buildMap(geo, 'map2', tip);
+  await buildMap(geo, 'map2', tip, { ctrl: 'msurf-ctrl', legend: 'map-leg2', default: 'occupancy' });
   if (!mapStations) mapStations = geo.stations.length;
   // sources popover — subtle "sources" affordance in each map header
   const pop = document.createElement('div');
@@ -61,16 +61,37 @@ fetch('/public/virunga-geo.json?v=1').then(r => r.json()).then(async (geo) => {
   addEventListener('keydown', (e) => { if (e.key === 'Escape') pop.classList.remove('on'); });
 }).catch(() => {});
 
-/* ── population metrics — the range control swaps live ────────────────────── */
+/* ── population metrics — realistic recovery time-series; the range control
+   swaps the window (12-month · 30-day · 7-day). Values/deltas match the survey
+   model; sparkline trends generated deterministically (no Math.random). ────── */
+const fract = (x) => x - Math.floor(x);
+const pnoise = (i, seed) => fract(Math.sin(i * 12.9898 + seed * 78.233) * 43758.5453) * 2 - 1;
+const easeOut = (t) => 1 - Math.pow(1 - t, 1.8);
+function series(lo, hi, seed, n, amp) {                     // → {p: polyline pts, ey: end y}
+  const pts = []; let ey = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    let v = lo + (hi - lo) * easeOut(t) + pnoise(i, seed) * amp * (0.4 + t);
+    v = Math.max(0.04, Math.min(0.96, v));
+    ey = 20 - v * 18;
+    pts.push(`${(t * 100).toFixed(1)},${ey.toFixed(2)}`);
+  }
+  return { p: pts.join(' '), ey: ey.toFixed(2) };
+}
+// [label, value, delta, recovery lo → hi] — the rise is steepest over the year
 const METRICS = {
-  d: [['Presence', '0.79', '▲ .01', '0,10 20,11 40,9 60,10 80,8 100,7'], ['Occupancy', '0.58', '▬', '0,9 20,9 40,10 60,8 80,9 100,8'], ['Density /km²', '3.1', '▬', '0,8 20,9 40,8 60,8 80,7 100,8'], ['Abundance', '209', '±21', '0,9 20,10 40,9 60,8 80,9 100,8']],
-  m: [['Presence', '0.81', '▲ .02', '0,11 20,10 40,10 60,8 80,7 100,5'], ['Occupancy', '0.60', '▲ .01', '0,10 20,10 40,9 60,9 80,7 100,6'], ['Density /km²', '3.2', '▲ .1', '0,9 20,9 40,8 60,8 80,8 100,7'], ['Abundance', '212', '±19', '0,11 20,10 40,9 60,9 80,8 100,7']],
-  y: [['Presence', '0.82', '▲ .03', '0,11 14,10 28,11 42,8 56,9 70,6 84,5 100,3'], ['Occupancy', '0.61', '▲ .02', '0,10 14,11 28,9 42,10 56,7 70,8 84,6 100,5'], ['Density /km²', '3.2', '▬', '0,8 14,7 28,9 42,8 56,8 70,9 84,7 100,8'], ['Abundance', '214', '±18', '0,12 14,11 28,10 42,10 56,8 70,7 84,7 100,6']],
+  y: [['Presence', '0.82', '▲ .03', 0.34, 0.86], ['Occupancy', '0.61', '▲ .02', 0.30, 0.80], ['Density /km²', '3.2', '▬', 0.50, 0.60], ['Abundance', '214 ±18', '▲ 6%', 0.28, 0.82]],
+  m: [['Presence', '0.81', '▲ .01', 0.72, 0.84], ['Occupancy', '0.60', '▲ .01', 0.55, 0.63], ['Density /km²', '3.2', '▬', 0.54, 0.58], ['Abundance', '212 ±19', '▲ 2%', 0.60, 0.70]],
+  d: [['Presence', '0.79', '▬', 0.77, 0.80], ['Occupancy', '0.58', '▬', 0.57, 0.60], ['Density /km²', '3.1', '▬', 0.55, 0.57], ['Abundance', '209 ±21', '▬', 0.66, 0.69]],
 };
+const AMP = { y: 0.05, m: 0.04, d: 0.028 };
 const mets = document.getElementById('mets');
 function renderMetrics(r) {
-  mets.innerHTML = METRICS[r].map(([label, val, delta, pts]) =>
-    `<div class="met"><span>${label}</span><b>${val}</b><em>${delta}</em><svg viewBox="0 0 100 14" preserveAspectRatio="none"><polyline points="${pts}"/></svg></div>`).join('');
+  mets.innerHTML = METRICS[r].map(([label, val, delta, lo, hi], i) => {
+    const s = series(lo, hi, i * 7 + (r === 'y' ? 1 : r === 'm' ? 2 : 3), r === 'd' ? 16 : 24, AMP[r]);
+    return `<div class="met"><span>${label}</span><b>${val}</b><em>${delta}</em>` +
+      `<svg viewBox="0 0 100 22" preserveAspectRatio="none"><polygon class="mk-area" points="0,22 ${s.p} 100,22"/><polyline points="${s.p}"/><circle class="mk-end" cx="100" cy="${s.ey}" r="1.2"/></svg></div>`;
+  }).join('');
 }
 renderMetrics('y');
 const range = document.getElementById('range');

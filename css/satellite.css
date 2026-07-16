@@ -95,8 +95,10 @@ body.sat.ai-page{
 .met span{display:block;font-size:9px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
 .met b{font-size:16.5px;font-weight:800;color:#eef0ea;font-variant-numeric:tabular-nums}
 .met em{font-style:normal;font-size:9.5px;font-weight:700;color:#c9a4ff;margin-left:5px}
-.met svg{display:block;width:100%;height:14px;margin-top:5px}
-.met polyline{fill:none;stroke:#9B6CE0;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.met svg{display:block;width:100%;height:24px;margin-top:6px;overflow:visible}
+.met polyline{fill:none;stroke:#9B6CE0;stroke-width:1.5;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 2px rgba(155,108,224,.5))}
+.met .mk-area{fill:color-mix(in srgb,#9B6CE0 15%,transparent);stroke:none}
+.met .mk-end{fill:#c9a4ff;stroke:#0a0812;stroke-width:.5}
 
 /* the automated report — a document, drawn flat */
 .report{border:1px solid rgba(240,240,234,.1);border-radius:10px;padding:11px 13px;background:rgba(240,240,234,.02);margin-top:auto}
@@ -286,6 +288,23 @@ body.sat.ai-page{
 .map-leg{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim);margin-top:9px;flex:none}
 .map-leg .ramp{flex:0 1 120px;height:6px;border-radius:3px;background:linear-gradient(90deg,rgb(26,20,46),rgb(74,52,138),rgb(176,130,240),rgb(214,190,255))}
 .map-leg-r{margin-left:auto;color:var(--muted);letter-spacing:.04em}
+
+/* ── survey · multi-layer scientific surface ──────────────────────────────── */
+.msurf-ctrl{display:inline-flex;gap:2px;padding:3px;margin-bottom:10px;background:rgba(9,8,14,.55);border:1px solid rgba(155,108,224,.2);border-radius:11px;align-self:flex-start;flex:none}
+.msurf-ctrl button{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.01em;color:var(--muted);background:none;border:0;border-radius:8px;padding:5px 11px;cursor:pointer;transition:background .16s,color .16s;white-space:nowrap}
+.msurf-ctrl button i{width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 5px var(--c);opacity:.85;transition:opacity .16s}
+.msurf-ctrl button:hover{color:var(--text)}
+.msurf-ctrl button.on{background:linear-gradient(180deg,rgba(155,108,224,.26),rgba(155,108,224,.13));color:#fff}
+.msurf-ctrl button.on i{opacity:1}
+.vfield{opacity:0;transition:opacity .55s ease}
+.vfield.on{opacity:1}
+.vmap-core{transition:fill .45s ease,r .45s ease}
+.mleg-name{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:color-mix(in srgb,var(--c) 55%,#fff)}
+.mleg-name::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 6px var(--c)}
+.mleg-ramp{flex:0 1 108px;height:6px;border-radius:3px}
+.mleg-sc{font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.vmap-tip .tp-row.on{color:#fff}
+.vmap-tip .tp-row.on em{color:color-mix(in srgb,#c9a4ff 82%,#fff);font-weight:700}
 
 /* station tooltip — floats over the map */
 .vmap-tip{position:fixed;z-index:60;width:228px;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .15s;background:linear-gradient(180deg,rgba(14,11,22,.97),rgba(9,8,14,.98));border:1px solid rgba(155,108,224,.4);border-radius:11px;padding:11px 13px;box-shadow:0 16px 40px rgba(0,0,0,.5)}

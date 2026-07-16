@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css?v=30" />
-<link rel="stylesheet" href="/css/satellite.css?v=21" />
+<link rel="stylesheet" href="/css/satellite.css?v=22" />
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 <style>
 :root{--fa:#9B6CE0}
@@ -125,9 +125,10 @@
   <!-- ── SURVEY ───────────────────────────────────────────────────────────── -->
   <section class="view" id="view-survey">
     <div class="pane map-pane rv">
-      <div class="pane-h">Occupancy surface ψ<span class="map-note" id="map-src2">sources</span></div>
+      <div class="pane-h">Scientific surface · Virunga NP<span class="map-note" id="map-src2">sources</span></div>
+      <div class="msurf-ctrl" id="msurf-ctrl"></div>
       <div class="map-wrap" id="map2"></div>
-      <div class="map-leg"><span>ψ</span><span class="ramp"></span><span>0.18 → 0.71</span><span class="map-leg-r">27 stations · Rwindi–Rutshuru–central</span></div>
+      <div class="map-leg" id="map-leg2"></div>
       <div class="occ-foot" id="occ-foot"></div>
     </div>
     <div class="pane rv">
@@ -182,6 +183,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./ai.js?v=36"></script>
+<script type="module" src="./ai.js?v=37"></script>
 </body>
 </html>
