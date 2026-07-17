@@ -599,9 +599,6 @@ function deviceFrame(d) {
     .addScaledVector(front, dist)
     .addScaledVector(side, dist * .28);
   const tgt = new THREE.Vector3(x, ty, z);
-  // phone portrait: drop the look-target so the unit rides the top band, clear
-  // of the scrollable spec sheet below (desktop framing untouched — ≤560 only)
-  if (innerWidth <= 560) { tgt.y -= dist * .5; pos.y += dist * .1; }
   // per-device frame pan: the battery box hangs off one side of each camera,
   // so the ensemble is re-centred — gateway right, monitor left, VG right
   const PAN = { gateway: .27, serengeti: -.12, villageguard: .1, ai: -.12 };
@@ -824,9 +821,74 @@ addEventListener('keydown', (e) => {
 const brandHome = document.getElementById('brand-home');
 if (brandHome) brandHome.addEventListener('click', (e) => { e.preventDefault(); goView('catalogue', true); });
 
-window.__hw = { world, camera, controls, goView, DEVICES, layoutCallouts, revealCallouts, get current() { return current; } };
+/* ── mobile: a native scroll catalogue ──────────────────────────────────────
+   The 3D bay is a landscape experience that can't work portrait, so on a phone
+   we render each device to a still (once, off-screen), build an overview strip
+   of those minis + a card per product, and never run the live render loop
+   (battery). The DESKTOP path is untouched — this only runs when innerWidth≤560. */
+function captureThumb(d, S = 460) {
+  const r = world.renderer, scene = world.scene;
+  const rt = new THREE.WebGLRenderTarget(S, S, { samples: 4 });
+  rt.texture.colorSpace = THREE.SRGBColorSpace;                 // display-ready readback
+  const cam = new THREE.PerspectiveCamera(34, 1, .05, 60);
+  const restore = DEVICES.map(o => [o, o.group.visible, o.plinth && o.plinth.visible]);
+  for (const o of DEVICES) { o.group.visible = o === d; if (o.plinth) o.plinth.visible = false; }
+  const box = new THREE.Box3().setFromObject(d.group);
+  const c = box.getCenter(new THREE.Vector3()), sz = box.getSize(new THREE.Vector3());
+  const radius = Math.max(sz.x, sz.y, sz.z, .6) * .5;
+  const dist = radius / Math.tan(THREE.MathUtils.degToRad(17)) * 1.3;
+  const rotY = d.group.userData.rotY0 ?? 0;
+  const front = new THREE.Vector3(Math.sin(rotY), 0, Math.cos(rotY));
+  const side = new THREE.Vector3(front.z, 0, -front.x);
+  const dir = front.multiplyScalar(.82).addScaledVector(side, .4).add(new THREE.Vector3(0, .48, 0)).normalize();
+  cam.position.copy(c).addScaledVector(dir, dist); cam.lookAt(c);
+  r.setRenderTarget(rt); r.render(scene, cam); r.setRenderTarget(null);
+  const px = new Uint8Array(S * S * 4); r.readRenderTargetPixels(rt, 0, 0, S, S, px); rt.dispose();
+  const cv = document.createElement('canvas'); cv.width = cv.height = S;
+  const ctx = cv.getContext('2d'); const im = ctx.createImageData(S, S);
+  for (let y = 0; y < S; y++) im.data.set(px.subarray((S - 1 - y) * S * 4, (S - y) * S * 4), y * S * 4);
+  ctx.putImageData(im, 0, 0);
+  for (const [o, v, pv] of restore) { o.group.visible = v; if (o.plinth) o.plinth.visible = pv; }
+  return cv.toDataURL('image/jpeg', .85);
+}
 
-world.start();
+function buildMobileCatalogue(startId) {
+  const short = (n) => n.replace('Landseed ', '');
+  const wrap = document.createElement('main'); wrap.id = 'mcat';
+  const hero = document.createElement('section'); hero.className = 'mc-hero';
+  hero.innerHTML =
+    `<div class="mc-kick">The product line</div><h1>Landseed Hardware</h1>` +
+    `<p class="mc-tag">${CAT_LINE}</p>` +
+    `<div class="mc-nums"><div><b>7</b><span>products</span></div><div><b>$50–299</b><span>hardware</span></div><div><b>30 s</b><span>fastest alert</span></div><div><b>&gt;12 mo</b><span>battery</span></div></div>`;
+  const strip = document.createElement('div'); strip.className = 'mc-strip';
+  hero.appendChild(strip); wrap.appendChild(hero);
+  const cards = document.createElement('section'); cards.className = 'mc-cards'; wrap.appendChild(cards);
+  for (const d of DEVICES) {
+    const thumb = captureThumb(d);
+    const chip = document.createElement('button'); chip.className = 'mc-chip'; chip.style.setProperty('--fa', hex(d.hue));
+    chip.innerHTML = `<img src="${thumb}" alt=""><span>${short(d.name)}</span>`;
+    chip.addEventListener('click', () => document.getElementById('mc-' + d.id).scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    strip.appendChild(chip);
+    const stats = (d.stats || []).map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('');
+    const chain = d.how ? d.how.map(([step, desc], i) => `<div class="mc-step"><i>${i + 1}</i><b>${step}</b><span>${desc}</span></div>`).join('')
+      : (d.key || []).map(([k, v]) => `<div class="mc-spec"><span>${k}</span><b>${v}</b></div>`).join('');
+    const card = document.createElement('article'); card.className = 'mc-card'; card.id = 'mc-' + d.id; card.style.setProperty('--fa', hex(d.hue));
+    card.innerHTML =
+      `<div class="mc-thumb"><img src="${thumb}" alt="${d.name}"></div>` +
+      `<div class="mc-body"><div class="mc-kick">${d.kicker}</div><h2>${d.name}</h2>` +
+      `<div class="mc-price">${d.price}</div><p class="mc-line">${d.line}</p>` +
+      `<div class="mc-nums mc-cardnums">${stats}</div>` +
+      `<div class="mc-how">${chain}</div></div>`;
+    cards.appendChild(card);
+  }
+  document.body.appendChild(wrap);
+  document.body.classList.add('mcat');
+  document.body.classList.remove('booting');
+  const loader = $('#loader'); if (loader) gsap.to(loader, { opacity: 0, duration: .5, onComplete: () => loader.remove() });
+  if (startId && startId !== 'catalogue') requestAnimationFrame(() => document.getElementById('mc-' + startId)?.scrollIntoView());
+}
+
+window.__hw = { world, camera, controls, goView, DEVICES, layoutCallouts, revealCallouts, get current() { return current; } };
 
 const startId = (() => {
   let h = location.hash.slice(1);
@@ -834,17 +896,22 @@ const startId = (() => {
   return byId[h] ? h : 'catalogue';
 })();
 
-// opening: high and far, then the settle into the bay
-camera.position.set(0, 6.8, 12.8);
-controls.target.set(0, .72, 0);
-
-requestAnimationFrame(() => requestAnimationFrame(() => {
-  const loader = $('#loader');
-  gsap.to(loader, { opacity: 0, duration: .7, delay: .25, onComplete: () => loader.remove() });
-  setTimeout(() => {
-    document.body.classList.remove('booting');
-    goView(startId);
-    if (startId === 'catalogue') $('#plegend').classList.add('show');
-  }, 550);
-  setTimeout(() => $('#hint').classList.add('gone'), 7000);
-}));
+if (innerWidth <= 560) {
+  // phone: the native scroll catalogue (stills + cards) — no live 3D loop
+  buildMobileCatalogue(startId);
+} else {
+  world.start();
+  // opening: high and far, then the settle into the bay
+  camera.position.set(0, 6.8, 12.8);
+  controls.target.set(0, .72, 0);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const loader = $('#loader');
+    gsap.to(loader, { opacity: 0, duration: .7, delay: .25, onComplete: () => loader.remove() });
+    setTimeout(() => {
+      document.body.classList.remove('booting');
+      goView(startId);
+      if (startId === 'catalogue') $('#plegend').classList.add('show');
+    }, 550);
+    setTimeout(() => $('#hint').classList.add('gone'), 7000);
+  }));
+}

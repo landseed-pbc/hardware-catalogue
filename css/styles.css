@@ -251,21 +251,44 @@ body.devview #cap-links{margin-top:12px}
   .klabel{max-width:150px}
   .klabel .ks{font-size:10px}
 }
-/* ── phone (portrait): the 3D bay is a landscape experience. On a phone the
-   floating name-plates and callout leaders don't fit, so the product legend is
-   the menu (overview) and a tapped device rides the TOP band (camera reframed
-   in deviceFrame ≤560) above a scrollable spec sheet. Desktop is untouched. ──*/
-@media(max-width:560px){
-  .dlabel{display:none}                    /* legend list is the product menu */
-  .klabel,#leaders{display:none}           /* callouts don't fit portrait */
-  #hint{display:none}
-  /* overview: give the legend room to breathe as the primary menu */
-  #plegend{max-width:none;left:11px;right:11px;top:44px;max-height:44vh}
-  #plegend .wl-row{font-size:12.5px;padding:9px 2px}
-  /* device view: model up top, an opaque scrollable sheet with the essentials */
-  body.devview #specs{display:none}
-  body.devview #caption{top:40vh;bottom:58px;left:10px;right:10px;width:auto;max-width:none;
-    background:linear-gradient(180deg,rgba(6,11,7,.94),rgba(4,8,5,.97));
-    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-}
+/* ── phone: the NATIVE scroll catalogue (main.js builds #mcat + body.mcat on
+   ≤560 and never starts the 3D loop). The bay UI is replaced entirely; only the
+   brand header and the page nav remain. Desktop never gets body.mcat, so all of
+   this is inert there — the 3D catalogue above is untouched. ─────────────────*/
+body.mcat{overflow-y:auto;overflow-x:hidden;height:auto}
+body.mcat #scene,body.mcat #leaders,body.mcat #labels,body.mcat #verb,body.mcat #hint,
+body.mcat #plegend,body.mcat #howto,body.mcat #specs,body.mcat #caption{display:none!important}
+#mcat{display:block;max-width:600px;margin:0 auto;padding:66px 14px 94px}
+.mc-hero{padding:6px 4px 2px}
+.mc-hero h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:9px 0 11px;color:#F0F0EA}
+.mc-tag{font-size:14.5px;line-height:1.55;color:var(--dim)}
+.mc-kick{font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--alive)}
+.mc-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:16px}
+.mc-nums div{border-left:1px solid rgba(240,240,234,.14);padding-left:9px}
+.mc-nums b{display:block;font-size:15px;font-weight:800;color:#eef0ea;font-variant-numeric:tabular-nums;line-height:1.15}
+.mc-nums span{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.mc-strip{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;margin:20px -14px 2px;padding:2px 14px 6px;-webkit-overflow-scrolling:touch}
+.mc-strip::-webkit-scrollbar{display:none}
+.mc-chip{flex:none;width:74px;background:none;border:0;cursor:pointer;font-family:var(--sans);padding:0}
+.mc-chip img{width:74px;height:74px;border-radius:15px;object-fit:cover;background:#0a140c;border:1px solid rgba(240,240,234,.12);display:block}
+.mc-chip span{display:block;font-size:10.5px;font-weight:700;color:var(--dim);margin-top:5px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mc-cards{margin-top:26px;display:flex;flex-direction:column;gap:18px}
+.mc-card{border:1px solid rgba(240,240,234,.1);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(11,18,12,.66),rgba(6,10,7,.72));scroll-margin-top:60px}
+.mc-thumb{aspect-ratio:16/11;background:radial-gradient(120% 100% at 50% 32%,color-mix(in srgb,var(--fa) 12%,#0a140c),#050d08);border-bottom:1px solid rgba(240,240,234,.06)}
+.mc-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.mc-body{padding:0 16px 18px}
+.mc-body .mc-kick{margin-top:15px;color:color-mix(in srgb,var(--fa) 72%,#fff)}
+.mc-body h2{font-size:23px;font-weight:800;letter-spacing:-.01em;margin:6px 0 0;color:#F0F0EA}
+.mc-price{margin-top:4px;font-size:14px;font-weight:700;color:var(--fa)}
+.mc-line{margin-top:11px;font-size:14px;line-height:1.55;color:var(--dim)}
+.mc-cardnums{margin-top:15px}
+.mc-how{margin-top:15px;padding-top:13px;border-top:1px solid rgba(240,240,234,.1)}
+.mc-step{display:flex;gap:10px;padding:7px 0;font-size:13.5px;line-height:1.5}
+.mc-step i{flex:none;width:22px;height:22px;border-radius:50%;background:var(--fa);color:#071007;font-style:normal;font-weight:800;font-size:11.5px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.mc-step b{color:#F0F0EA;font-weight:700;margin-right:6px}
+.mc-step span{color:var(--dim)}
+.mc-spec{display:flex;justify-content:space-between;gap:14px;padding:7px 0;font-size:13.5px;border-bottom:1px solid rgba(240,240,234,.05)}
+.mc-spec:last-child{border-bottom:0}
+.mc-spec>span{color:var(--muted);flex:none}
+.mc-spec b{color:#F0F0EA;font-weight:600;text-align:right}
 @media(prefers-reduced-motion:reduce){#caption.in{animation:none}.loader-mark{animation:none}}
