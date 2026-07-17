@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css?v=30" />
-<link rel="stylesheet" href="/css/satellite.css?v=23" />
+<link rel="stylesheet" href="/css/satellite.css?v=24" />
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
 <style>
 :root{--fa:#9B6CE0}
@@ -81,7 +81,7 @@
       <div class="pane-h">Occupancy · Virunga National Park<span class="map-note" id="map-src">sources</span></div>
       <div class="map-ctrl" id="map-ctrl"></div>
       <div class="map-wrap" id="map"></div>
-      <div class="map-leg"><span class="map-leg-l">◆ live 3D terrain · real DEM + ESRI satellite</span><span class="map-leg-r">drag to orbit · toggle layers · tap to inspect</span></div>
+      <div class="map-leg" id="map-leg1"><span class="map-leg-l">◆ live 3D terrain · real DEM + ESRI satellite</span><span class="map-leg-r">drag to orbit · toggle layers · tap to inspect</span></div>
     </div>
     <div class="pane rv col-rail">
       <div class="rail-sec">
@@ -159,7 +159,7 @@
         <button class="doc doc-sel" data-rep="detections"><span class="pdf"></span><div><b>Monthly detections digest · June 2026</b><span>every class, every sector · 3,120 detections</span></div></button>
         <button class="doc doc-sel" data-rep="species"><span class="pdf"></span><div><b>Species occupancy atlas · Q2 2026</b><span>ψ by species across 27 stations</span></div></button>
         <button class="doc doc-sel" data-rep="alerts"><span class="pdf"></span><div><b>Alert &amp; intrusion log · June 2026</b><span>humans · vehicles · gunshot signatures</span></div></button>
-        <button class="doc doc-sel" data-rep="acoustic"><span class="pdf"></span><div><b>Acoustic survey report · Q2 2026</b><span>leopard · wolf · gunshot triangulation</span></div></button>
+        <button class="doc doc-sel" data-rep="acoustic"><span class="pdf"></span><div><b>Acoustic survey report · Q2 2026</b><span>leopard · bio-acoustic · gunshot triangulation</span></div></button>
         <button class="doc doc-sel" data-rep="credits"><span class="pdf"></span><div><b>Earth Credits measurement annex · Q2 2026</b><span>the measurement layer, assembled</span></div></button>
         <button class="doc doc-sel" data-rep="ranger"><span class="pdf"></span><div><b>Ranger deployment brief · weekly</b><span>patrol routing from occupancy &amp; alerts</span></div></button>
       </div>
@@ -183,6 +183,6 @@
   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="./ai.js?v=38"></script>
+<script type="module" src="./ai.js?v=39"></script>
 </body>
 </html>

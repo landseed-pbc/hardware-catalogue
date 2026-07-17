@@ -25,20 +25,23 @@ document.querySelector('.app-sub')?.classList.add('in');
 revealView('overview');
 
 /* ── the Virunga twin — 3D terrain (Overview) + 2D occupancy surface (Survey) ── */
-import { buildMap, sourcesHTML } from './map.js?v=3';
+import { buildMap, sourcesHTML } from './map.js?v=4';
 import { buildTerrain } from './map3d.js?v=32';
 
 const tip = document.createElement('div');
 tip.className = 'vmap-tip';
 document.body.appendChild(tip);
 
-let mapStations = 0;
-// 3D terrain centerpiece on Overview; falls back to the flat map if WebGL fails
+let mapStations = 0;                                         // full network size (27)
+let survey = null;                                           // survey map handle (rendered in-view subset)
+// 3D terrain centerpiece on Overview; falls back to the flat map if WebGL fails.
+// The fallback passes `legend: 'map-leg1'` so the 2D surface's own classed legend
+// replaces the "3D terrain · drag to orbit" caption (which the flat map can't honour).
 buildTerrain('map', tip).then(t => { if (t) mapStations = t.stations; })
-  .catch(() => fetch('/public/virunga-geo.json?v=1').then(r => r.json()).then(g => buildMap(g, 'map', tip)));
+  .catch(() => fetch('/public/virunga-geo.json?v=1').then(r => r.json()).then(g => buildMap(g, 'map', tip, { legend: 'map-leg1', default: 'occupancy' })));
 
 fetch('/public/virunga-geo.json?v=1').then(r => r.json()).then(async (geo) => {
-  await buildMap(geo, 'map2', tip, { ctrl: 'msurf-ctrl', legend: 'map-leg2', default: 'occupancy' });
+  survey = await buildMap(geo, 'map2', tip, { ctrl: 'msurf-ctrl', legend: 'map-leg2', default: 'occupancy' });
   if (!mapStations) mapStations = geo.stations.length;
   // sources popover — subtle "sources" affordance in each map header
   const pop = document.createElement('div');
@@ -78,11 +81,13 @@ function series(lo, hi, seed, n, amp) {                     // → {p: polyline 
   }
   return { p: pts.join(' '), ey: ey.toFixed(2) };
 }
-// [label, value, delta, recovery lo → hi] — the rise is steepest over the year
+// [label, value, delta, recovery lo → hi] — the rise is steepest over the year.
+// '▬' (no-change) rows keep lo == hi so the sparkline reads flat (noise only),
+// never contradicting the delta badge with a visible climb.
 const METRICS = {
-  y: [['Presence', '0.82', '▲ .03', 0.34, 0.86], ['Occupancy', '0.61', '▲ .02', 0.30, 0.80], ['Density /km²', '3.2', '▬', 0.50, 0.60], ['Abundance', '214 ±18', '▲ 6%', 0.28, 0.82]],
-  m: [['Presence', '0.81', '▲ .01', 0.72, 0.84], ['Occupancy', '0.60', '▲ .01', 0.55, 0.63], ['Density /km²', '3.2', '▬', 0.54, 0.58], ['Abundance', '212 ±19', '▲ 2%', 0.60, 0.70]],
-  d: [['Presence', '0.79', '▬', 0.77, 0.80], ['Occupancy', '0.58', '▬', 0.57, 0.60], ['Density /km²', '3.1', '▬', 0.55, 0.57], ['Abundance', '209 ±21', '▬', 0.66, 0.69]],
+  y: [['Presence', '0.82', '▲ .03', 0.34, 0.86], ['Occupancy', '0.61', '▲ .02', 0.30, 0.80], ['Density /km²', '3.2', '▬', 0.56, 0.56], ['Abundance', '214 ±18', '▲ 6%', 0.28, 0.82]],
+  m: [['Presence', '0.81', '▲ .01', 0.72, 0.84], ['Occupancy', '0.60', '▲ .01', 0.55, 0.63], ['Density /km²', '3.2', '▬', 0.56, 0.56], ['Abundance', '212 ±19', '▲ 2%', 0.60, 0.70]],
+  d: [['Presence', '0.79', '▬', 0.79, 0.79], ['Occupancy', '0.58', '▬', 0.585, 0.585], ['Density /km²', '3.1', '▬', 0.56, 0.56], ['Abundance', '209 ±21', '▬', 0.68, 0.68]],
 };
 const AMP = { y: 0.05, m: 0.04, d: 0.028 };
 const mets = document.getElementById('mets');
@@ -119,37 +124,39 @@ if (railSp) {
 document.querySelectorAll('[data-view-link]').forEach(a =>
   a.addEventListener('click', (e) => { e.preventDefault(); setView(a.dataset.viewLink); }));
 
-/* ── detections — image cards with bounding boxes, filterable by category &
-   species. Field imagery is real (demo/assets/field, project archive); classes
-   with no photo yet get a labeled IR placeholder frame. Sample detections. */
+/* ── detections — image cards filterable by category & species. Field imagery
+   is real (demo/assets/field, project archive) and carries its own detection
+   boxes baked in; classes with no photo yet get a labeled IR placeholder
+   frame (no drawn box). Sample detections. */
 const CLASS_HUE = {
   human: '#00FF64', vehicle: '#1482FF', gunshot: '#E0902C',
   elephant: '#F0C244', buffalo: '#8B5B2D', kob: '#C8A24B', hippo: '#3A9FE6',
   lion: '#E0902C', topi: '#CF5A44', warthog: '#B98F5B', waterbuck: '#4FD17A', leopard: '#EF7A3C',
   gorilla: '#4FD17A',
 };
-// [time, category, class, label, sensor, sector, conf, route, image, boxes]
-// category: intrusion | people | vehicle | animal ; boxes: [x,y,w,h] fractions
+// [time, category, class, label, sensor, sector, conf, route, image]
+// category: intrusion | people | vehicle | animal. Real captures (image set)
+// carry their detection boxes baked into the JPG; placeholders draw none.
 const F = '/demo/assets/field/';
 const DETS = [
-  ['18:39', 'animal', 'elephant', 'Elephant ×3', 'VillageGuard 01', 'RWI-01', '0.99', 'phones', F + 'elephant-walk.jpg', [[.12, .34, .5, .52], [.55, .4, .3, .4]]],
-  ['18:33', 'people', 'human', 'Human ×4', 'Monitor 01', 'RUT-02', '0.96', 'ops room', F + 'people-walk.jpg', [[.3, .28, .18, .55], [.52, .32, .16, .5]]],
-  ['18:12', 'vehicle', 'vehicle', 'Vehicle', 'Monitor 04', 'ISH-01', '0.93', 'phones + email', null, [[.24, .4, .54, .34]]],
-  ['17:58', 'intrusion', 'gunshot', 'Gunshot signature', 'Listener 07', 'CEN-01', '0.91', 'ops room', null, []],
-  ['17:41', 'animal', 'elephant', 'Elephant ×1 · bull', 'VillageGuard 02', 'RWI-04', '0.98', 'phones', F + 'elephant-bull.jpg', [[.28, .2, .5, .68]]],
-  ['17:22', 'people', 'human', 'Ranger patrol ×2', 'Monitor 02', 'RWI-02', '0.97', 'logged', F + 'people-close.jpg', [[.34, .16, .34, .74]]],
-  ['16:58', 'animal', 'leopard', 'Leopard', 'Listener 03', 'ISH-02', '0.88', 'survey', null, [[.36, .34, .3, .4]]],
-  ['16:31', 'animal', 'buffalo', 'Buffalo ×12', 'Monitor 06', 'RUT-01', '0.95', 'survey', null, [[.1, .42, .3, .32], [.44, .44, .28, .3]]],
-  ['16:04', 'animal', 'elephant', 'Elephant ×5 · herd', 'Monitor 03', 'CEN-03', '0.99', 'survey', F + 'multi-class.jpg', [[.06, .3, .34, .5], [.42, .36, .28, .44]]],
-  ['15:47', 'vehicle', 'vehicle', 'Logging truck', 'Monitor 05', 'RWI-06', '0.94', 'ops room', null, [[.18, .38, .6, .38]]],
-  ['15:20', 'animal', 'kob', 'Ugandan kob ×8', 'Monitor 03', 'RWI-03', '0.92', 'survey', null, [[.14, .44, .22, .3], [.4, .46, .2, .28], [.66, .45, .2, .28]]],
-  ['14:52', 'animal', 'hippo', 'Hippopotamus ×6', 'Monitor 08', 'EDW-01', '0.97', 'survey', null, [[.1, .4, .34, .3], [.5, .42, .3, .28]]],
-  ['14:18', 'animal', 'lion', 'Lion · pair', 'VillageGuard 01', 'RUT-02', '0.90', 'ops room', null, [[.3, .4, .38, .34]]],
-  ['13:44', 'animal', 'topi', 'Topi ×4', 'Monitor 04', 'CEN-02', '0.89', 'survey', null, [[.24, .42, .26, .34], [.54, .44, .22, .3]]],
-  ['13:09', 'animal', 'warthog', 'Warthog ×3', 'Monitor 07', 'RUT-04', '0.87', 'survey', null, [[.28, .5, .44, .3]]],
-  ['12:36', 'people', 'human', 'Human ×2', 'Monitor 07', 'RWI-05', '0.96', 'logged', null, [[.32, .26, .16, .56], [.54, .3, .15, .5]]],
-  ['12:01', 'animal', 'waterbuck', 'Waterbuck ×2', 'Monitor 03', 'EDW-03', '0.91', 'survey', null, [[.3, .34, .3, .44]]],
-  ['11:27', 'intrusion', 'gunshot', 'Unknown signature', 'Listener 02', 'ISH-01', '0.71', 'review', null, []],
+  ['18:39', 'animal', 'elephant', 'Elephant ×3', 'VillageGuard 01', 'RWI-01', '0.99', 'phones', F + 'elephant-walk.jpg'],
+  ['18:33', 'people', 'human', 'Human ×4', 'Monitor 01', 'RUT-02', '0.96', 'ops room', F + 'people-walk.jpg'],
+  ['18:12', 'vehicle', 'vehicle', 'Vehicle', 'Monitor 04', 'ISH-01', '0.93', 'phones + email', null],
+  ['17:58', 'intrusion', 'gunshot', 'Gunshot signature', 'Listener 07', 'CEN-01', '0.91', 'ops room', null],
+  ['17:41', 'animal', 'elephant', 'Elephant ×1 · bull', 'VillageGuard 02', 'RWI-04', '0.98', 'phones', F + 'elephant-bull.jpg'],
+  ['17:22', 'people', 'human', 'Ranger patrol ×2', 'Monitor 02', 'RWI-02', '0.97', 'logged', F + 'people-close.jpg'],
+  ['16:58', 'animal', 'leopard', 'Leopard', 'Listener 03', 'ISH-02', '0.88', 'survey', null],
+  ['16:31', 'animal', 'buffalo', 'Buffalo ×12', 'Monitor 06', 'RUT-01', '0.95', 'survey', null],
+  ['16:04', 'animal', 'elephant', 'Elephant ×5 · herd', 'Monitor 03', 'CEN-03', '0.99', 'survey', F + 'multi-class.jpg'],
+  ['15:47', 'vehicle', 'vehicle', 'Logging truck', 'Monitor 05', 'RWI-06', '0.94', 'ops room', null],
+  ['15:20', 'animal', 'kob', 'Ugandan kob ×8', 'Monitor 03', 'RWI-03', '0.92', 'survey', null],
+  ['14:52', 'animal', 'hippo', 'Hippopotamus ×6', 'Monitor 08', 'EDW-01', '0.97', 'survey', null],
+  ['14:18', 'animal', 'lion', 'Lion · pair', 'VillageGuard 01', 'RUT-02', '0.90', 'ops room', null],
+  ['13:44', 'animal', 'topi', 'Topi ×4', 'Monitor 04', 'CEN-02', '0.89', 'survey', null],
+  ['13:09', 'animal', 'warthog', 'Warthog ×3', 'Monitor 07', 'RUT-04', '0.87', 'survey', null],
+  ['12:36', 'people', 'human', 'Human ×2', 'Monitor 07', 'RWI-05', '0.96', 'logged', null],
+  ['12:01', 'animal', 'waterbuck', 'Waterbuck ×2', 'Monitor 03', 'EDW-03', '0.91', 'survey', null],
+  ['11:27', 'intrusion', 'gunshot', 'Unknown signature', 'Listener 02', 'ISH-01', '0.71', 'review', null],
 ];
 
 const FILTERS = [
@@ -174,7 +181,7 @@ filters.innerHTML = FILTERS.map(([f, label], i) =>
   `<button class="${i === 0 ? 'on' : ''}" data-f="${f}">${label}</button>`).join('');
 
 function card(d) {
-  const [t, cat, cls, label, sensor, sector, conf, route, img, boxes] = d;
+  const [t, cat, cls, label, sensor, sector, conf, route, img] = d;
   const col = CLASS_HUE[cls] || '#9B6CE0';
   // real captures already carry their own boxes+labels — never redraw over them.
   // placeholders get a styled IR frame + a class tag (image pending), no drawn box.
@@ -419,7 +426,15 @@ window.__ai = {
   visibleDetections: () => document.querySelectorAll('.det-card:not(.hide)').length,
   filterDetections: applyFilter,
   phoneBubbles: document.querySelectorAll('#phone .tg-msg').length,
-  mapStations: () => mapStations,
+  mapStations: () => mapStations,                            // full network (27)
+  surveyStations: () => (survey ? survey.stations : 0),      // rendered on the survey map (in-view subset)
+  surveyLayers: () => (survey ? survey.layers : []),
+  setSurveyLayer: (k) => survey && survey.setLayer(k),
+  activeSurfaceLayer: () => document.querySelector('#msurf-ctrl button.on')?.dataset.k || null,
+  occRows: () => document.querySelectorAll('#occ-model .occ-row:not(.occ-hd)').length,
+  dielRows: () => document.querySelectorAll('.diel-row').length,
+  accumCurve: () => !!document.querySelector('.accum-line'),
+  reportRefs: () => document.querySelectorAll('.doc-list .doc-sel').length,
   sampleBadge: !!document.querySelector('.app-bar .sp-badge'),
   facts: { metrics: 'presence · occupancy · density · abundance' },
 };

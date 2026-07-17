@@ -66,7 +66,7 @@ function derive(s) {
 // dot, the station key it reads, and a value formatter
 const LAYERS = {
   occupancy: { label: 'Occupancy', name: 'Occupancy ψ', unit: 'presence probability', stops: [[24, 20, 44], [72, 50, 132], [150, 108, 220], [214, 190, 255]], dot: '#B682F0', key: '_occ', fmt: (v) => v.toFixed(2) },
-  density: { label: 'Density', name: 'Detection density', unit: 'detections · 30 d', stops: [[26, 18, 12], [126, 62, 20], [226, 138, 32], [255, 214, 110]], dot: '#F0A030', key: '_den', fmt: (v) => Math.round(v).toLocaleString() },
+  density: { label: 'Density', name: 'Detection density', unit: 'detections · 30 d', stops: [[26, 18, 12], [126, 62, 20], [226, 138, 32], [255, 214, 110]], dot: '#F0A030', key: '_den', fmt: (v) => Math.round(v).toLocaleString('en-US') },
   richness: { label: 'Richness', name: 'Species richness', unit: 'species per station', stops: [[12, 28, 22], [26, 96, 62], [70, 190, 118], [180, 240, 200]], dot: '#4FD17A', key: '_ric', fmt: (v) => Math.round(v) },
   pressure: { label: 'Pressure', name: 'Human pressure', unit: 'intrusion index', stops: [[32, 14, 16], [132, 32, 38], [226, 70, 60], [255, 168, 130]], dot: '#F0604A', key: '_pre', fmt: (v) => v.toFixed(2) },
 };
@@ -114,8 +114,11 @@ export async function buildMap(geo, hostId, tip, opts = {}) {
       cells.push({ cx, cy, v: { occupancy: so / sw, density: sd / sw, richness: sr / sw, pressure: sp / sw } });
     }
   }
+  // range is the true per-station min/max (what the tooltips show), not the
+  // IDW-smoothed cell range — the legend must not under-report a value the user
+  // can hover. Hex classes are quantized across this same station range.
   const rng = {};
-  for (const k of ORDER) { let mn = 1e9, mx = -1e9; for (const c of cells) { const v = c.v[k]; if (v < mn) mn = v; if (v > mx) mx = v; } rng[k] = { mn, mx }; }
+  for (const k of ORDER) { const key = LAYERS[k].key; let mn = 1e9, mx = -1e9; for (const st of spx) { const v = st[key]; if (v < mn) mn = v; if (v > mx) mx = v; } rng[k] = { mn, mx }; }
   const cls = (k, v) => { const { mn, mx } = rng[k]; return Math.min(NC - 1, Math.floor((mx > mn ? (v - mn) / (mx - mn) : 0.5) * NC)); };
   for (const c of cells) { c.c = {}; for (const k of ORDER) c.c[k] = cls(k, c.v[k]); }
 
@@ -179,7 +182,7 @@ export async function buildMap(geo, hostId, tip, opts = {}) {
       const cite = CITE[s[3]];
       tip.innerHTML = `<b>${s[2]} · ${name}</b>` +
         tpRow('occupancy ψ', s._occ.toFixed(2), curLayer === 'occupancy') +
-        tpRow('detections · 30 d', s._den.toLocaleString(), curLayer === 'density') +
+        tpRow('detections · 30 d', s._den.toLocaleString('en-US'), curLayer === 'density') +
         tpRow('richness', s._ric + ' species', curLayer === 'richness') +
         tpRow('pressure', s._pre.toFixed(2), curLayer === 'pressure') +
         `<span class="tp-row"><em>IUCN</em>${status}</span>` +
@@ -209,7 +212,7 @@ export async function buildMap(geo, hostId, tip, opts = {}) {
       `<span class="mleg-name" style="--c:${L.dot}">${L.name}</span>` +
       `<span class="mleg-steps">${Array.from({ length: NC }, (_, i) => `<i style="background:${ramp(L.stops, (i + 0.5) / NC)}"></i>`).join('')}</span>` +
       `<span class="mleg-sc">${L.fmt(rng[k].mn)} → ${L.fmt(rng[k].mx)}</span>` +
-      `<span class="map-leg-r">${inView.length} stations · ${L.unit}</span>`;
+      `<span class="map-leg-r">${inView.length} of ${geo.stations.length} stations · ${L.unit}</span>`;
     if (ctrlEl) [...ctrlEl.children].forEach((b) => b.classList.toggle('on', b.dataset.k === k));
   }
 
