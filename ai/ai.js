@@ -25,8 +25,8 @@ document.querySelector('.app-sub')?.classList.add('in');
 revealView('overview');
 
 /* ── the Virunga twin — 3D terrain (Overview) + 2D occupancy surface (Survey) ── */
-import { buildMap, sourcesHTML } from './map.js?v=4';
-import { buildTerrain } from './map3d.js?v=32';
+import { buildMap, sourcesHTML } from './map.js?v=5';
+import { buildTerrain } from './map3d.js?v=33';
 
 const tip = document.createElement('div');
 tip.className = 'vmap-tip';
@@ -331,7 +331,7 @@ const REPORTS = {
            ['Grazers', 'Buffalo ψ̂ 0.71 and kob 0.52 track the recovering Rwindi grassland as elephants reopen it.'],
            ['Carnivores', 'Leopard ψ̂ 0.31 (naïve 0.19 — a 0.12 detection correction); lion 0.18, a re-established central breeding pair.']],
     tbl: ['Species', 'ψ naïve', 'ψ̂ (95% CI)', [['Buffalo', '0.63', '0.71 ±.09'], ['Elephant', '0.52', '0.61 ±.08'], ['Leopard', '0.19', '0.31 ±.11'], ['Lion', '0.11', '0.18 ±.09']]],
-    cite: 'Mountain gorillas: 604 in the Virunga Massif (2024)²; Lake Edward hippos 2,700+³.',
+    cite: 'Mountain gorillas: 604 in the Virunga Massif (2015–16 census)²; Lake Edward hippos 2,700+³.',
   },
   alerts: {
     title: 'Alert & intrusion log', ref: 'CTDAMS·ALT·2026·06',

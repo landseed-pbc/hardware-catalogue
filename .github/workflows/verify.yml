@@ -1,0 +1,19 @@
+name: verify
+
+# Runs the same gate as `npm run verify` (JS syntax + fact/coupling drift) on
+# every push and PR, so a broken build or a DEVICES-vs-page drift can't reach
+# a `wrangler pages deploy`. No dependencies to install — the checks are plain
+# `node --check` + scripts/check-facts.mjs.
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm run verify

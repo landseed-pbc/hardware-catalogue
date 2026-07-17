@@ -1,0 +1,14 @@
+{
+  "name": "hardware-catalogue",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Landseed hardware catalogue — a no-build-step Three.js (ESM importmap) + GSAP static site deployed to Cloudflare Pages. Catalogue bay (src/) plus /demo/, /ai/, /faqs/ satellites.",
+  "scripts": {
+    "lint": "node --check src/main.js && node --check src/world.js && node --check src/devices.js && node --check ai/ai.js && node --check ai/map.js && node --check ai/map3d.js && node --check ai/species.js && node --check faqs/faqs.js && node --check demo/demo.js",
+    "check": "node scripts/check-facts.mjs",
+    "verify": "npm run lint && npm run check",
+    "serve": "python3 -m http.server 8791",
+    "deploy": "npm run verify && npx wrangler pages deploy . --project-name=hardware-catalogue --branch=main"
+  }
+}

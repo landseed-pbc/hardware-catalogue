@@ -13,7 +13,7 @@
 
 const SOURCES = [
   ['Boundary & Lake Edward geometry', 'OpenStreetMap — Virunga NP relation 404784'],
-  ['Mountain gorillas · 604 in the Virunga Massif (2024)', 'IGCP / Virunga Massif survey, 2024'],
+  ['Mountain gorillas · 604 in the Virunga Massif (2015–16 census)', 'IGCP / Virunga Massif census, 2015–16'],
   ['Lake Edward hippos · 2,700+ (recovering from <1,000 in 2005)', 'ICCN / Virunga National Park census'],
   ['Savanna elephants · 580+ returned, highest in 30 years', 'Africa Geographic / National Geographic, 2024'],
   ['Savanna biomass ~27.6 t/km² · among the highest on Earth', 'UNESCO World Heritage datasheet'],
@@ -25,7 +25,7 @@ const CITE = {
   hippo: ['Lake Edward hippos: 2,700+ (2026 census), up from <1,000 in 2005', 3],
   elephant: ['Savanna elephants: 580+ returned — highest in 30 years', 4],
   'forest-elephant': ['Forest elephants recolonising the Semliki lowland', 4],
-  gorilla: ['Mountain gorillas: 604 in the Virunga Massif (2024)', 2],
+  gorilla: ['Mountain gorillas: 604 in the Virunga Massif (2015–16 census)', 2],
   'grauers-gorilla': ['Grauer’s gorilla persists on Mt Tshiaberimu', 2],
   lion: ['A breeding lion pair re-established in the central savanna', 4],
   buffalo: ['Buffalo returning as elephants restore the grassland', 4],

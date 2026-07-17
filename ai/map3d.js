@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SPECIES, iconSVG } from './species.js?v=1';
-import { buildSerengeti, buildVillageGuard, buildGateway, buildWolf } from '/src/devices.js?v=146';
+import { buildSerengeti, buildVillageGuard, buildGateway, buildWolf } from '/src/devices.js?v=31';
 
 // the deployed field hardware, placed strategically across the park — the same
 // 3D models & catalogue hues as the catalogue/demo. `cat` deep-links to the

@@ -49,7 +49,9 @@ for (const [label, srcRe, [page, pageRe, pageText]] of CHECKS) {
 
 // satellite honesty invariants
 if (!/spec sheet in development/.test(faqs)) { failed++; console.error('DRIFT  faqs page lost the "spec sheet in development" placeholder'); }
-if (!/sample data/.test(ai)) { failed++; console.error('DRIFT  ai page lost its "sample data" badge'); }
+// guard the actual rendered badge ELEMENT, not the word "sample" anywhere (it
+// lives in comments too) — the badge is the honesty disclaimer that must ship
+if (!/class="sp-badge">sample data<\/span>/.test(ai)) { failed++; console.error('DRIFT  ai page lost its visible "sample data" badge element'); }
 if (!/Camera Trap Data Analysis Management System/.test(ai)) { failed++; console.error('DRIFT  ai page lost the CTDAMS expansion'); }
 if (!/sample/.test(aijs)) { failed++; console.error('DRIFT  ai.js lost its sample labeling'); }
 if (!hasGeo) { failed++; console.error('DRIFT  public/virunga-geo.json (real OSM boundary) missing'); }
@@ -67,5 +69,36 @@ if (/2×AA|two AA/.test(faqs) && !/spec sheet in development/.test(faqs)) {
   failed++; console.error('DRIFT  faqs states the AA form factor without the spec-sheet badge');
 }
 
-if (failed) { console.error(`\n${failed} fact check(s) failed`); process.exit(1); }
-console.log(`all ${CHECKS.length + 13} checks pass`);
+/* ── structural coupling: adding or renaming a device must stay in sync ──────
+   The catalogue's single source of truth is DEVICES in src/main.js. A new/renamed
+   device must touch: (a) a builder in devices.js, (b) a #plegend row in index.html,
+   (c) callout anchors in the builder. These guards catch the statically-checkable
+   couplings so a half-applied edit fails CI instead of shipping a dead legend row
+   or a mis-coloured map token. (Runtime warns on missing callout anchors.) */
+const index = read('index.html');
+const devIds = [...main.matchAll(/id:\s*'([a-z]+)',/g)].map((m) => m[1]);
+const plegend = [...index.matchAll(/data-dev="([a-z]+)"/g)].map((m) => m[1]);
+for (const id of devIds) if (!plegend.includes(id)) { failed++; console.error(`COUPLING  device "${id}" (DEVICES) has no #plegend data-dev row in index.html`); }
+for (const dv of plegend) if (!devIds.includes(dv)) { failed++; console.error(`COUPLING  #plegend row data-dev="${dv}" has no matching DEVICES entry in main.js`); }
+
+// map3d DEVLAYERS restates device identity — its cat id must be a real device and
+// its hue must equal that device's DEVICES hue (or the map silently drifts)
+const devHue = {};
+for (const m of main.matchAll(/id:\s*'([a-z]+)',[\s\S]{0,160}?hue:\s*(0x[0-9A-Fa-f]{6})/g)) devHue[m[1]] = m[2].toLowerCase();
+for (const m of map3d.matchAll(/hue:\s*(0x[0-9A-Fa-f]{6})[\s\S]{0,80}?cat:\s*'([a-z]+)'/g)) {
+  const hue = m[1].toLowerCase(), cat = m[2];
+  if (!devHue[cat]) { failed++; console.error(`COUPLING  map3d DEVLAYERS cat "${cat}" is not a DEVICES id`); }
+  else if (devHue[cat] !== hue) { failed++; console.error(`COUPLING  map3d DEVLAYERS hue ${hue} ≠ DEVICES "${cat}" hue ${devHue[cat]}`); }
+}
+
+// every importer of devices.js must pin the SAME ?v= — a partial bump serves a
+// stale builder to whichever page was missed
+const devVers = new Set();
+for (const f of ['src/main.js', 'demo/demo.js', 'ai/map3d.js']) {
+  const mm = read(f).match(/devices\.js\?v=(\d+)/);
+  if (mm) devVers.add(mm[1]);
+}
+if (devVers.size > 1) { failed++; console.error(`DRIFT  devices.js imported at diverging ?v= (${[...devVers].join(', ')}) — unify every importer`); }
+
+if (failed) { console.error(`\n${failed} check(s) failed`); process.exit(1); }
+console.log(`all checks pass (${CHECKS.length} facts + honesty + device-coupling + version guards)`);

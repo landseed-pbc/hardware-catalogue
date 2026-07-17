@@ -138,8 +138,11 @@ forward seeks only. Planned to become the default page, with the current
 catalogue moving to /catalogue, once perfected.
 
 ### Demo v4 notes
-- Detection popups render the REAL scene from the sensor's lens (`sensorSnap`,
-  IR-graded, boxes projected from true actor positions).
+- Detection popups show the REAL project-archive field capture (`fieldCard`,
+  the JPEGs in `demo/assets/field/`, boxes baked into the image) or, for
+  acoustic sensors, a generated spectrogram (`spectroCard`). (The earlier
+  render-through-the-lens `sensorSnap` path was removed 2026-07-17 — don't
+  reintroduce it; the field photos are the stronger evidence beat.)
 - Humans are rigged Soldier.glb clones (three.js examples, MIT — see
   ATTRIBUTION.md) with Idle/Walk clips via `setGait`.
 - Filmic grade ShaderPass (teal-orange, vignette, grain) after OutputPass.
