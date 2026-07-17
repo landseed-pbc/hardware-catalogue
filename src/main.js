@@ -890,8 +890,10 @@ function mobileStage(startId) {
   for (const c of scene.children) if (!c.isLight && c !== world.root) c.visible = false;   // clean space: hide the bay
   const cam = new THREE.PerspectiveCamera(34, 1, .05, 60);
   const DIR = new THREE.Vector3(.5, .44, .92).normalize();
+  const FACE = Math.atan2(DIR.x, DIR.z);                   // yaw that turns each device's front to the camera
   const sph = new THREE.Sphere();
   for (const d of DEVICES) {                                // precompute a rotation-stable frame + float per device
+    d.group.rotation.y = FACE;                              // frame it as it will be presented (facing the camera)
     new THREE.Box3().setFromObject(d.group).getBoundingSphere(sph);
     d._sc = sph.center.clone(); d._baseY = d.group.position.y; d._baseScale = d.group.scale.x || 1;
     d._sd = sph.radius / Math.sin(THREE.MathUtils.degToRad(19)) * 1.18;
@@ -929,7 +931,7 @@ function mobileStage(startId) {
     if (document.hidden || !active) return;
     const t = clock.getElapsedTime();
     active.group.scale.setScalar(active._baseScale * (.9 + .1 * revealT));
-    active.group.rotation.y = (active.group.userData.rotY0 ?? 0) + t * .3 + (1 - revealT) * .7;   // spins into place
+    active.group.rotation.y = FACE + (1 - revealT) * .8 + Math.sin(t * .5) * .05;                 // turns to face the viewer, then holds with a whisper of sway
     active.group.position.y = active._baseY + Math.sin(t * 1.1) * active._amp * revealT;          // eases into a float
     cam.position.copy(active._sc).addScaledVector(DIR, active._sd); cam.lookAt(active._sc);
     r.render(scene, cam);
