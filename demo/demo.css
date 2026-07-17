@@ -57,7 +57,6 @@ a.brand:hover .b-word{opacity:1}
 .pop .p-t em{font-style:normal;font-size:10px;font-weight:700;color:var(--dim)}
 .pop .p-s{margin-top:2px;font-size:11px;line-height:1.4;color:var(--dim)}
 
-
 /* chapters + controls */
 #chapters{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);z-index:30;display:flex;gap:7px;padding:6px;border-radius:999px;background:rgba(7,15,7,.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.1);max-width:96vw}
 .chip{background:none;border:0;color:var(--dim);font-family:var(--sans);font-size:12.5px;font-weight:600;padding:8px 13px;border-radius:999px;cursor:pointer;transition:.2s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center}
@@ -78,40 +77,11 @@ a.brand:hover .b-word{opacity:1}
 .hud{top:52px}
 #feed{top:112px}
 
-/* ── the rangers' phone — Telegram, dark ─────────────────────────────────── */
-#phone{position:fixed;right:26px;top:94px;z-index:25;width:292px;height:min(492px,calc(100vh - 220px));border-radius:44px;background:#000;border:3px solid #2c2c30;box-shadow:0 24px 70px rgba(0,0,0,.6),inset 0 0 0 2px #000;overflow:hidden;display:flex;flex-direction:column;pointer-events:none;opacity:0;transform:translateX(26px) scale(.98);transition:opacity .9s ease,transform .9s cubic-bezier(.22,1,.36,1)}
+/* ── the rangers' phone — shared chrome in css/phone.css (linked first). Here:
+   the fixed overlay position + fade-in, and the feed grows from the bottom. ──*/
+#phone{position:fixed;right:26px;top:94px;z-index:25;height:min(492px,calc(100vh - 220px));border-radius:44px;pointer-events:none;opacity:0;transform:translateX(26px) scale(.98);transition:opacity .9s ease,transform .9s cubic-bezier(.22,1,.36,1);--phone-w:292px}
 #phone.on{opacity:1;transform:none;pointer-events:auto}
-.ph-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:92px;height:26px;border-radius:14px;background:#000;z-index:3;box-shadow:0 0 0 2px #0a0a0a}
-.ph-status{display:flex;justify-content:space-between;align-items:center;padding:14px 26px 6px;background:#0e1621;color:#fff;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
-.ph-icons{font-size:9.5px;letter-spacing:.06em;color:#cfd6dd}
-.tg-head{display:flex;align-items:center;gap:10px;padding:8px 14px 10px;background:#17212b;border-bottom:1px solid rgba(255,255,255,.05)}
-.tg-ava{width:34px;height:34px;border-radius:50%;background:#0e1621;object-fit:contain;padding:4px}
-.tg-who{flex:1;min-width:0}
-.tg-who b{display:block;font-size:14px;color:#fff;letter-spacing:0}
-.tg-who span{display:block;font-size:11px;color:#6c7883;margin-top:1px}
-.tg-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:12px 12px 12px;background:#0e1621;scrollbar-width:thin;scrollbar-color:rgba(240,240,234,.18) transparent}
 .tg-body>:first-child{margin-top:auto}
-.tg-body::-webkit-scrollbar{width:5px}
-.tg-body::-webkit-scrollbar-thumb{background:rgba(240,240,234,.16);border-radius:99px}
-.tg-msg{max-width:96%;align-self:flex-start;background:#182533;border-radius:15px 15px 15px 5px;padding:9px 13px 8px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.25)}
-.tg-msg b{display:block;font-size:13.5px;font-weight:700;color:#fff;letter-spacing:0}
-.tg-msg span{display:block;font-size:13px;line-height:1.45;color:#dbe2e9;margin-top:3px;padding-right:38px}
-.tg-msg em{position:absolute;right:10px;bottom:7px;font-style:normal;font-size:10.5px;color:#6c7883;font-variant-numeric:tabular-nums}
-.tg-input{display:flex;align-items:center;justify-content:space-between;margin:0 10px 14px;padding:9px 15px;border-radius:20px;background:#17212b;color:#6c7883;font-size:13px}
-.tg-input i{font-style:normal;font-size:14px}
-
-
-/* iOS status glyphs, day divider, mic */
-.ph-icons{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#fff;letter-spacing:.02em}
-.sig{display:inline-flex;align-items:flex-end;gap:1.5px;height:10px}
-.sig b{width:2.5px;background:#fff;border-radius:1px}
-.sig b:nth-child(1){height:4px}.sig b:nth-child(2){height:6px}.sig b:nth-child(3){height:8px}.sig b:nth-child(4){height:10px;opacity:.35}
-.bat{position:relative;width:21px;height:10.5px;border:1px solid rgba(255,255,255,.5);border-radius:3px;display:inline-block}
-.bat::after{content:"";position:absolute;right:-3.5px;top:2.5px;width:1.8px;height:4px;background:rgba(255,255,255,.5);border-radius:0 1px 1px 0}
-.bat b{position:absolute;inset:1.5px;right:6px;background:#fff;border-radius:1.5px}
-.tg-day{display:flex;justify-content:center;padding:2px 0 3px}
-.tg-day span{font-size:10.5px;font-weight:600;color:#8b98a5;background:rgba(23,33,43,.85);padding:3px 10px;border-radius:999px}
-.tg-mic{font-style:normal;filter:grayscale(1) brightness(1.4);opacity:.75}
 
 /* closing overlay — a proper button row, weighted and aligned */
 #endcta{position:fixed;left:34px;top:50%;transform:translateY(calc(-50% + 14px));z-index:29;display:flex;flex-direction:column;align-items:stretch;gap:13px;width:300px;opacity:0;pointer-events:none;transition:opacity 1s ease,transform 1s cubic-bezier(.22,1,.36,1)}
@@ -121,9 +91,6 @@ a.brand:hover .b-word{opacity:1}
 .end-again{display:flex;align-items:center;justify-content:center;height:50px;border-radius:999px;background:rgba(7,15,7,.44);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(240,240,234,.24);color:rgba(240,240,234,.9);font:600 14.5px var(--sans);letter-spacing:.02em;cursor:pointer;transition:.24s}
 .end-again:hover{border-color:rgba(240,240,234,.6);color:#fff;transform:translateY(-2px)}
 
-/* photo bubbles + hud link */
-.tg-photo img{display:block;width:100%;border-radius:9px;margin-top:7px}
-.tg-photo span{margin-top:6px}
 .hud-link{color:rgba(240,240,234,.5);text-decoration:none;margin-right:18px;transition:.2s}
 .hud-link:hover{color:var(--alive)}
 /* small screens: the phone panel yields (must trail the #phone base rule) */

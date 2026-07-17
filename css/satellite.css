@@ -131,36 +131,11 @@ body.sat.ai-page{
   .con-grid{display:flex;flex-direction:column}
 }
 
-/* ── the rangers' phone — copied from demo.css v45 (#phone plus the .ph- and
-   .tg- classes; provenance rule: keep byte-close to the demo's; only the frame
-   is adapted from fixed-overlay to in-flow so it stands inside the console) ── */
-#phone{position:relative;width:272px;height:100%;max-height:520px;margin:0 auto;border-radius:40px;background:#000;border:3px solid #2c2c30;box-shadow:0 24px 70px rgba(0,0,0,.6),inset 0 0 0 2px #000;overflow:hidden;display:flex;flex-direction:column}
-.ph-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:88px;height:24px;border-radius:13px;background:#000;z-index:3;box-shadow:0 0 0 2px #0a0a0a}
-.ph-status{display:flex;justify-content:space-between;align-items:center;padding:13px 24px 6px;background:#0e1621;color:#fff;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
-.ph-icons{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#fff;letter-spacing:.02em}
-.sig{display:inline-flex;align-items:flex-end;gap:1.5px;height:10px}
-.sig b{width:2.5px;background:#fff;border-radius:1px}
-.sig b:nth-child(1){height:4px}.sig b:nth-child(2){height:6px}.sig b:nth-child(3){height:8px}.sig b:nth-child(4){height:10px;opacity:.35}
-.bat{position:relative;width:21px;height:10.5px;border:1px solid rgba(255,255,255,.5);border-radius:3px;display:inline-block}
-.bat::after{content:"";position:absolute;right:-3.5px;top:2.5px;width:1.8px;height:4px;background:rgba(255,255,255,.5);border-radius:0 1px 1px 0}
-.bat b{position:absolute;inset:1.5px;right:6px;background:#fff;border-radius:1.5px}
-.tg-head{display:flex;align-items:center;gap:10px;padding:8px 14px 10px;background:#17212b;border-bottom:1px solid rgba(255,255,255,.05)}
-.tg-ava{width:32px;height:32px;border-radius:50%;background:#0e1621;object-fit:contain;padding:4px}
-.tg-who{flex:1;min-width:0}
-.tg-who b{display:block;font-size:13.5px;color:#fff;letter-spacing:0}
-.tg-who span{display:block;font-size:10.5px;color:#6c7883;margin-top:1px}
-.tg-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:12px;background:#0e1621;scrollbar-width:thin;scrollbar-color:rgba(240,240,234,.18) transparent}
-.tg-body>:first-child{margin-top:0}
-.tg-day{display:flex;justify-content:center;padding:2px 0 3px}
-.tg-day span{font-size:10px;font-weight:600;color:#8b98a5;background:rgba(23,33,43,.85);padding:3px 10px;border-radius:999px}
-.tg-msg{max-width:96%;align-self:flex-start;background:#182533;border-radius:15px 15px 15px 5px;padding:9px 13px 8px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.25)}
-.tg-msg b{display:block;font-size:12.5px;font-weight:700;color:#fff;letter-spacing:0}
-.tg-msg span{display:block;font-size:12px;line-height:1.45;color:#dbe2e9;margin-top:3px;padding-right:36px}
-.tg-msg em{position:absolute;right:10px;bottom:7px;font-style:normal;font-size:10px;color:#6c7883;font-variant-numeric:tabular-nums}
-.tg-input{display:flex;align-items:center;justify-content:space-between;margin:0 10px 12px;padding:8px 14px;border-radius:20px;background:#17212b;color:#6c7883;font-size:12.5px}
-.tg-mic{font-style:normal;filter:grayscale(1) brightness(1.4);opacity:.75}
-.tg-photo img{display:block;width:100%;border-radius:9px;margin-top:7px}
-.tg-photo span{margin-top:6px;padding-right:0}
+/* ── the rangers' phone — shared chrome lives in css/phone.css (linked before
+   this file). Here we only place the frame in-flow inside the console and set
+   its width; the feed reads top-down (no bottom-anchor override). ─────────────*/
+#phone{position:relative;height:100%;max-height:520px;margin:0 auto;border-radius:40px;--phone-w:272px}
+.tg-photo span{padding-right:0}
 
 /* console product chrome — the CTDAMS app bar */
 .con-bar img{width:20px;height:20px;border-radius:5px;background:#0e1216;padding:2px}

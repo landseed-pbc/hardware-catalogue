@@ -6,33 +6,44 @@ keep the two sites' design language aligned.
 
 ## Invariants
 
-1. **`DEVICES` (in `main.js`) is the single source of truth for products.** Every device
-   needs: a builder in `devices.js` (`BUILDERS[id]`), a chip in `index.html#chapters`, a
-   row in `#plegend` with matching `data-dev`, and callout anchor names that exist in the
-   builder's `userData.anchors`. Keep all four in sync.
-2. **Bump the `?v=N` query** on any file you change (`styles.css`, `main.js`, and the
-   `world.js` / `devices.js` imports inside `main.js`). Stale cache is the most common
-   false "it's broken."
-3. **Numbers trace to the source docs** — the product-line introduction docx and the July
+1. **`DEVICES` (in `main.js`) is the single source of truth for products.** To add or
+   rename a device, keep four things in sync: (a) a builder in `devices.js`
+   (`BUILDERS[id]`), (b) a `#plegend` row in `index.html` with matching `data-dev`,
+   (c) callout anchor names that exist in the builder's `userData.anchors`, and (d) its
+   `hue` (a `src/palette.js` token). **`check-facts.mjs` guards (a)/(b) and the hue** —
+   the `#plegend`↔DEVICES bijection and DEVLAYERS-hue agreement fail CI on a half-applied
+   edit; missing callout anchors warn at runtime (`console.warn` in `deviceFrame`).
+2. **Colours come from `src/palette.js`** — the 7 brand hues, defined once (`HEX` for
+   CSS/canvas, `NUM` for Three.js). `DEVICES[].hue`, the demo's `HUES`, `map3d`'s
+   `DEVLAYERS`, and the AI page's `CLASS_HUE` human/vehicle all reference it. Change a
+   brand colour there, not per-file.
+3. **Bump the `?v=N` query** on any file you change, and on every importer of it —
+   `check-facts` now guards that all `devices.js` importers pin the same `?v` and that the
+   catalogue's demo prefetch hints match what `/demo/` loads. Stale cache is the most
+   common false "it's broken."
+4. **Numbers trace to the source docs** — the product-line introduction docx and the July
    2026 price sheet. Prices with "?" in the sheet are shown as "target"; missing spec
    sheets are flagged "in development". Don't invent specs.
-4. **Materials are per-device instances** — builders create fresh materials so `dimTo`
+5. **Materials are per-device instances** — builders create fresh materials so `dimTo`
    can fade devices independently (color, envMapIntensity, emissive base, and additive
-   opacity are all captured in `d.mats` at assembly time).
-5. **Callout plates are settle-then-freeze.** Device callouts lay out ONCE when
+   opacity are all captured in `d.mats` at assembly time; multi-material meshes are collected too, so e.g. the AI logo cube fades).
+6. **Callout plates are settle-then-freeze.** Device callouts lay out ONCE when
    the camera flight completes (`flyTo` fires the `onSettle` hook →
    `revealCallouts` → `layoutCallouts`), then the plates stay put; only the
    anchor dots and leader lines track the part per frame. Never reintroduce
    per-frame plate layout — text dragging across the screen during flights is
    the exact bug this replaced.
-6. **No secrets, ever.**
+7. **No secrets, ever.**
 
 ## Verifying a change
 
 ```bash
-node --check src/main.js && node --check src/world.js && node --check src/devices.js
-python3 -m http.server 8791     # open with a ?r=… cache-bust
+npm run verify          # lints every JS file (node --check) + scripts/check-facts.mjs
+npm run serve           # python3 -m http.server 8791 — open with a ?r=… cache-bust
+npm run deploy          # verify, then wrangler pages deploy
 ```
+CI (`.github/workflows/verify.yml`) runs `npm run verify` on every push, so a syntax
+error or a DEVICES-vs-page / version drift can't reach a deploy unnoticed.
 
 Browser-automation gotcha (same as virunga): a backgrounded tab pauses rAF, so the WebGL
 canvas goes stale and GSAP flights freeze. Foreground the tab
@@ -97,7 +108,7 @@ Two more app pages alongside Catalogue and Demo. Binding rules:
    `#9B6CE0` purple only where content is semantically Landseed AI.
    `_redirects` 301s the retired /why/ URLs to /faqs/.
 4. **Facts trace to `DEVICES` in `main.js`** (or its successor data module) and the source
-   docs — same as invariant 3 above. Unconfirmed numbers get the exact phrase
+   docs — same as invariant 4 above. Unconfirmed numbers get the exact phrase
    "spec sheet in development". Every illustrative dashboard carries a "sample data" chip —
    convincing fake interfaces ship labeled, always.
 5. **`?v=N` discipline extends to satellites** — including any prefetch/preload hints
@@ -106,9 +117,11 @@ Two more app pages alongside Catalogue and Demo. Binding rules:
    flags, rendered fact values) so changes verify headlessly — same doctrine as
    `__hw` / `__demo.step()`. Console/dashboard graphics are crisp SVG or DOM with
    tabular numbers — no scaled canvas.
-7. **The rangers' phone chrome on /ai/ is a copy of demo.css v45's** `#phone` +
-   `.ph-`/`.tg-` block (only the frame is in-flow instead of fixed). When the demo's
-   phone styling evolves, re-sync satellite.css — or extract a shared phone.css.
+7. **The rangers' phone chrome is shared — `css/phone.css`** (linked before the page's own
+   CSS on both `/demo/` and `/ai/`). Edit the Telegram bubble/status/head styling THERE
+   once; each page only sets `--phone-w` and its container position + feed anchor
+   (`.tg-body>:first-child`: demo grows from the bottom, /ai/ reads top-down). No more
+   re-syncing a copy.
 8. **Indexability is per-page:** /demo/ is deliberately noindex; satellites are indexable
    and ship full OG cards, with the OG image generated before first deploy, not after.
 

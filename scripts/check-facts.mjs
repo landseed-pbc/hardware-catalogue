@@ -82,13 +82,25 @@ for (const id of devIds) if (!plegend.includes(id)) { failed++; console.error(`C
 for (const dv of plegend) if (!devIds.includes(dv)) { failed++; console.error(`COUPLING  #plegend row data-dev="${dv}" has no matching DEVICES entry in main.js`); }
 
 // map3d DEVLAYERS restates device identity — its cat id must be a real device and
-// its hue must equal that device's DEVICES hue (or the map silently drifts)
+// its hue must equal that device's DEVICES hue (or the map silently drifts).
+// Hues are palette tokens (NUM.green) or raw 0x literals; compare by token.
+const HUE = '(NUM\\.\\w+|0x[0-9A-Fa-f]{6})';
 const devHue = {};
-for (const m of main.matchAll(/id:\s*'([a-z]+)',[\s\S]{0,160}?hue:\s*(0x[0-9A-Fa-f]{6})/g)) devHue[m[1]] = m[2].toLowerCase();
-for (const m of map3d.matchAll(/hue:\s*(0x[0-9A-Fa-f]{6})[\s\S]{0,80}?cat:\s*'([a-z]+)'/g)) {
+for (const m of main.matchAll(new RegExp(`id:\\s*'([a-z]+)',[\\s\\S]{0,160}?hue:\\s*${HUE}`, 'g'))) devHue[m[1]] = m[2].toLowerCase();
+for (const m of map3d.matchAll(new RegExp(`hue:\\s*${HUE}[\\s\\S]{0,80}?cat:\\s*'([a-z]+)'`, 'g'))) {
   const hue = m[1].toLowerCase(), cat = m[2];
   if (!devHue[cat]) { failed++; console.error(`COUPLING  map3d DEVLAYERS cat "${cat}" is not a DEVICES id`); }
   else if (devHue[cat] !== hue) { failed++; console.error(`COUPLING  map3d DEVLAYERS hue ${hue} ≠ DEVICES "${cat}" hue ${devHue[cat]}`); }
+}
+
+// the catalogue's demo prefetch hints must track the versions /demo/ loads, or
+// the prefetch is a guaranteed cache miss (a recurring drift on every demo bump)
+const demoIx = read('demo/index.html');
+for (const asset of ['demo.js', 'demo.css']) {
+  const esc = asset.replace('.', '\\.');
+  const hint = index.match(new RegExp(`prefetch[^>]*${esc}\\?v=(\\d+)`));
+  const real = demoIx.match(new RegExp(`${esc}\\?v=(\\d+)`));
+  if (hint && real && hint[1] !== real[1]) { failed++; console.error(`DRIFT  index.html prefetch ${asset}?v=${hint[1]} ≠ /demo/ loads ?v=${real[1]}`); }
 }
 
 // every importer of devices.js must pin the SAME ?v= — a partial bump serves a

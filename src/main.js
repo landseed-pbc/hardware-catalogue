@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { createWorld } from './world.js?v=4';
 import { BUILDERS } from './devices.js?v=31';
+import { NUM } from './palette.js?v=1';
 
 const $ = (s) => document.querySelector(s);
 
@@ -16,7 +17,7 @@ const $ = (s) => document.querySelector(s);
 const DEVICES = [
   {
     id: 'serengeti', name: 'Landseed Monitor', kicker: 'To see · Park protection',
-    hue: 0x00FF64, price: '$199–225', x: -3.75,
+    hue: NUM.green, price: '$199–225', x: -3.75,
     desc: 'AI alert camera for park protection',
     line: 'The smallest, lowest-power AI camera-alert system on the market — built to be everywhere. Earlier versions put 20 poachers from 13 gangs under arrest, from the Serengeti outward to six more countries.',
     stats: [['$199–225', 'per unit'], ['200 ms', 'first capture'], ['30 s', 'alert via cell'], ['>12 mo', 'battery']],
@@ -53,7 +54,7 @@ const DEVICES = [
   },
   {
     id: 'villageguard', name: 'Landseed VillageGuard', kicker: 'To see · Coexistence',
-    hue: 0xFFC800, price: '$299', x: -2.25,
+    hue: NUM.gold, price: '$299', x: -2.25,
     desc: 'Multi-species AI camera for conflict prevention',
     line: 'When predators and mega-herbivores leave the parks for villages, VillageGuard gives rangers and village protection units the early alert that turns conflict into coexistence.',
     stats: [['$299', 'per unit'], ['8–10', 'object classes'], ['15 m', 'detection range'], ['<1 KB', 'alert image']],
@@ -88,7 +89,7 @@ const DEVICES = [
   },
   {
     id: 'gateway', name: 'Landseed Relay Station', kicker: 'To connect · The hub',
-    hue: 0x32C8FF, price: '$150 target', x: -.75,
+    hue: NUM.cyan, price: '$150 target', x: -.75,
     desc: 'Connects cameras where there is no cell signal',
     line: 'Most protected areas have no cell signal. The Relay Station takes long-range radio from many cameras and hands it to whatever sky is available — one airtime bill for the whole hill.',
     stats: [['$150', 'target / unit'], ['1', 'hub, many cameras'], ['5', 'landscape scenarios'], ['>12 mo', 'battery + solar']],
@@ -119,7 +120,7 @@ const DEVICES = [
   },
   {
     id: 'junglewallah', name: 'Landseed Survey Unit', kicker: 'To see & listen · Biodiversity',
-    hue: 0xFF8C42, price: 'custom', x: .75,
+    hue: NUM.orange, price: 'custom', x: .75,
     desc: 'Camera + acoustic unit for biodiversity surveys',
     line: 'Pick the few species that tell you the most about a landscape, then watch and listen for exactly those — VillageGuard optics carrying bespoke species models, joined to an acoustic pod.',
     stats: [['optical', '+ acoustic'], ['custom', 'species models'], ['Wi-Fi / SD', 'collection'], ['re-ID', 'for density']],
@@ -148,7 +149,7 @@ const DEVICES = [
   },
   {
     id: 'wolf', name: 'Landseed Listener', kicker: 'To listen · Bio-acoustics',
-    hue: 0xE682E6, price: '$100 target', x: 2.25,
+    hue: NUM.magenta, price: '$100 target', x: 2.25,
     desc: 'Listens for vocalising wildlife',
     line: 'The forest is louder than it looks. The Listener hears what cameras never frame — and with three units triangulating the same call: how far away, and how many.',
     stats: [['$100', 'target / unit'], ['24/7', 'listening'], ['3+', 'units triangulate'], ['passive', 'no trigger']],
@@ -177,7 +178,7 @@ const DEVICES = [
   },
   {
     id: 'mobile', name: 'Landseed Mobile', kicker: 'To report · Human in the loop',
-    hue: 0x1482FF, price: '$50 target', x: 3.75,
+    hue: NUM.blue, price: '$50 target', x: 3.75,
     desc: 'Handheld camera for human reports — no AI',
     line: 'The cheapest sensor is a person who knows what they’re looking at. No AI, no motion trigger, no infrared — a human sees the elephant or the poacher, frames it, and the network does the rest.',
     stats: [['$50', 'target / unit'], ['0', 'AI — by design'], ['human', 'triggered'], ['daylight', 'optics']],
@@ -206,7 +207,7 @@ const DEVICES = [
   },
   {
     id: 'ai', name: 'Landseed AI', kicker: 'To understand · The platform brain',
-    hue: 0x9B6CE0, price: 'subscription', x: 0, z: -1.9,
+    hue: NUM.purple, price: 'subscription', x: 0, z: -1.9,
     desc: 'The analytics platform behind every sensor',
     line: 'Every sensor reports here. Landseed AI — the platform brain, the CTDAMS — fuses optical, acoustic and remotely-sensed data into population metrics, and writes the measurement layer for Earth Credits.',
     stats: [],

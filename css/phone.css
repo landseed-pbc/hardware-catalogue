@@ -1,0 +1,37 @@
+/* ── the rangers' phone — the Telegram-style alert feed shared by /demo/ and
+   /ai/, defined ONCE. The frame CONTAINER (#phone position/size/animation) is
+   set per page — a fixed overlay in the film, in-flow in the /ai/ console — via
+   the --phone-w knob; the feed anchor (.tg-body>:first-child) is a per-page
+   override (the demo grows from the bottom, /ai/ reads top-down). Everything
+   else — status bar, signal/battery glyphs, chat head, bubbles, photo bubbles —
+   lives here, so when it evolves both pages inherit it (no more re-syncing a
+   copy, per repo CLAUDE.md). Link this BEFORE the page's own CSS. ────────────*/
+#phone{width:var(--phone-w,292px);background:#000;border:3px solid #2c2c30;box-shadow:0 24px 70px rgba(0,0,0,.6),inset 0 0 0 2px #000;overflow:hidden;display:flex;flex-direction:column}
+.ph-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:92px;height:26px;border-radius:14px;background:#000;z-index:3;box-shadow:0 0 0 2px #0a0a0a}
+.ph-status{display:flex;justify-content:space-between;align-items:center;padding:14px 26px 6px;background:#0e1621;color:#fff;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.ph-icons{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#fff;letter-spacing:.02em}
+.sig{display:inline-flex;align-items:flex-end;gap:1.5px;height:10px}
+.sig b{width:2.5px;background:#fff;border-radius:1px}
+.sig b:nth-child(1){height:4px}.sig b:nth-child(2){height:6px}.sig b:nth-child(3){height:8px}.sig b:nth-child(4){height:10px;opacity:.35}
+.bat{position:relative;width:21px;height:10.5px;border:1px solid rgba(255,255,255,.5);border-radius:3px;display:inline-block}
+.bat::after{content:"";position:absolute;right:-3.5px;top:2.5px;width:1.8px;height:4px;background:rgba(255,255,255,.5);border-radius:0 1px 1px 0}
+.bat b{position:absolute;inset:1.5px;right:6px;background:#fff;border-radius:1.5px}
+.tg-head{display:flex;align-items:center;gap:10px;padding:8px 14px 10px;background:#17212b;border-bottom:1px solid rgba(255,255,255,.05)}
+.tg-ava{width:34px;height:34px;border-radius:50%;background:#0e1621;object-fit:contain;padding:4px}
+.tg-who{flex:1;min-width:0}
+.tg-who b{display:block;font-size:14px;color:#fff;letter-spacing:0}
+.tg-who span{display:block;font-size:11px;color:#6c7883;margin-top:1px}
+.tg-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:12px;background:#0e1621;scrollbar-width:thin;scrollbar-color:rgba(240,240,234,.18) transparent}
+.tg-body::-webkit-scrollbar{width:5px}
+.tg-body::-webkit-scrollbar-thumb{background:rgba(240,240,234,.16);border-radius:99px}
+.tg-day{display:flex;justify-content:center;padding:2px 0 3px}
+.tg-day span{font-size:10.5px;font-weight:600;color:#8b98a5;background:rgba(23,33,43,.85);padding:3px 10px;border-radius:999px}
+.tg-msg{max-width:96%;align-self:flex-start;background:#182533;border-radius:15px 15px 15px 5px;padding:9px 13px 8px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.tg-msg b{display:block;font-size:13.5px;font-weight:700;color:#fff;letter-spacing:0}
+.tg-msg span{display:block;font-size:13px;line-height:1.45;color:#dbe2e9;margin-top:3px;padding-right:38px}
+.tg-msg em{position:absolute;right:10px;bottom:7px;font-style:normal;font-size:10.5px;color:#6c7883;font-variant-numeric:tabular-nums}
+.tg-input{display:flex;align-items:center;justify-content:space-between;margin:0 10px 14px;padding:9px 15px;border-radius:20px;background:#17212b;color:#6c7883;font-size:13px}
+.tg-input i{font-style:normal;font-size:14px}
+.tg-mic{font-style:normal;filter:grayscale(1) brightness(1.4);opacity:.75}
+.tg-photo img{display:block;width:100%;border-radius:9px;margin-top:7px}
+.tg-photo span{margin-top:6px}

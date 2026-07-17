@@ -15,6 +15,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { BUILDERS } from '../src/devices.js?v=31';
+import { NUM } from '../src/palette.js?v=1';
 
 const $ = (s) => document.querySelector(s);
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -129,7 +130,7 @@ function demAt(x, z) {
   const e = (a * (1 - fu) + b * fu) * (1 - fv) + (c * (1 - fu) + d2 * fu) * fv;
   return Math.min(TWIN ? 12 : 6.4, Math.max(-1.6, (e - dem.base) / (TWIN ? 115 : 240)));
 }
-const HUES = { see: 0x00FF64, guard: 0xFFC800, link: 0x32C8FF, listen: 0xE682E6, brain: 0x9B6CE0, report: 0x1482FF };
+const HUES = { see: NUM.green, guard: NUM.gold, link: NUM.cyan, listen: NUM.magenta, brain: NUM.purple, report: NUM.blue };
 
 /* ── renderer / scene / light ───────────────────────────────────────────── */
 

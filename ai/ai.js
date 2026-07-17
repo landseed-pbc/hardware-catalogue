@@ -26,7 +26,8 @@ revealView('overview');
 
 /* ── the Virunga twin — 3D terrain (Overview) + 2D occupancy surface (Survey) ── */
 import { buildMap, sourcesHTML } from './map.js?v=5';
-import { buildTerrain } from './map3d.js?v=33';
+import { buildTerrain } from './map3d.js?v=34';
+import { HEX } from '../src/palette.js?v=1';
 
 const tip = document.createElement('div');
 tip.className = 'vmap-tip';
@@ -129,7 +130,7 @@ document.querySelectorAll('[data-view-link]').forEach(a =>
    boxes baked in; classes with no photo yet get a labeled IR placeholder
    frame (no drawn box). Sample detections. */
 const CLASS_HUE = {
-  human: '#00FF64', vehicle: '#1482FF', gunshot: '#E0902C',
+  human: HEX.green, vehicle: HEX.blue, gunshot: '#E0902C',
   elephant: '#F0C244', buffalo: '#8B5B2D', kob: '#C8A24B', hippo: '#3A9FE6',
   lion: '#E0902C', topi: '#CF5A44', warthog: '#B98F5B', waterbuck: '#4FD17A', leopard: '#EF7A3C',
   gorilla: '#4FD17A',

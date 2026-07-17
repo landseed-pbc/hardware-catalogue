@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SPECIES, iconSVG } from './species.js?v=1';
+import { NUM } from '/src/palette.js?v=1';
 import { buildSerengeti, buildVillageGuard, buildGateway, buildWolf } from '/src/devices.js?v=31';
 
 // the deployed field hardware, placed strategically across the park — the same
@@ -14,13 +15,13 @@ import { buildSerengeti, buildVillageGuard, buildGateway, buildWolf } from '/src
 // device's catalogue page on click. Landseed AI is the platform brain, not a
 // field unit, so it is not placed on the map. [lat, lon]
 const DEVLAYERS = {
-  monitor:      { build: buildSerengeti,    hue: 0x00FF64, name: 'Monitor',       cat: 'serengeti',    role: 'AI camera-alert · park protection', h: .12,
+  monitor:      { build: buildSerengeti,    hue: NUM.green, name: 'Monitor',       cat: 'serengeti',    role: 'AI camera-alert · park protection', h: .12,
     pts: [[-1.285, 29.3], [-1.015, 29.3], [-1.06, 29.45], [-.88, 29.51], [-.38, 29.58], [-.5, 29.68], [-1.105, 29.75]] },
-  villageguard: { build: buildVillageGuard, hue: 0xFFC800, name: 'VillageGuard',  cat: 'villageguard', role: 'multi-species · coexistence',       h: .13,
+  villageguard: { build: buildVillageGuard, hue: NUM.gold, name: 'VillageGuard',  cat: 'villageguard', role: 'multi-species · coexistence',       h: .13,
     pts: [[-1.42, 29.3], [-1.42, 29.66], [-1.375, 29.78], [-1.33, 29.57]] },
-  listener:     { build: buildWolf,         hue: 0xE682E6, name: 'Listener',       cat: 'wolf',         role: 'bio-acoustic monitor',              h: .12,
+  listener:     { build: buildWolf,         hue: NUM.magenta, name: 'Listener',       cat: 'wolf',         role: 'bio-acoustic monitor',              h: .12,
     pts: [[-1.15, 29.3], [-1.195, 29.54], [-1.24, 29.72], [-.22, 29.7]] },
-  gateway:      { build: buildGateway,      hue: 0x32C8FF, name: 'Relay Station',  cat: 'gateway',      role: 'LoRa → LTE / satellite hub',        h: .16,
+  gateway:      { build: buildGateway,      hue: NUM.cyan, name: 'Relay Station',  cat: 'gateway',      role: 'LoRa → LTE / satellite hub',        h: .16,
     pts: [[-.55, 29.42], [-.79, 29.63], [-.34, 29.66]] },
 };
 
