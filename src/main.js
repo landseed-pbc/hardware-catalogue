@@ -821,120 +821,112 @@ addEventListener('keydown', (e) => {
 const brandHome = document.getElementById('brand-home');
 if (brandHome) brandHome.addEventListener('click', (e) => { e.preventDefault(); goView('catalogue', true); });
 
-/* ── mobile: a native scroll catalogue ──────────────────────────────────────
-   The 3D bay is a landscape experience that can't work portrait, so on a phone
-   we render each device to a still (once, off-screen), build an overview strip
-   of those minis + a card per product, and never run the live render loop
-   (battery). The DESKTOP path is untouched — this only runs when innerWidth≤560. */
-function captureThumb(d, S = 460) {
-  const r = world.renderer, scene = world.scene;
-  const rt = new THREE.WebGLRenderTarget(S, S, { samples: 4 });
-  rt.texture.colorSpace = THREE.SRGBColorSpace;                 // display-ready readback
-  const cam = new THREE.PerspectiveCamera(34, 1, .05, 60);
-  const restore = DEVICES.map(o => [o, o.group.visible, o.plinth && o.plinth.visible]);
-  for (const o of DEVICES) { o.group.visible = o === d; if (o.plinth) o.plinth.visible = false; }
-  const box = new THREE.Box3().setFromObject(d.group);
-  const c = box.getCenter(new THREE.Vector3()), sz = box.getSize(new THREE.Vector3());
-  const radius = Math.max(sz.x, sz.y, sz.z, .6) * .5;
-  const dist = radius / Math.tan(THREE.MathUtils.degToRad(17)) * 1.3;
-  const rotY = d.group.userData.rotY0 ?? 0;
-  const front = new THREE.Vector3(Math.sin(rotY), 0, Math.cos(rotY));
-  const side = new THREE.Vector3(front.z, 0, -front.x);
-  const dir = front.multiplyScalar(.82).addScaledVector(side, .4).add(new THREE.Vector3(0, .48, 0)).normalize();
-  cam.position.copy(c).addScaledVector(dir, dist); cam.lookAt(c);
-  r.setRenderTarget(rt); r.render(scene, cam); r.setRenderTarget(null);
-  const px = new Uint8Array(S * S * 4); r.readRenderTargetPixels(rt, 0, 0, S, S, px); rt.dispose();
-  const cv = document.createElement('canvas'); cv.width = cv.height = S;
-  const ctx = cv.getContext('2d'); const im = ctx.createImageData(S, S);
-  for (let y = 0; y < S; y++) im.data.set(px.subarray((S - 1 - y) * S * 4, (S - y) * S * 4), y * S * 4);
-  ctx.putImageData(im, 0, 0);
-  for (const [o, v, pv] of restore) { o.group.visible = v; if (o.plinth) o.plinth.visible = pv; }
-  return cv.toDataURL('image/jpeg', .85);
+/* ── mobile: the floating-stage catalogue ────────────────────────────────────
+   The 3D bay is a landscape experience that can't work portrait. On a phone we
+   pin ONE 3D viewport (the world renderer, reused) at a FIXED position near the
+   top — it never repositions, so it can't lag the scroll — and let text cards
+   scroll past beneath it. The device floats in clean space (the bay grid/deck
+   are hidden, a soft accent glow behind), gently bobbing and auto-rotating. An
+   IntersectionObserver tracks which card crosses mid-screen and cross-fades the
+   stage to that product. The DESKTOP path is untouched — this only runs when
+   innerWidth≤560. */
+function stageGlow(css) {                                  // soft accent pool behind the floating device
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const x = c.getContext('2d');
+  x.fillStyle = '#050d08'; x.fillRect(0, 0, 128, 128);
+  const g = x.createRadialGradient(64, 54, 4, 64, 66, 90);
+  g.addColorStop(0, css + '40'); g.addColorStop(1, css + '00');
+  x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
 function buildMobileCatalogue(startId) {
   const short = (n) => n.replace('Landseed ', '');
   const wrap = document.createElement('main'); wrap.id = 'mcat';
+  const stage = document.createElement('div'); stage.className = 'mc-stage';   // the fixed 3D viewport (canvas mounts here)
+  wrap.appendChild(stage);
+  const flow = document.createElement('div'); flow.className = 'mc-flow';
   const hero = document.createElement('section'); hero.className = 'mc-hero';
   hero.innerHTML =
     `<div class="mc-kick">The product line</div><h1>Landseed Hardware</h1>` +
     `<p class="mc-tag">${CAT_LINE}</p>` +
     `<div class="mc-nums"><div><b>7</b><span>products</span></div><div><b>$50–299</b><span>hardware</span></div><div><b>30 s</b><span>fastest alert</span></div><div><b>&gt;12 mo</b><span>battery</span></div></div>`;
   const strip = document.createElement('div'); strip.className = 'mc-strip';
-  hero.appendChild(strip); wrap.appendChild(hero);
-  const cards = document.createElement('section'); cards.className = 'mc-cards'; wrap.appendChild(cards);
+  hero.appendChild(strip); flow.appendChild(hero);
+  const cards = document.createElement('section'); cards.className = 'mc-cards'; flow.appendChild(cards);
   for (const d of DEVICES) {
-    const thumb = captureThumb(d);
-    const chip = document.createElement('button'); chip.className = 'mc-chip'; chip.style.setProperty('--fa', hex(d.hue));
-    chip.innerHTML = `<img src="${thumb}" alt=""><span>${short(d.name)}</span>`;
-    chip.addEventListener('click', () => document.getElementById('mc-' + d.id).scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    strip.appendChild(chip);
+    const pill = document.createElement('button'); pill.className = 'mc-pill'; pill.style.setProperty('--fa', hex(d.hue));
+    pill.innerHTML = `<i></i><span>${short(d.name)}</span>`;
+    pill.addEventListener('click', () => document.getElementById('mc-' + d.id).scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    strip.appendChild(pill);
     const stats = (d.stats || []).map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('');
     const chain = d.how ? d.how.map(([step, desc], i) => `<div class="mc-step"><i>${i + 1}</i><b>${step}</b><span>${desc}</span></div>`).join('')
       : (d.key || []).map(([k, v]) => `<div class="mc-spec"><span>${k}</span><b>${v}</b></div>`).join('');
     const card = document.createElement('article'); card.className = 'mc-card'; card.id = 'mc-' + d.id; card.style.setProperty('--fa', hex(d.hue));
     card.innerHTML =
-      `<div class="mc-thumb"><img src="${thumb}" alt="${d.name}"></div>` +
-      `<div class="mc-body"><div class="mc-kick">${d.kicker}</div><h2>${d.name}</h2>` +
+      `<div class="mc-kick">${d.kicker}</div><h2>${d.name}</h2>` +
       `<div class="mc-price">${d.price}</div><p class="mc-line">${d.line}</p>` +
       `<div class="mc-nums mc-cardnums">${stats}</div>` +
-      `<div class="mc-how">${chain}</div></div>`;
+      `<div class="mc-how">${chain}</div>`;
     cards.appendChild(card);
   }
+  wrap.appendChild(flow);
   document.body.appendChild(wrap);
   document.body.classList.add('mcat');
   document.body.classList.remove('booting');
   const loader = $('#loader'); if (loader) gsap.to(loader, { opacity: 0, duration: .5, onComplete: () => loader.remove() });
+  mobileStage(stage, startId);
   if (startId && startId !== 'catalogue') requestAnimationFrame(() => document.getElementById('mc-' + startId)?.scrollIntoView());
-  mobileStage();
 }
 
-/* the live 3D layer: ONE canvas (the world renderer, reused) that floats over
-   whichever card's hero is centred and renders THAT device, auto-rotating. The
-   stills stay under it as fallbacks for the off-screen cards, so there's no
-   blank slot and only one WebGL context. Phone-only; desktop never calls this. */
-function mobileStage() {
+/* the floating 3D stage: the world canvas, mounted INTO the fixed .mc-stage so
+   its screen position is constant (CSS-owned, never set per-frame → no scroll
+   lag). Only the active device is visible; it bobs + auto-rotates in a soft
+   accent glow. An IntersectionObserver — not per-frame geometry — decides which
+   product is active as its card crosses mid-viewport. Phone-only. */
+function mobileStage(stageEl, startId) {
   const r = world.renderer, scene = world.scene, cv = r.domElement;
-  cv.classList.add('mc-live');
+  cv.classList.add('mc-live'); stageEl.appendChild(cv);
+  for (const c of scene.children) if (!c.isLight && c !== world.root) c.visible = false;   // clean space: hide the bay
   const cam = new THREE.PerspectiveCamera(34, 1, .05, 60);
-  const DIR = new THREE.Vector3(.55, .48, .92).normalize();
+  const DIR = new THREE.Vector3(.5, .44, .92).normalize();
   const sph = new THREE.Sphere();
-  for (const d of DEVICES) {                                // precompute a rotation-stable frame per device
+  for (const d of DEVICES) {                                // precompute a rotation-stable frame + float per device
     new THREE.Box3().setFromObject(d.group).getBoundingSphere(sph);
-    d._sc = sph.center.clone();
+    d._sc = sph.center.clone(); d._baseY = d.group.position.y;
     d._sd = sph.radius / Math.sin(THREE.MathUtils.degToRad(19)) * 1.04;
+    d._amp = sph.radius * .05;
     d.group.visible = false;
     if (d.plinth) d.plinth.visible = false;
   }
-  const stages = DEVICES.map(d => ({ d, el: document.getElementById('mc-' + d.id).querySelector('.mc-thumb') }));
-  let active = null, sizedFor = null;
-  const clock = new THREE.Clock(); let spin = 0;
+  let active = null;
+  const setActive = (d) => {
+    if (!d || d === active) return;
+    if (active) { active.group.visible = false; active.group.position.y = active._baseY; }
+    active = d; active.group.visible = true;
+    if (scene.background && scene.background.dispose) scene.background.dispose();
+    scene.background = stageGlow(hex(d.hue));
+    gsap.fromTo(cv, { opacity: .15 }, { opacity: 1, duration: .45, ease: 'power2.out' });
+  };
+  const io = new IntersectionObserver((ents) => {           // the card spanning mid-screen owns the stage
+    for (const e of ents) if (e.isIntersecting) setActive(byId[e.target.id.slice(3)]);
+  }, { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
+  document.querySelectorAll('.mc-card').forEach(el => io.observe(el));
+  setActive(byId[startId] && startId !== 'catalogue' ? byId[startId] : DEVICES[0]);
+  const size = () => {
+    const w = stageEl.clientWidth, h = stageEl.clientHeight;
+    if (!w || !h) return;
+    r.setSize(w, h, false); cv.style.width = '100%'; cv.style.height = '100%';
+    cam.aspect = w / h; cam.updateProjectionMatrix();
+  };
+  size(); addEventListener('resize', size);
+  const clock = new THREE.Clock();
   function loop() {
     requestAnimationFrame(loop);
-    if (document.hidden) return;
-    const cyTarget = innerHeight * .42;
-    let best = null, bestD = 1e9;
-    for (const st of stages) {
-      const b = st.el.getBoundingClientRect();
-      if (b.bottom < 30 || b.top > innerHeight - 30) continue;
-      const dd = Math.abs((b.top + b.bottom) / 2 - cyTarget);
-      if (dd < bestD) { bestD = dd; best = st; }
-    }
-    if (!best) { cv.style.opacity = '0'; return; }
-    if (best.d !== active) {
-      if (active) active.group.visible = false;
-      active = best.d; active.group.visible = true; spin = 0;
-    }
-    const b = best.el.getBoundingClientRect();
-    if (sizedFor !== active || Math.abs(b.width - (cv._w || 0)) > 1) {
-      cv._w = b.width; sizedFor = active;
-      r.setSize(b.width, b.height, false);
-      cv.style.width = b.width + 'px'; cv.style.height = b.height + 'px';
-      cam.aspect = b.width / b.height; cam.updateProjectionMatrix();
-    }
-    cv.style.left = b.left + 'px'; cv.style.top = b.top + 'px'; cv.style.opacity = '1';
-    spin += clock.getDelta() * .35;
-    active.group.rotation.y = (active.group.userData.rotY0 ?? 0) + spin;
+    if (document.hidden || !active) return;
+    const t = clock.getElapsedTime();
+    active.group.rotation.y = (active.group.userData.rotY0 ?? 0) + t * .3;
+    active.group.position.y = active._baseY + Math.sin(t * 1.1) * active._amp;   // gentle float
     cam.position.copy(active._sc).addScaledVector(DIR, active._sd); cam.lookAt(active._sc);
     r.render(scene, cam);
   }
@@ -950,7 +942,7 @@ const startId = (() => {
 })();
 
 if (innerWidth <= 560) {
-  // phone: the native scroll catalogue (stills + cards) — no live 3D loop
+  // phone: text cards scrolling past a fixed, floating live-3D stage
   buildMobileCatalogue(startId);
 } else {
   world.start();
