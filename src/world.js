@@ -113,7 +113,7 @@ export function createWorld(canvas) {
   controls.enableDamping = true;
   controls.dampingFactor = .06;
   controls.minDistance = .9;
-  controls.maxDistance = 13;
+  controls.maxDistance = 15;                             // above the authored opening/phone framing (~14.2) so update() doesn't silently clamp it in
   controls.maxPolarAngle = 1.52;
   controls.minPolarAngle = .18;
   controls.enablePan = false;
@@ -208,12 +208,15 @@ export function createWorld(canvas) {
     (g.userData.waves || []).forEach(w => wavers.push(w));
   }
 
+  let _lastT = 0;
+  const _spTmp = new THREE.Vector3();
   function animate() {
     requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
+    const dt = Math.min(.05, t - _lastT); _lastT = t;      // clamped delta — spinners are time-based, not refresh-rate coupled
     gridUniforms.uTime.value = t;
 
-    for (const s of spinners) s.obj.rotation[s.ax] += s.v * .016;
+    for (const s of spinners) s.obj.rotation[s.ax] += s.v * dt * .96;
     for (let i = 0; i < pulsers.length; i++) {
       const m = pulsers[i];
       if (m.userData.base === undefined) m.userData.base = m.emissiveIntensity;
@@ -224,7 +227,7 @@ export function createWorld(canvas) {
       const ph = ((t * .32 + w.userData.phase) % 1);
       const sc = .6 + ph * 3.4;
       w.scale.setScalar(sc);
-      w.material.opacity = .34 * (1 - ph);
+      w.material.opacity = .34 * (1 - ph) * (w.material.userData.fadeMul ?? 1);   // honour the device dim, don't fight applyFade
     }
     dust.rotation.y = t * .006;
 
@@ -232,8 +235,8 @@ export function createWorld(canvas) {
       const a = s.pts.geometry.attributes.position;
       for (let i = 0; i < s.n; i++) {
         const u = (t * .16 + s.offset + i / s.n) % 1;
-        const p = s.curve.getPoint(u);
-        a.setXYZ(i, p.x, p.y, p.z);
+        s.curve.getPoint(u, _spTmp);                       // reuse a scratch vector — no per-packet allocation
+        a.setXYZ(i, _spTmp.x, _spTmp.y, _spTmp.z);
       }
       a.needsUpdate = true;
     }

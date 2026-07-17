@@ -5,7 +5,7 @@
 // chain (left) and the key specification (right) — sized to need no scrolling.
 
 import * as THREE from 'three';
-import { createWorld } from './world.js?v=3';
+import { createWorld } from './world.js?v=4';
 import { BUILDERS } from './devices.js?v=31';
 
 const $ = (s) => document.querySelector(s);
@@ -237,7 +237,9 @@ const DEVICES = [
     ],
   },
 ];
-const byId = Object.fromEntries(DEVICES.map(d => [d.id, d]));
+// null-prototype so a user-controlled hash (#constructor, #__proto__, #toString…)
+// can't resolve as a truthy "device" and crash the boot flight with NaN coords
+const byId = Object.assign(Object.create(null), Object.fromEntries(DEVICES.map(d => [d.id, d])));
 const hex = (h) => '#' + h.toString(16).padStart(6, '0');
 
 /* ── scene assembly ─────────────────────────────────────────────────────────── */
@@ -265,20 +267,24 @@ for (const d of DEVICES) {
 
   // collect materials once for independent fading
   const std = [], add = [], glow = [], pulseSet = new Set(g.userData.pulse || []);
-  g.traverse(o => {
-    if (!o.material) return;
-    const m = o.material;
+  const classify = (m) => {
+    if (!m) return;
     if (m.emissive !== undefined && (m.emissive.r || m.emissive.g || m.emissive.b)) {
       if (m.userData.base === undefined) m.userData.base = m.emissiveIntensity;
       if (m.userData.origBase === undefined) m.userData.origBase = m.userData.base;
       if (!glow.includes(m)) glow.push(m);
     }
-    if (m.transparent && m.color && m.emissive === undefined) { if (m.userData.o0 === undefined) m.userData.o0 = m.opacity; add.push(m); }
+    if (m.transparent && m.color && m.emissive === undefined) { if (m.userData.o0 === undefined) m.userData.o0 = m.opacity; if (!add.includes(m)) add.push(m); }
     else if (m.color) {
       if (!m.userData.c0) m.userData.c0 = m.color.clone();
       if (m.envMapIntensity !== undefined && m.userData.e0 === undefined) m.userData.e0 = m.envMapIntensity;
-      std.push(m);
+      if (!std.includes(m)) std.push(m);
     }
+  };
+  g.traverse(o => {
+    if (!o.material) return;
+    if (Array.isArray(o.material)) o.material.forEach(classify);   // multi-material meshes (e.g. the AI logo cube) fade too
+    else classify(o.material);
   });
   plinth.traverse(o => { if (o.material) { if (o.material.userData.o0 === undefined) o.material.userData.o0 = o.material.opacity; add.push(o.material); } });
   d.mats = { std, add, glow, pulseSet };
@@ -339,7 +345,7 @@ for (const d of DEVICES) {
     k.__off = [ox || 0, oy || 0];                       // hand-tuned nudge, applied after auto-layout
     k.__mode = mode || null;                            // 'above'/'below': place relative to the part, not the side columns
     k.__noline = noline || 0;                           // 0 = dot+line · 1 = bare · 2 = hairline only (keep the NUMBER — the tiers compare with ===)
-    const anchor = d.group.userData.anchors[a] ?? new THREE.Vector3();
+    const anchor = d.group.userData.anchors[a] ?? (console.warn(`[callout] device "${d.id}" names anchor "${a}" that its builder doesn't define — check DEVICES↔builder sync`), new THREE.Vector3());
     const getPos = () => _v.copy(anchor).applyMatrix4(d.group.matrixWorld);
     addLabel(k, getPos, d, 'callout', true);
     return k;
@@ -367,7 +373,7 @@ world.onTick = () => {
       const rlx = t.fx + rox, rly = t.fy + roy;
       t.el.style.left = rlx + 'px'; t.el.style.top = rly + 'px';
       t.dot.setAttribute('cx', sx); t.dot.setAttribute('cy', sy);
-      const rw = t.el.offsetWidth, rh = t.el.offsetHeight;
+      const rw = t.rw ?? (t.rw = t.el.offsetWidth), rh = t.rh ?? (t.rh = t.el.offsetHeight);   // cached at layout — plate size is frozen after settle, don't reflow per frame
       const rdx = sx - rlx, rdy = sy - rly;
       let X1 = sx, Y1 = sy, X2, Y2;
       if (Math.abs(rdx) >= Math.abs(rdy)) {
@@ -387,7 +393,7 @@ world.onTick = () => {
       t.line.setAttribute('x2', X2); t.line.setAttribute('y2', Y2);
       // noline tiers: 1 = bare (the part IS the marker) · 2 = hairline to the
       // part's own beacon, no dot (the glow plays the dot's role)
-      const vis = getComputedStyle(t.el).opacity;
+      const vis = t.el.style.opacity || '1';               // GSAP writes opacity inline — read it directly, no per-frame style flush
       t.line.style.opacity = t.el.__noline === 1 ? '0' : vis;
       t.dot.style.opacity = t.el.__noline ? '0' : vis;
     } else {
@@ -473,7 +479,10 @@ function layoutCallouts(d) {
         // cards sets the ring's width, the orb's own screen position sets its
         // centre, so orb and notes move as one grouped piece
         const hw = $('#howto').getBoundingClientRect(), sp = $('#specs').getBoundingClientRect();
-        const bandW = ((sp.width ? sp.left : innerWidth) - 20) - ((hw.width ? hw.right : 0) + 20);
+        const rawBand = ((sp.width ? sp.left : innerWidth) - 20) - ((hw.width ? hw.right : 0) + 20);
+        // on phones #howto is display:none and #specs spans the width, collapsing
+        // the band to (or below) zero — floor it so the five notes still ring the orb
+        const bandW = rawBand > 120 ? rawBand : Math.min(innerWidth - 48, 300);
         const pv2 = _v.copy(d.group.position); pv2.y += 1; pv2.project(camera);
         const orbX = (pv2.x * .5 + .5) * innerWidth;
         lx = orbX + (aip[0] - .5) * bandW + dx2;
@@ -491,6 +500,7 @@ function layoutCallouts(d) {
       c.t.el.style.display = '';
       c.t.el.style.left = lx + 'px'; c.t.el.style.top = ly + 'px';
       const w = c.t.el.offsetWidth, h = c.t.el.offsetHeight;
+      c.t.rw = w; c.t.rh = h;                              // cache for onTick (refreshed each layout)
       // the leader aims at the label's CENTRE and stops at its border:
       // wherever the label moves, the line rotates to lead to its middle
       const ddx = c.sx - lx, ddy = c.sy - ly;
@@ -530,7 +540,7 @@ function applyFade(d) {
     m.color.copy(m.userData.c0).multiplyScalar(1 - .97 * k);
     if (m.userData.e0 !== undefined) m.envMapIntensity = m.userData.e0 * (1 - k);
   }
-  for (const m of d.mats.add) m.opacity = m.userData.o0 * (1 - k);
+  for (const m of d.mats.add) { m.userData.fadeMul = 1 - k; m.opacity = m.userData.o0 * (1 - k); }   // fadeMul lets world.js's per-frame ring writer honour the dim
   for (const m of d.mats.glow) {
     if (d.mats.pulseSet.has(m)) m.userData.base = m.userData.origBase * (1 - k);
     else m.emissiveIntensity = m.userData.origBase * (1 - k);
@@ -681,7 +691,9 @@ function goView(id, force = false) {
   const prev = current; current = id;
   location.hash = id === 'catalogue' ? '' : id;
 
-  document.querySelectorAll('#chapters .chip').forEach(b => b.classList.toggle('on', b.dataset.go === id));
+  // device views are still the Catalogue surface — keep its self-chip green
+  const catActive = id === 'catalogue' || !!byId[id];
+  document.querySelectorAll('#chapters .chip').forEach(b => b.classList.toggle('on', b.dataset.go === 'catalogue' ? catActive : b.dataset.go === id));
   document.querySelectorAll('#plegend .wl-row.dv').forEach(r => r.classList.toggle('on', r.dataset.dev === id));
 
   if (id === 'catalogue') {
@@ -691,7 +703,8 @@ function goView(id, force = false) {
     world.setStreamsVisible(true);
     world.setGridDim(false);
     onSettle = null; calloutsLive = true;
-    for (const t of tracked) { if (t.kind === 'plate') t.el.style.opacity = ''; else { t.el.style.opacity = '0'; t.fx = null; gsap.killTweensOf(t.el); } }
+    document.body.classList.remove('slim-plates');       // catalogue has room again — re-earn plate descriptions
+    for (const t of tracked) { if (t.kind === 'plate') { t.el.style.opacity = ''; t.el.style.display = ''; } else { t.el.style.opacity = '0'; t.fx = null; gsap.killTweensOf(t.el); } }
     $('#plegend').classList.add('show');
     $('#specs').classList.remove('show');
     document.body.classList.remove('devview');
@@ -720,7 +733,7 @@ function goView(id, force = false) {
   verb.textContent = d.kicker.split('·')[0].trim();
   verb.classList.add('show');
   for (const t of tracked) {
-    if (t.kind === 'plate') t.el.style.opacity = '0';
+    if (t.kind === 'plate') { t.el.style.opacity = '0'; t.el.style.display = 'none'; }   // hidden AND non-interactive — an opacity:0 plate still hijacks clicks/orbit
     else { t.el.style.opacity = '0'; t.fx = null; gsap.killTweensOf(t.el); }
   }
   calloutsLive = false;                                 // the tick reveals once the flight has settled
@@ -738,6 +751,12 @@ function goView(id, force = false) {
 
 /* ── input: chips, legend rows, raycast hover/click, keys, hash ─────────────── */
 
+// browser Back/Forward changes the hash → keep the 3D view in sync with the URL
+addEventListener('hashchange', () => {
+  const h = location.hash.slice(1);
+  const id = byId[h] ? h : 'catalogue';
+  if (id !== current) goView(id, true);
+});
 document.querySelectorAll('#chapters .chip').forEach(b => b.addEventListener('click', () => goView(b.dataset.go)));
 document.querySelectorAll('#plegend .wl-row.dv').forEach(r => {
   r.style.setProperty('--fa', hex(byId[r.dataset.dev].hue));
@@ -751,11 +770,13 @@ let hovered = null, downAt = 0, downXY = [0, 0];
 function pick(e) {
   mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   ray.setFromCamera(mouse, camera);
+  let best = null, bestD = Infinity;                    // nearest hit, not first-in-array — overlapping units must resolve to the front one
   for (const d of DEVICES) {
     if (!d.group.visible) continue;
-    if (ray.intersectObject(d.group, true).length) return d;
+    const hits = ray.intersectObject(d.group, true);
+    if (hits.length && hits[0].distance < bestD) { bestD = hits[0].distance; best = d; }
   }
-  return null;
+  return best;
 }
 addEventListener('pointermove', (e) => {
   const onScene = e.target === $('#scene');
