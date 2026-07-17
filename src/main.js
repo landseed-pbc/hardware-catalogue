@@ -821,21 +821,22 @@ addEventListener('keydown', (e) => {
 const brandHome = document.getElementById('brand-home');
 if (brandHome) brandHome.addEventListener('click', (e) => { e.preventDefault(); goView('catalogue', true); });
 
-/* ── mobile: the floating-stage catalogue ────────────────────────────────────
-   The 3D bay is a landscape experience that can't work portrait. On a phone we
-   pin ONE 3D viewport (the world renderer, reused) at a FIXED position near the
-   top — it never repositions, so it can't lag the scroll — and let text cards
-   scroll past beneath it. The device floats in clean space (the bay grid/deck
-   are hidden, a soft accent glow behind), gently bobbing and auto-rotating. An
-   IntersectionObserver tracks which card crosses mid-screen and cross-fades the
-   stage to that product. The DESKTOP path is untouched — this only runs when
-   innerWidth≤560. */
-function stageGlow(css) {                                  // soft accent pool behind the floating device
+/* ── mobile: the integrated scroll catalogue ─────────────────────────────────
+   The 3D bay is a landscape experience that can't work portrait. On a phone
+   each product is ONE seamless container: the world canvas (reused) mounts INTO
+   the active card and renders the device full-bleed on the SAME dark surface the
+   copy sits on — no box, no border, no divider, so device and text read as a
+   single unit. Because the canvas is a normal in-flow child it scrolls natively
+   with its card (CSS owns position → zero lag), and it HOPS to the next card as
+   that product scrolls up, revealing the device (scale + spin-in + fade) while
+   the copy staggers in — so each product materialises as you reach it. The
+   DESKTOP path is untouched — this only runs when innerWidth≤560. */
+function stageGlow(css) {                                  // soft accent pool the device floats in — edges = page bg, so seamless
   const c = document.createElement('canvas'); c.width = c.height = 128;
   const x = c.getContext('2d');
   x.fillStyle = '#050d08'; x.fillRect(0, 0, 128, 128);
-  const g = x.createRadialGradient(64, 54, 4, 64, 66, 90);
-  g.addColorStop(0, css + '40'); g.addColorStop(1, css + '00');
+  const g = x.createRadialGradient(64, 52, 4, 64, 64, 92);
+  g.addColorStop(0, css + '42'); g.addColorStop(1, css + '00');
   x.fillStyle = g; x.fillRect(0, 0, 128, 128);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
@@ -843,17 +844,14 @@ function stageGlow(css) {                                  // soft accent pool b
 function buildMobileCatalogue(startId) {
   const short = (n) => n.replace('Landseed ', '');
   const wrap = document.createElement('main'); wrap.id = 'mcat';
-  const stage = document.createElement('div'); stage.className = 'mc-stage';   // the fixed 3D viewport (canvas mounts here)
-  wrap.appendChild(stage);
-  const flow = document.createElement('div'); flow.className = 'mc-flow';
   const hero = document.createElement('section'); hero.className = 'mc-hero';
   hero.innerHTML =
     `<div class="mc-kick">The product line</div><h1>Landseed Hardware</h1>` +
     `<p class="mc-tag">${CAT_LINE}</p>` +
     `<div class="mc-nums"><div><b>7</b><span>products</span></div><div><b>$50–299</b><span>hardware</span></div><div><b>30 s</b><span>fastest alert</span></div><div><b>&gt;12 mo</b><span>battery</span></div></div>`;
   const strip = document.createElement('div'); strip.className = 'mc-strip';
-  hero.appendChild(strip); flow.appendChild(hero);
-  const cards = document.createElement('section'); cards.className = 'mc-cards'; flow.appendChild(cards);
+  hero.appendChild(strip); wrap.appendChild(hero);
+  const cards = document.createElement('section'); cards.className = 'mc-cards'; wrap.appendChild(cards);
   for (const d of DEVICES) {
     const pill = document.createElement('button'); pill.className = 'mc-pill'; pill.style.setProperty('--fa', hex(d.hue));
     pill.innerHTML = `<i></i><span>${short(d.name)}</span>`;
@@ -864,69 +862,73 @@ function buildMobileCatalogue(startId) {
       : (d.key || []).map(([k, v]) => `<div class="mc-spec"><span>${k}</span><b>${v}</b></div>`).join('');
     const card = document.createElement('article'); card.className = 'mc-card'; card.id = 'mc-' + d.id; card.style.setProperty('--fa', hex(d.hue));
     card.innerHTML =
-      `<div class="mc-kick">${d.kicker}</div><h2>${d.name}</h2>` +
+      `<div class="mc-viz"></div>` +
+      `<div class="mc-copy"><div class="mc-kick">${d.kicker}</div><h2>${d.name}</h2>` +
       `<div class="mc-price">${d.price}</div><p class="mc-line">${d.line}</p>` +
       `<div class="mc-nums mc-cardnums">${stats}</div>` +
-      `<div class="mc-how">${chain}</div>`;
+      `<div class="mc-how">${chain}</div></div>`;
     cards.appendChild(card);
   }
-  wrap.appendChild(flow);
   document.body.appendChild(wrap);
   document.body.classList.add('mcat');
   document.body.classList.remove('booting');
   const loader = $('#loader'); if (loader) gsap.to(loader, { opacity: 0, duration: .5, onComplete: () => loader.remove() });
-  mobileStage(stage, startId);
+  mobileStage(startId);
   if (startId && startId !== 'catalogue') requestAnimationFrame(() => document.getElementById('mc-' + startId)?.scrollIntoView());
 }
 
-/* the floating 3D stage: the world canvas, mounted INTO the fixed .mc-stage so
-   its screen position is constant (CSS-owned, never set per-frame → no scroll
-   lag). Only the active device is visible; it bobs + auto-rotates in a soft
-   accent glow. An IntersectionObserver — not per-frame geometry — decides which
-   product is active as its card crosses mid-viewport. Phone-only. */
-function mobileStage(stageEl, startId) {
+/* the one canvas HOPS into whichever card is most in view (native in-flow child
+   → scrolls with the card, no per-frame positioning) and reveals the device.
+   IntersectionObserver picks the most-visible .mc-viz; a reveal tween (revealT)
+   scales + spins + floats the device in while gsap fades the canvas and CSS
+   staggers the copy. Phone-only. */
+function mobileStage(startId) {
   const r = world.renderer, scene = world.scene, cv = r.domElement;
-  cv.classList.add('mc-live'); stageEl.appendChild(cv);
+  cv.classList.add('mc-live');
   for (const c of scene.children) if (!c.isLight && c !== world.root) c.visible = false;   // clean space: hide the bay
   const cam = new THREE.PerspectiveCamera(34, 1, .05, 60);
   const DIR = new THREE.Vector3(.5, .44, .92).normalize();
   const sph = new THREE.Sphere();
   for (const d of DEVICES) {                                // precompute a rotation-stable frame + float per device
     new THREE.Box3().setFromObject(d.group).getBoundingSphere(sph);
-    d._sc = sph.center.clone(); d._baseY = d.group.position.y;
-    d._sd = sph.radius / Math.sin(THREE.MathUtils.degToRad(19)) * 1.04;
-    d._amp = sph.radius * .05;
+    d._sc = sph.center.clone(); d._baseY = d.group.position.y; d._baseScale = d.group.scale.x || 1;
+    d._sd = sph.radius / Math.sin(THREE.MathUtils.degToRad(19)) * 1.18;
+    d._amp = sph.radius * .045;
     d.group.visible = false;
     if (d.plinth) d.plinth.visible = false;
   }
-  let active = null;
-  const setActive = (d) => {
+  let active = null, activeCard = null, revealT = 1; const rev = { t: 1 };
+  const sizeTo = (viz) => { const w = viz.clientWidth, h = viz.clientHeight; if (!w || !h) return; r.setSize(w, h, true); cam.aspect = w / h; cam.updateProjectionMatrix(); };   // updateStyle:true → inline px on the canvas, so it fills the viz (not 100vh)
+  function activate(d, viz, card) {
     if (!d || d === active) return;
-    if (active) { active.group.visible = false; active.group.position.y = active._baseY; }
-    active = d; active.group.visible = true;
+    if (active) active.group.visible = false;
+    if (activeCard) activeCard.classList.remove('on');
+    active = d; activeCard = card; d.group.visible = true;
     if (scene.background && scene.background.dispose) scene.background.dispose();
     scene.background = stageGlow(hex(d.hue));
-    gsap.fromTo(cv, { opacity: .15 }, { opacity: 1, duration: .45, ease: 'power2.out' });
-  };
-  const io = new IntersectionObserver((ents) => {           // the card spanning mid-screen owns the stage
-    for (const e of ents) if (e.isIntersecting) setActive(byId[e.target.id.slice(3)]);
-  }, { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
-  document.querySelectorAll('.mc-card').forEach(el => io.observe(el));
-  setActive(byId[startId] && startId !== 'catalogue' ? byId[startId] : DEVICES[0]);
-  const size = () => {
-    const w = stageEl.clientWidth, h = stageEl.clientHeight;
-    if (!w || !h) return;
-    r.setSize(w, h, false); cv.style.width = '100%'; cv.style.height = '100%';
-    cam.aspect = w / h; cam.updateProjectionMatrix();
-  };
-  size(); addEventListener('resize', size);
+    viz.appendChild(cv); sizeTo(viz); card.classList.add('on');
+    rev.t = 0; revealT = 0; gsap.killTweensOf(rev);
+    gsap.to(rev, { t: 1, duration: .85, ease: 'power3.out', onUpdate() { revealT = rev.t; } });
+    gsap.fromTo(cv, { opacity: 0 }, { opacity: 1, duration: .55, ease: 'power2.out' });
+  }
+  const ratios = new Map();
+  const io = new IntersectionObserver((ents) => {           // the most-visible product owns the canvas
+    for (const e of ents) ratios.set(e.target, e.isIntersecting ? e.intersectionRatio : 0);
+    let best = null, br = 0; for (const [el, ra] of ratios) if (ra > br) { br = ra; best = el; }
+    if (best && br >= .5) { const card = best.closest('.mc-card'); activate(byId[card.id.slice(3)], best, card); }
+  }, { threshold: [0, .25, .5, .75, 1] });
+  document.querySelectorAll('.mc-viz').forEach(el => io.observe(el));
+  const first = (byId[startId] && startId !== 'catalogue') ? byId[startId] : DEVICES[0];
+  const fc = document.getElementById('mc-' + first.id); activate(first, fc.querySelector('.mc-viz'), fc);
+  addEventListener('resize', () => { if (activeCard) sizeTo(activeCard.querySelector('.mc-viz')); });
   const clock = new THREE.Clock();
   function loop() {
     requestAnimationFrame(loop);
     if (document.hidden || !active) return;
     const t = clock.getElapsedTime();
-    active.group.rotation.y = (active.group.userData.rotY0 ?? 0) + t * .3;
-    active.group.position.y = active._baseY + Math.sin(t * 1.1) * active._amp;   // gentle float
+    active.group.scale.setScalar(active._baseScale * (.9 + .1 * revealT));
+    active.group.rotation.y = (active.group.userData.rotY0 ?? 0) + t * .3 + (1 - revealT) * .7;   // spins into place
+    active.group.position.y = active._baseY + Math.sin(t * 1.1) * active._amp * revealT;          // eases into a float
     cam.position.copy(active._sc).addScaledVector(DIR, active._sd); cam.lookAt(active._sc);
     r.render(scene, cam);
   }
