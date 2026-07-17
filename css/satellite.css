@@ -223,7 +223,6 @@ body.sat.ai-page{
   .app-tabs{margin-left:6px}
   .app-tabs button{padding:7px 11px;font-size:12px}
   .app-sub{top:50px}
-  
   .det-head,.det-row{grid-template-columns:50px 1.3fr 1fr 44px 44px .8fr;gap:8px}
   .det-list{max-height:60vh}
 }
@@ -461,6 +460,11 @@ body.sat.ai-page{
   .app-tabs::-webkit-scrollbar{display:none}
   .app-tabs button{flex:none;padding:7px 13px;font-size:13px}
   .app-bar .sp-badge{flex:none}
+  /* the intro line scrolls with the content instead of pinning over it */
+  .app-sub{position:static;top:auto;margin:52px 0 0;padding:11px 16px 12px}
+  .app-main{padding-top:14px}
+  /* the occupancy table gets a touch more room for species names on a phone */
+  .occ-row{grid-template-columns:minmax(72px,1.2fr) 2.5em minmax(64px,1.5fr) 2.3em 2.3em 2.5em;gap:7px}
 }
 
 /* ── overhauled right rail — a scrolling dashboard column ──────────────────── */
