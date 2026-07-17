@@ -282,7 +282,10 @@ body.mcat header.hud{background:linear-gradient(#050d08 62%,rgba(5,13,8,0))}   /
    straight into the copy — no seam. */
 .mc-card{position:relative;scroll-margin-top:64px}
 .mc-viz{position:relative;height:46vh;margin:0 -18px}
-#scene.mc-live{position:absolute;top:0;left:0;display:block;opacity:0;will-change:opacity;cursor:default}
+/* pointer-events:none — the render never swallows a touch (OrbitControls pins
+   touch-action:none on #scene), so the page scrolls even with a finger on the
+   device. No tap interaction is needed here; the pills and nav handle it. */
+#scene.mc-live{position:absolute;top:0;left:0;display:block;opacity:0;pointer-events:none;touch-action:auto;will-change:opacity;cursor:default}
 .mc-viz::after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(rgba(5,13,8,0),#050d08);pointer-events:none;z-index:1}
 .mc-copy{position:relative;margin-top:-30px;z-index:2}
 .mc-copy>*{opacity:0;transform:translateY(18px);transition:opacity .55s ease,transform .6s cubic-bezier(.2,.75,.25,1)}
@@ -293,13 +296,15 @@ body.mcat header.hud{background:linear-gradient(#050d08 62%,rgba(5,13,8,0))}   /
 .mc-card.on .mc-copy>:nth-child(4){transition-delay:.23s}
 .mc-card.on .mc-copy>:nth-child(5){transition-delay:.29s}
 .mc-card.on .mc-copy>:nth-child(6){transition-delay:.35s}
+.mc-card.on .mc-copy>:nth-child(7){transition-delay:.41s}
 @media(prefers-reduced-motion:reduce){.mc-copy>*{transition:opacity .3s ease}.mc-card.on .mc-copy>*{transform:none}.mc-copy>*{transform:none}}
 .mc-copy .mc-kick{color:color-mix(in srgb,var(--fa) 72%,#fff)}
 .mc-copy h2{font-size:28px;font-weight:800;letter-spacing:-.015em;line-height:1.04;margin:8px 0 0;color:#F0F0EA}
 .mc-price{margin-top:8px;font-size:15px;font-weight:800;color:var(--fa)}
 .mc-line{margin-top:12px;font-size:15px;line-height:1.6;color:var(--dim)}
-.mc-cardnums{margin-top:18px}
-.mc-how{margin-top:18px;padding-top:15px;border-top:1px solid rgba(240,240,234,.1)}
+.mc-cardnums{margin-top:20px}
+.mc-how{margin-top:22px;padding-top:16px;border-top:1px solid rgba(240,240,234,.12);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.mc-chain{margin-top:11px}
 .mc-step{display:flex;gap:10px;padding:7px 0;font-size:13.5px;line-height:1.5}
 .mc-step i{flex:none;width:22px;height:22px;border-radius:50%;background:var(--fa);color:#071007;font-style:normal;font-weight:800;font-size:11.5px;display:flex;align-items:center;justify-content:center;margin-top:1px}
 .mc-step b{color:#F0F0EA;font-weight:700;margin-right:6px}

@@ -857,7 +857,8 @@ function buildMobileCatalogue(startId) {
     pill.innerHTML = `<i></i><span>${short(d.name)}</span>`;
     pill.addEventListener('click', () => document.getElementById('mc-' + d.id).scrollIntoView({ behavior: 'smooth', block: 'start' }));
     strip.appendChild(pill);
-    const stats = (d.stats || []).map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('');
+    const statsBlock = (d.stats && d.stats.length)
+      ? `<div class="mc-nums mc-cardnums">${d.stats.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('')}</div>` : '';
     const chain = d.how ? d.how.map(([step, desc], i) => `<div class="mc-step"><i>${i + 1}</i><b>${step}</b><span>${desc}</span></div>`).join('')
       : (d.key || []).map(([k, v]) => `<div class="mc-spec"><span>${k}</span><b>${v}</b></div>`).join('');
     const card = document.createElement('article'); card.className = 'mc-card'; card.id = 'mc-' + d.id; card.style.setProperty('--fa', hex(d.hue));
@@ -865,8 +866,9 @@ function buildMobileCatalogue(startId) {
       `<div class="mc-viz"></div>` +
       `<div class="mc-copy"><div class="mc-kick">${d.kicker}</div><h2>${d.name}</h2>` +
       `<div class="mc-price">${d.price}</div><p class="mc-line">${d.line}</p>` +
-      `<div class="mc-nums mc-cardnums">${stats}</div>` +
-      `<div class="mc-how">${chain}</div></div>`;
+      statsBlock +
+      `<div class="mc-how">${d.how ? 'How it works' : 'Key specification'}</div>` +
+      `<div class="mc-chain">${chain}</div></div>`;
     cards.appendChild(card);
   }
   document.body.appendChild(wrap);
