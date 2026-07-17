@@ -122,6 +122,10 @@ export async function buildTerrain(hostId, tip) {
   controls.maxPolarAngle = 1.46; controls.minPolarAngle = .05;
   controls.target.set(0, hSpan * .12, 0);
   camera.position.set(Wx * 1.84, Wz * .814, 0);
+  // a phone frames the wide terrain at a small angle, leaving empty margin — on
+  // a narrow viewport dolly the camera in along its axis so the plate fills.
+  // Scoped to innerWidth≤560: desktop and tablet framing are untouched.
+  if (innerWidth <= 560) camera.position.lerpVectors(controls.target, camera.position, .64);
   controls.autoRotate = false;
   controls.update();
   const refDist = camera.position.distanceTo(controls.target);   // depth-scale reference

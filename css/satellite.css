@@ -448,23 +448,75 @@ body.sat.ai-page{
 
 @media(max-width:560px){ .layers{top:8px;right:8px} .layers .lyr{font-size:11px;padding:5px 10px 5px 8px} .lyr-sub .sub{font-size:10px} }
 
-/* ── phone: keep the app bar one row (its height sets the content offset) and
-   make the view tabs a scrollable strip so all four stay reachable; the
-   "sample data" badge stays visible (honesty), the clock and the "· CTDAMS"
-   suffix yield the width. Desktop untouched. ─────────────────────────────────*/
+/* ── phone (≤560): the CTDAMS workspace as a true mobile dashboard — NOT a
+   trimmed-down page. A sticky brand strip + full-width segmented tab control
+   keeps all four views one tap away; every view stacks with its full detail;
+   the occupancy twin is the centrepiece; and the alert stream is rebuilt as a
+   native feed panel (the desktop shows a ranger's phone, but ON a phone that
+   reads as a confusing phone-in-a-phone, so here it becomes a dashboard feed).
+   Desktop and the ≤1080 tablet layout are untouched. ─────────────────────────*/
 @media(max-width:560px){
-  .app-bar{padding:10px 14px;gap:8px}
+  /* app bar → row 1 brand + badge + clock, row 2 a segmented tab control */
+  .app-bar{position:sticky;top:0;flex-wrap:wrap;align-items:center;gap:9px;padding:9px 13px}
+  .app-mark{height:23px}
+  .app-name{font-size:14px}
   .app-name span{display:none}
-  .app-clock{display:none}
-  .app-tabs{margin-left:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .app-bar .sp-badge{margin-left:auto;order:3;flex:none}
+  .app-clock{display:inline;order:4;font-size:12px}
+  .app-tabs{order:5;flex-basis:100%;width:100%;margin:2px 0 0;gap:4px;background:rgba(155,108,224,.09);border:1px solid rgba(155,108,224,.16);border-radius:12px;padding:4px}
   .app-tabs::-webkit-scrollbar{display:none}
-  .app-tabs button{flex:none;padding:7px 13px;font-size:13px}
-  .app-bar .sp-badge{flex:none}
-  /* the intro line scrolls with the content instead of pinning over it */
-  .app-sub{position:static;top:auto;margin:52px 0 0;padding:11px 16px 12px}
-  .app-main{padding-top:14px}
-  /* the occupancy table gets a touch more room for species names on a phone */
-  .occ-row{grid-template-columns:minmax(72px,1.2fr) 2.5em minmax(64px,1.5fr) 2.3em 2.3em 2.5em;gap:7px}
+  .app-tabs button{flex:1;min-width:0;text-align:center;padding:9px 2px;font-size:12px;font-weight:700;border-radius:8px}
+  .app-tabs button.on{background:rgba(155,108,224,.34)}
+
+  /* the intro line + content flow beneath the sticky bar */
+  .app-sub{position:static;top:auto;margin:0;padding:11px 15px 12px;font-size:12px;line-height:1.5}
+  .app-main{position:static;inset:auto;padding:13px 13px 112px;height:auto}
+  .view.on{display:flex;flex-direction:column;gap:13px}
+  .view .pane{border-radius:15px;padding:14px 15px;overflow:visible}
+  .pane-h{font-size:12.5px}
+
+  /* OVERVIEW order: the map, then the live alert feed, then the metrics rail */
+  #view-overview .map-pane{order:0}
+  #view-overview .phone-pane{order:1}
+  #view-overview .col-rail{order:2;overflow:visible;max-height:none}
+
+  /* the occupancy twin — a real centrepiece on the phone. The 3D terrain is a
+     wide perspective plate, so it gets a shorter frame (less empty sky); the 2D
+     survey choropleth scales to fill, so it can run taller. */
+  .map-pane .map-wrap{flex:none}
+  #map{height:40vh;min-height:290px}
+  #map2{height:56vh;min-height:340px}
+  .map-ctrl{justify-content:flex-start}
+  .layers{flex-wrap:wrap;justify-content:flex-start}
+  .lyr-sub{flex-wrap:wrap;max-width:none}
+
+  /* live alerts: shed the phone chrome → a native dashboard feed panel */
+  .phone-pane{background:linear-gradient(180deg,rgba(10,9,16,.8),rgba(7,8,12,.86)) !important;border:1px solid rgba(155,108,224,.16) !important;border-radius:15px;padding:0;display:block;align-items:stretch;justify-content:flex-start}
+  .phone-pane #phone{width:100%;--phone-w:100%;max-height:none;height:auto;border:0;border-radius:15px;background:none;box-shadow:none}
+  .phone-pane .ph-island,.phone-pane .ph-status,.phone-pane .tg-input{display:none}
+  .phone-pane .tg-head{background:transparent;border-bottom:1px solid rgba(155,108,224,.16);padding:12px 15px}
+  .phone-pane .tg-ava{background:rgba(155,108,224,.12)}
+  .phone-pane .tg-who b{color:var(--text)}
+  .phone-pane .tg-who span{color:var(--muted)}
+  .phone-pane .tg-body{background:transparent;max-height:66vh;padding:13px 14px;gap:10px}
+  .phone-pane .tg-day span{background:rgba(155,108,224,.12);color:var(--dim)}
+  .phone-pane .tg-msg{max-width:100%;background:rgba(155,108,224,.06);border:1px solid rgba(155,108,224,.14);border-radius:12px;box-shadow:none}
+  .phone-pane .tg-msg b{color:#f0efe9}
+  .phone-pane .tg-msg span{color:var(--dim)}
+  .phone-pane .tg-msg em{color:var(--muted)}
+
+  /* DETECTIONS — a two-up gallery; filters + header wrap */
+  .det-pane{overflow:visible}
+  .det-grid{grid-template-columns:1fr 1fr;gap:9px;flex:none;overflow:visible}
+  #view-detections .pane-h{flex-wrap:wrap;gap:7px 10px}
+  .filters{margin-left:0;flex-wrap:wrap;gap:5px}
+
+  /* SURVEY + shared tables flow instead of inner-scrolling */
+  .occ-tbl,.doc-list{flex:none;overflow:visible;max-height:none}
+  .occ-row{grid-template-columns:minmax(66px,1.15fr) 2.4em minmax(56px,1.35fr) 2.2em 2.2em 2.4em;gap:6px;font-size:11.5px}
+
+  /* REPORTS — the list, then a tall document preview */
+  .rep-preview{min-height:66vh;flex:none}
 }
 
 /* ── overhauled right rail — a scrolling dashboard column ──────────────────── */
