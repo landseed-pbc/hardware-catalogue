@@ -93,6 +93,17 @@ for (const m of map3d.matchAll(new RegExp(`hue:\\s*${HUE}[\\s\\S]{0,80}?cat:\\s*
   else if (devHue[cat] !== hue) { failed++; console.error(`COUPLING  map3d DEVLAYERS hue ${hue} ≠ DEVICES "${cat}" hue ${devHue[cat]}`); }
 }
 
+// the mobile hero shows aggregate product facts — the count and the price range
+// — that duplicate DEVICES; guard them so a device/price change can't leave the
+// phone headline lying while CI stays green (the count is derived in code, this
+// pins the $-range which is a literal)
+const heroRange = main.match(/<b>\$(\d+)–(\d+)<\/b><span>hardware/);
+if (heroRange) {
+  const prices = [...main.matchAll(/price:\s*'\$(\d+)/g)].map((m) => +m[1]);
+  const lo = Math.min(...prices), hi = Math.max(...prices);
+  if (+heroRange[1] !== lo || +heroRange[2] !== hi) { failed++; console.error(`DRIFT  mobile hero price range $${heroRange[1]}–${heroRange[2]} ≠ DEVICES min/max $${lo}–$${hi}`); }
+}
+
 // the catalogue's demo prefetch hints must track the versions /demo/ loads, or
 // the prefetch is a guaranteed cache miss (a recurring drift on every demo bump)
 const demoIx = read('demo/index.html');

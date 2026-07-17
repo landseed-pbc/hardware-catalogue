@@ -498,7 +498,7 @@ body.sat.ai-page{
   .phone-pane .tg-ava{background:rgba(155,108,224,.12)}
   .phone-pane .tg-who b{color:var(--text)}
   .phone-pane .tg-who span{color:var(--muted)}
-  .phone-pane .tg-body{background:transparent;max-height:66vh;padding:13px 14px;gap:10px}
+  .phone-pane .tg-body{background:transparent;max-height:none;overflow:visible;padding:13px 14px;gap:10px}
   .phone-pane .tg-day span{background:rgba(155,108,224,.12);color:var(--dim)}
   .phone-pane .tg-msg{max-width:100%;background:rgba(155,108,224,.06);border:1px solid rgba(155,108,224,.14);border-radius:12px;box-shadow:none}
   .phone-pane .tg-msg b{color:#f0efe9}

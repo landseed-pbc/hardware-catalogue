@@ -5,7 +5,7 @@
 // chain (left) and the key specification (right) — sized to need no scrolling.
 
 import * as THREE from 'three';
-import { createWorld } from './world.js?v=4';
+import { createWorld } from './world.js?v=5';
 import { BUILDERS } from './devices.js?v=31';
 import { NUM } from './palette.js?v=1';
 
@@ -677,6 +677,7 @@ function fitPanels() {
   if (sc.scrollHeight > sc.clientHeight + 1) sp.classList.add('mini');
 }
 addEventListener('resize', () => {
+  if (innerWidth <= 560) return;                        // phone: the mobile stage handles its own resize; the desktop bay is not mounted
   if (current !== 'catalogue') { fitPanels(); if (!busy && byId[current]) layoutCallouts(byId[current]); return; }
   document.body.classList.remove('slim-plates');       // re-earn descriptions if room returns
   const f = fitCatalogue();
@@ -686,6 +687,7 @@ addEventListener('resize', () => {
 const CAT_LINE = 'Poaching, illegal logging and human-wildlife conflict drive the loss of the wild — and the tools meant to stop them have been expensive, blind, or disconnected. Landseed builds cameras that think before they transmit, a network that reaches any sky, and prices that deploy in numbers — all reporting to one brain.';
 
 function goView(id, force = false) {
+  if (innerWidth <= 560) return;                        // phone: navigation is the scroll catalogue, not the 3D bay — never touch the shared scene
   if (force) busy = false;                              // the wordmark always brings you home
   if (busy && current !== id) return;
   if (!byId[id] && id !== 'catalogue') return;
@@ -848,7 +850,7 @@ function buildMobileCatalogue(startId) {
   hero.innerHTML =
     `<div class="mc-kick">The product line</div><h1>Landseed Hardware</h1>` +
     `<p class="mc-tag">${CAT_LINE}</p>` +
-    `<div class="mc-nums"><div><b>7</b><span>products</span></div><div><b>$50–299</b><span>hardware</span></div><div><b>30 s</b><span>fastest alert</span></div><div><b>&gt;12 mo</b><span>battery</span></div></div>`;
+    `<div class="mc-nums"><div><b>${DEVICES.length}</b><span>products</span></div><div><b>$50–299</b><span>hardware</span></div><div><b>30 s</b><span>fastest alert</span></div><div><b>&gt;12 mo</b><span>battery</span></div></div>`;
   const strip = document.createElement('div'); strip.className = 'mc-strip';
   hero.appendChild(strip); wrap.appendChild(hero);
   const cards = document.createElement('section'); cards.className = 'mc-cards'; wrap.appendChild(cards);
@@ -859,16 +861,24 @@ function buildMobileCatalogue(startId) {
     strip.appendChild(pill);
     const statsBlock = (d.stats && d.stats.length)
       ? `<div class="mc-nums mc-cardnums">${d.stats.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('')}</div>` : '';
-    const chain = d.how ? d.how.map(([step, desc], i) => `<div class="mc-step"><i>${i + 1}</i><b>${step}</b><span>${desc}</span></div>`).join('')
-      : (d.key || []).map(([k, v]) => `<div class="mc-spec"><span>${k}</span><b>${v}</b></div>`).join('');
+    const steps = (arr) => arr.map(([step, desc], i) => `<div class="mc-step"><i>${i + 1}</i><b>${step}</b><span>${desc}</span></div>`).join('');
+    const specs = (arr) => arr.map(([k, v]) => `<div class="mc-spec"><span>${k}</span><b>${v}</b></div>`).join('');
+    // how-chain, or (Relay Station) the connectivity scenarios + key spec, or a spec list — mirrors desktop fillPanels so no product loses content on mobile
+    let detailLabel, detailHtml;
+    if (d.how) { detailLabel = 'How it works'; detailHtml = steps(d.how); }
+    else if (d.scenarios) {
+      detailLabel = 'A solution for every landscape';
+      detailHtml = d.scenarios.map((s, i) => `<div class="mc-step"><i>${i + 1}</i><b>${s.n}</b><span>${s.d}${s.t ? ` · <em>${s.t}</em>` : ''}</span></div>`).join('')
+        + (d.key ? `<div class="mc-subh">Key specification</div>${specs(d.key)}` : '');
+    } else { detailLabel = 'Key specification'; detailHtml = specs(d.key || []); }
     const card = document.createElement('article'); card.className = 'mc-card'; card.id = 'mc-' + d.id; card.style.setProperty('--fa', hex(d.hue));
     card.innerHTML =
       `<div class="mc-viz"></div>` +
       `<div class="mc-copy"><div class="mc-kick">${d.kicker}</div><h2>${d.name}</h2>` +
       `<div class="mc-price">${d.price}</div><p class="mc-line">${d.line}</p>` +
       statsBlock +
-      `<div class="mc-how">${d.how ? 'How it works' : 'Key specification'}</div>` +
-      `<div class="mc-chain">${chain}</div></div>`;
+      `<div class="mc-how">${detailLabel}</div>` +
+      `<div class="mc-chain">${detailHtml}</div></div>`;
     cards.appendChild(card);
   }
   document.body.appendChild(wrap);
@@ -901,38 +911,50 @@ function mobileStage(startId) {
     d.group.visible = false;
     if (d.plinth) d.plinth.visible = false;
   }
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;   // honour reduce-motion for the 3D stage too, not just the CSS copy
   let active = null, activeCard = null, revealT = 1; const rev = { t: 1 };
   const sizeTo = (viz) => { const w = viz.clientWidth, h = viz.clientHeight; if (!w || !h) return; r.setSize(w, h, true); cam.aspect = w / h; cam.updateProjectionMatrix(); };   // updateStyle:true → inline px on the canvas, so it fills the viz (not 100vh)
   function activate(d, viz, card) {
     if (!d || d === active) return;
     if (active) active.group.visible = false;
-    if (activeCard) activeCard.classList.remove('on');
     active = d; activeCard = card; d.group.visible = true;
     if (scene.background && scene.background.dispose) scene.background.dispose();
     scene.background = stageGlow(hex(d.hue));
-    viz.appendChild(cv); sizeTo(viz); card.classList.add('on');
-    rev.t = 0; revealT = 0; gsap.killTweensOf(rev);
-    gsap.to(rev, { t: 1, duration: .85, ease: 'power3.out', onUpdate() { revealT = rev.t; } });
-    gsap.fromTo(cv, { opacity: 0 }, { opacity: 1, duration: .55, ease: 'power2.out' });
+    viz.appendChild(cv); sizeTo(viz);
+    history.replaceState(null, '', d === DEVICES[0] ? location.pathname + location.search : '#' + d.id);   // URL tracks the visible product (no history spam)
+    const firstReveal = !d._revealed && !RM; d._revealed = true;
+    gsap.killTweensOf(rev);
+    if (firstReveal) {                                     // first time a product is reached: it materialises (spin-in + scale + fade)
+      rev.t = 0; revealT = 0;
+      gsap.to(rev, { t: 1, duration: .85, ease: 'power3.out', onUpdate() { revealT = rev.t; } });
+      gsap.fromTo(cv, { opacity: 0 }, { opacity: 1, duration: .55, ease: 'power2.out' });
+    } else {                                               // already seen (or reduce-motion): just hand the canvas over, settled — no re-spin
+      rev.t = 1; revealT = 1;
+      gsap.fromTo(cv, { opacity: 0 }, { opacity: 1, duration: RM ? 0 : .3, ease: 'power2.out' });
+    }
   }
   const ratios = new Map();
-  const io = new IntersectionObserver((ents) => {           // the most-visible product owns the canvas
-    for (const e of ents) ratios.set(e.target, e.isIntersecting ? e.intersectionRatio : 0);
-    let best = null, br = 0; for (const [el, ra] of ratios) if (ra > br) { br = ra; best = el; }
-    if (best && br >= .5) { const card = best.closest('.mc-card'); activate(byId[card.id.slice(3)], best, card); }
-  }, { threshold: [0, .25, .5, .75, 1] });
+  const io = new IntersectionObserver((ents) => {           // the most-visible product owns the canvas; any card that enters reveals its copy permanently
+    for (const e of ents) {
+      ratios.set(e.target, e.isIntersecting ? e.intersectionRatio : 0);
+      if (e.isIntersecting) e.target.closest('.mc-card').classList.add('shown');
+    }
+    let best = null, br = -1; for (const [el, ra] of ratios) if (ra > br) { br = ra; best = el; }
+    if (best && br > 0) { const card = best.closest('.mc-card'); activate(byId[card.id.slice(3)], best, card); }   // no 0.5 gate → no dead-band hand-off
+  }, { threshold: [0, .12, .25, .5, .75, 1] });
   document.querySelectorAll('.mc-viz').forEach(el => io.observe(el));
   const first = (byId[startId] && startId !== 'catalogue') ? byId[startId] : DEVICES[0];
-  const fc = document.getElementById('mc-' + first.id); activate(first, fc.querySelector('.mc-viz'), fc);
+  const fc = document.getElementById('mc-' + first.id); fc.classList.add('shown'); activate(first, fc.querySelector('.mc-viz'), fc);
   addEventListener('resize', () => { if (activeCard) sizeTo(activeCard.querySelector('.mc-viz')); });
-  const clock = new THREE.Clock();
+  const clock = new THREE.Clock(); let t = 0;
   function loop() {
     requestAnimationFrame(loop);
     if (document.hidden || !active) return;
-    const t = clock.getElapsedTime();
-    active.group.scale.setScalar(active._baseScale * (.9 + .1 * revealT));
-    active.group.rotation.y = FACE + (1 - revealT) * .8 + Math.sin(t * .5) * .05;                 // turns to face the viewer, then holds with a whisper of sway
-    active.group.position.y = active._baseY + Math.sin(t * 1.1) * active._amp * revealT;          // eases into a float
+    const dt = Math.min(clock.getDelta(), .05); t += dt;    // cap dt so a backgrounded tab doesn't jump the sway/float phase on return
+    if (!RM) world.stepDevices(t, dt);                      // drive per-device idle motion (AI rings, acoustic waves, LED pulses) — frozen otherwise on mobile
+    active.group.scale.setScalar(active._baseScale * (RM ? 1 : .9 + .1 * revealT));
+    active.group.rotation.y = FACE + (RM ? 0 : (1 - revealT) * .8 + Math.sin(t * .5) * .05);      // turns to face the viewer, then holds with a whisper of sway
+    active.group.position.y = active._baseY + (RM ? 0 : Math.sin(t * 1.1) * active._amp * revealT);// eases into a float
     cam.position.copy(active._sc).addScaledVector(DIR, active._sd); cam.lookAt(active._sc);
     r.render(scene, cam);
   }
@@ -947,9 +969,21 @@ const startId = (() => {
   return byId[h] ? h : 'catalogue';
 })();
 
+// the mobile vs bay decision is made once at load from the width; if the width
+// crosses the breakpoint (rotate to/from landscape, window resize) rebuild by
+// reloading, so a phone rotated to landscape isn't stuck in the portrait build
+// and vice-versa
+{ const wasNarrow = innerWidth <= 560;
+  addEventListener('resize', () => { if ((innerWidth <= 560) !== wasNarrow) location.reload(); }); }
+
 if (innerWidth <= 560) {
   // phone: text cards scrolling past a fixed, floating live-3D stage
   buildMobileCatalogue(startId);
+  // the wordmark + Catalogue chip carry no 3D nav here (goView is guarded off) —
+  // give them the natural mobile action: return to the top of the catalogue
+  const toTop = (e) => { e.preventDefault(); scrollTo({ top: 0, behavior: 'smooth' }); };
+  $('#brand-home')?.addEventListener('click', toTop);
+  document.querySelector('#chapters .chip[data-go="catalogue"]')?.addEventListener('click', toTop);
 } else {
   world.start();
   // opening: high and far, then the settle into the bay

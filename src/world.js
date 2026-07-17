@@ -208,14 +208,10 @@ export function createWorld(canvas) {
     (g.userData.waves || []).forEach(w => wavers.push(w));
   }
 
-  let _lastT = 0;
-  const _spTmp = new THREE.Vector3();
-  function animate() {
-    requestAnimationFrame(animate);
-    const t = clock.getElapsedTime();
-    const dt = Math.min(.05, t - _lastT); _lastT = t;      // clamped delta — spinners are time-based, not refresh-rate coupled
-    gridUniforms.uTime.value = t;
-
+  // per-device idle motion (spinners/pulsers/floaters/wavers) — shared so the
+  // phone stage can drive it too via world.stepDevices() without the desktop
+  // render/controls path (the mobile loop owns its own camera + render).
+  function stepDevices(t, dt) {
     for (const s of spinners) s.obj.rotation[s.ax] += s.v * dt * .96;
     for (let i = 0; i < pulsers.length; i++) {
       const m = pulsers[i];
@@ -225,10 +221,20 @@ export function createWorld(canvas) {
     for (const f of floaters) f.position.y = (f.userData.baseY ?? 0) + Math.sin(t * .8) * .05;
     for (const w of wavers) {
       const ph = ((t * .32 + w.userData.phase) % 1);
-      const sc = .6 + ph * 3.4;
-      w.scale.setScalar(sc);
+      w.scale.setScalar(.6 + ph * 3.4);
       w.material.opacity = .34 * (1 - ph) * (w.material.userData.fadeMul ?? 1);   // honour the device dim, don't fight applyFade
     }
+  }
+
+  let _lastT = 0;
+  const _spTmp = new THREE.Vector3();
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    const dt = Math.min(.05, t - _lastT); _lastT = t;      // clamped delta — spinners are time-based, not refresh-rate coupled
+    gridUniforms.uTime.value = t;
+
+    stepDevices(t, dt);
     dust.rotation.y = t * .006;
 
     for (const s of streams) {
@@ -247,6 +253,7 @@ export function createWorld(canvas) {
   }
 
   addEventListener('resize', () => {
+    if (innerWidth <= 560) return;                          // phone: the mobile stage owns the renderer size (per-viz); never reallocate to fullscreen
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
@@ -259,7 +266,7 @@ export function createWorld(canvas) {
 
   return {
     renderer, scene, camera, controls, root, bloom, composer,
-    makePlinth, makeStream, setStreamsVisible, registerDevice, setGridDim,
+    makePlinth, makeStream, setStreamsVisible, registerDevice, setGridDim, stepDevices,
     set onTick(fn) { onTick = fn; },
     start() { animate(); },
   };
