@@ -119,10 +119,12 @@ async function loadSat() {
 }
 function demAt(x, z) {
   // twin drapes the full plane; fictional keeps its central window
-  const u = TWIN ? (x + 55) / 110 * 766 : (x + 38) / 76 * 645 + 61;
-  const v = TWIN ? (z + 42) / 84 * 766 : (z + 28) / 56 * 474 + 147;
-  const i0 = Math.floor(u), j0 = Math.floor(v), fu = u - i0, fv = v - j0;
   const g = dem.grid, n = dem.n;
+  // clamp into [0, n-1] so the fictional mapping's out-of-window edges don't
+  // index past the row/grid (garbage → NaN spikes along the far terrain strip)
+  const u = Math.min(n - 1, Math.max(0, TWIN ? (x + 55) / 110 * 766 : (x + 38) / 76 * 645 + 61));
+  const v = Math.min(n - 1, Math.max(0, TWIN ? (z + 42) / 84 * 766 : (z + 28) / 56 * 474 + 147));
+  const i0 = Math.min(n - 2, Math.floor(u)), j0 = Math.min(n - 2, Math.floor(v)), fu = u - i0, fv = v - j0;
   const a = g[j0 * n + i0], b = g[j0 * n + i0 + 1], c = g[(j0 + 1) * n + i0], d2 = g[(j0 + 1) * n + i0 + 1];
   const e = (a * (1 - fu) + b * fu) * (1 - fv) + (c * (1 - fu) + d2 * fu) * fv;
   return Math.min(TWIN ? 12 : 6.4, Math.max(-1.6, (e - dem.base) / (TWIN ? 115 : 240)));
@@ -345,11 +347,18 @@ const road = AN.road ? mkCurve(AN.road) : new THREE.CatmullRomCurve3([
 ]);
 const herdIn = AN.herdIn ? mkCurve(AN.herdIn) : new THREE.CatmullRomCurve3([V3(0, 0, 12), V3(4.5, 0, 7), V3(8.5, 0, 1), V3(10.6, 0, -2.8), V3(11.5, 0, -4.6)]);
 const herdOut = AN.herdOut ? mkCurve(AN.herdOut) : new THREE.CatmullRomCurve3([V3(11.5, 0, -4.6), V3(9.5, 0, -1.5), V3(5.5, 0, 3.5), V3(0, 0, 8), V3(-4, 0, 11)]);
-function nearCurve(curve, x, z, n = 60) {
+// each curve is tessellated ONCE into a cached polyline (getPoints), then
+// nearCurve measures against that — the ground-colour (~69k verts) and
+// vegetation-scatter loops call this millions of times at startup, so the old
+// per-call getPoint() re-tessellation froze the tab on load.
+const _curvePts = new WeakMap();
+function nearCurve(curve, x, z) {
+  let pts = _curvePts.get(curve);
+  if (!pts) { pts = curve.getPoints(64); _curvePts.set(curve, pts); }
   let m = 1e9;
-  for (let i = 0; i <= n; i++) {
-    const p = curve.getPoint(i / n);
-    m = Math.min(m, (p.x - x) ** 2 + (p.z - z) ** 2);
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i], dx = p.x - x, dz = p.z - z, d = dx * dx + dz * dz;
+    if (d < m) m = d;
   }
   return Math.sqrt(m);
 }
@@ -576,7 +585,7 @@ function scatterOK(x, z, h) {
     ? [[-24, -42], [-28, -35], [-32.5, -28], [-37, -21], [-41.5, -14], [-46, -7], [-50, -1]]
     : [[-28, -18], [10, -18], [10, 22], [-28, 22]];
   for (let s2 = 0; s2 < loop.length - (TWIN ? 1 : 0); s2++) {
-    const [ax, az] = loop[s2], [bx, bz] = loop[(s2 + 1) % 4];
+    const [ax, az] = loop[s2], [bx, bz] = loop[(s2 + 1) % loop.length];   // % loop.length: the TWIN edge has 7 pts, the fictional rect 4
     for (let i = 0; i < 40; i++) {
       const u = i / 40, x = ax + (bx - ax) * u, z = az + (bz - az) * u;
       pts.push(V3(x, heightAt(x, z) + .12, z));
@@ -1031,7 +1040,7 @@ function howl(w) {                                       // muzzle lifts on the 
     gsap.to(b.rotation, { x: 0, duration: .9, delay: 2.1, ease: 'sine.inOut', overwrite: false });
   }
   const wp = new THREE.Vector3(); w.getWorldPosition(wp);
-  setTimeout(() => ringAt(wp.x, wp.z, HUES.listen, 1.6, wp.y + 1.15), 500);
+  fxTimeout(() => ringAt(wp.x, wp.z, HUES.listen, 1.6, wp.y + 1.15), 500);
 }
 // sound made visible: a waveform travels from the animal to each sensor —
 // long slow harmonics for a howl, rapid chirps for birdsong
@@ -1065,7 +1074,7 @@ function soundWave(from, unit, { freq = 6, amp = .55, hue = 0xE682E6, dur = 1.3 
       posAttr.needsUpdate = true;
       pts.material.opacity = st.head < 1 ? .95 : Math.max(0, .95 * (1.3 - st.head) / .3);
     },
-    onComplete: () => scene.remove(pts),
+    onComplete: () => killMesh(pts),
   });
 }
 
@@ -1136,12 +1145,32 @@ function glowTex() {
   x.fillStyle = g; x.fillRect(0, 0, 64, 64);
   return (_glow = new THREE.CanvasTexture(c));
 }
+// remove a transient FX object AND free its GPU buffers — three.js frees VRAM
+// only on dispose(), never via GC, so bare scene.remove() leaks every ring /
+// flash / wave / beam and VRAM climbs on each replay. Sprites share an internal
+// geometry (never dispose it); glowTex() is a cached shared texture (untouched).
+function killMesh(o) {
+  if (!o) return;
+  scene.remove(o);
+  if (!o.isSprite) o.geometry?.dispose?.();
+  const m = o.material;
+  if (Array.isArray(m)) m.forEach(x => x?.dispose?.()); else m?.dispose?.();
+}
+// wall-clock FX timers, tracked so a chapter seek / Watch-again can cancel them
+// before they fire a stray ring/wave into the freshly-seeked scene
+const fxTimers = new Set();
+function fxTimeout(fn, ms) {
+  const id = setTimeout(() => { fxTimers.delete(id); fn(); }, ms);
+  fxTimers.add(id);
+  return id;
+}
+function clearFxTimers() { fxTimers.forEach(clearTimeout); fxTimers.clear(); }
 function flashAt(p, hue = 0xffffff) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: hue, transparent: true, opacity: .95, depthWrite: false }));
   s.position.copy(p); s.scale.setScalar(.5);
   scene.add(s);
   gsap.to(s.scale, { x: 3.6, y: 3.6, duration: .5, ease: 'power2.out' });
-  gsap.to(s.material, { opacity: 0, duration: .55, ease: 'power2.out', onComplete: () => scene.remove(s) });
+  gsap.to(s.material, { opacity: 0, duration: .55, ease: 'power2.out', onComplete: () => killMesh(s) });
 }
 function ringAt(x, z, hue, r = 2.6, y = null) {
   const m = new THREE.Mesh(new THREE.TorusGeometry(.4, .04, 8, 48).rotateX(Math.PI / 2),
@@ -1149,7 +1178,7 @@ function ringAt(x, z, hue, r = 2.6, y = null) {
   m.position.set(x, y ?? (heightAt(x, z) + .18), z);
   scene.add(m);
   gsap.to(m.scale, { x: r, y: r, z: r, duration: 1.15, ease: 'power2.out' });
-  gsap.to(m.material, { opacity: 0, duration: 1.2, ease: 'power2.out', onComplete: () => scene.remove(m) });
+  gsap.to(m.material, { opacity: 0, duration: 1.2, ease: 'power2.out', onComplete: () => killMesh(m) });
 }
 // wolf-array triangulation: bearing lines converge on the call, then a fix ring
 function bearings(cx, cz) {
@@ -1161,9 +1190,9 @@ function bearings(cx, cz) {
     l.computeLineDistances();
     scene.add(l);
     gsap.to(l.material, { opacity: .75, duration: .5 });
-    gsap.to(l.material, { opacity: 0, delay: 2.4, duration: .7, onComplete: () => scene.remove(l) });
+    gsap.to(l.material, { opacity: 0, delay: 2.4, duration: .7, onComplete: () => killMesh(l) });
   }
-  setTimeout(() => ringAt(cx, cz, 0xffffff, 1.6), 900);
+  fxTimeout(() => ringAt(cx, cz, 0xffffff, 1.6), 900);
 }
 const streams = [];
 function stream(from, to, hue, arc = 3.2) {
@@ -1194,7 +1223,7 @@ const stWolfGate = stream(V3(AN.w1[0], heightAt(AN.w1[0], AN.w1[1]) + 1.4, AN.w1
 const stJWGate = stream(V3(AN.jw[0], heightAt(AN.jw[0], AN.jw[1]) + 1.4, AN.jw[1]), GATE_TOP, HUES.link, 4.2);
 let stSatHQ = null;
 function playSatHQ(sp) {                                // rebuilt each play — the satellite moves with the film
-  if (stSatHQ) { scene.remove(stSatHQ.line, stSatHQ.pts); streams.splice(streams.indexOf(stSatHQ), 1); }
+  if (stSatHQ) { killMesh(stSatHQ.line); killMesh(stSatHQ.pts); streams.splice(streams.indexOf(stSatHQ), 1); }
   stSatHQ = stream(SAT_POS.clone(), HQ_TOP, HUES.brain, 2);
   stSatHQ.play(sp);
 }
@@ -1204,7 +1233,7 @@ const stHQPatrol = stream(HQ_TOP, V3(-2.8, heightAt(-2.8, 5.3) + 1, 5.3), HUES.b
 
 let uplink = null;
 function fireUplink() {
-  if (uplink) { scene.remove(uplink.line, uplink.pts); streams.splice(streams.indexOf(uplink), 1); }
+  if (uplink) { killMesh(uplink.line); killMesh(uplink.pts); streams.splice(streams.indexOf(uplink), 1); }
   uplink = stream(GATE_TOP.clone(), SAT_POS.clone(), HUES.link, 2);
   if (uplink.line) uplink.line.material.opacity = Math.min(1, (uplink.line.material.opacity || .3) * 1.8);
   if (uplink.pts) uplink.pts.material.size = (uplink.pts.material.size || .5) * 1.6;
@@ -1281,48 +1310,6 @@ function thumb() {                                   // JW re-ID archive card �
   x.fillStyle = '#e8efe6'; x.fillText(clockStr() + ' \u00b7 archive \u00b7 re-ID', 9, 169);
   return c;
 }
-// render the world through the sensor's own lens — the alert card shows what
-// the camera genuinely saw
-function sensorSnap(from, look, { ir = false, boxes = [] } = {}) {
-  const W = 392, H = 192;
-  const cam2 = new THREE.PerspectiveCamera(52, W / H, .1, 200);
-  cam2.position.copy(from); cam2.lookAt(look); cam2.updateMatrixWorld();
-  const rt = new THREE.WebGLRenderTarget(W, H);
-  renderer.setRenderTarget(rt);
-  renderer.render(scene, cam2);
-  const px = new Uint8Array(W * H * 4);
-  renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
-  renderer.setRenderTarget(null); rt.dispose();
-  const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const x = c.getContext('2d');
-  const img = x.createImageData(W, H);
-  for (let y = 0; y < H; y++) for (let i = 0; i < W; i++) {
-    const si = ((H - 1 - y) * W + i) * 4, di = (y * W + i) * 4;
-    let r = Math.pow(px[si] / 255, 1 / 2.2) * 255,
-        g = Math.pow(px[si + 1] / 255, 1 / 2.2) * 255,
-        b = Math.pow(px[si + 2] / 255, 1 / 2.2) * 255;
-    if (ir) { const l = (r * .3 + g * .6 + b * .1) * 1.7 + 22; r = l * .4; g = Math.min(255, l * 1.04); b = l * .48; }
-    img.data[di] = r; img.data[di + 1] = g; img.data[di + 2] = b; img.data[di + 3] = 255;
-  }
-  x.putImageData(img, 0, 0);
-  if (ir) { x.fillStyle = 'rgba(255,255,255,.05)'; for (let y = 0; y < H; y += 3) x.fillRect(0, y, W, 1); }
-  const v = new THREE.Vector3();
-  x.lineWidth = 2; x.font = "700 12px 'Hanken Grotesk'";
-  for (const bx of boxes) {
-    v.copy(bx.top).project(cam2);
-    const tx = (v.x * .5 + .5) * W, ty = (-v.y * .5 + .5) * H;
-    v.copy(bx.bot).project(cam2);
-    const by = (-v.y * .5 + .5) * H;
-    const hgt = Math.max(10, by - ty), wid = Math.max(12, hgt * bx.ar);
-    x.strokeStyle = bx.col;
-    x.strokeRect(tx - wid / 2, ty - 4, wid, hgt + 8);
-    if (bx.tag) { x.fillStyle = bx.col; x.fillText(bx.tag, Math.max(4, tx - wid / 2), Math.max(12, ty - 8)); }
-  }
-  x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 22, W, 22);
-  x.fillStyle = '#e8efe6'; x.fillText((ir ? 'IR \u00b7 ' : '') + clockStr(), 9, H - 7);
-  x.fillStyle = '#ff5a4d'; x.beginPath(); x.arc(W - 14, H - 12, 4, 0, 7); x.fill();
-  return c;
-}
 // detection AT RANGE: a thin beam snaps from the subject back to the sensor,
 // the wedge flashes, the LED wakes — seeing happens across distance
 function triggerBeam(fromX, fromZ, sensX, sensZ, hue) {
@@ -1333,43 +1320,47 @@ function triggerBeam(fromX, fromZ, sensX, sensZ, hue) {
     new THREE.LineBasicMaterial({ color: hue, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   scene.add(line);
   gsap.to(line.material, { opacity: .95, duration: .12, ease: 'power2.in' });
-  gsap.to(line.material, { opacity: 0, duration: .7, delay: .35, onComplete: () => scene.remove(line) });
+  gsap.to(line.material, { opacity: 0, duration: .7, delay: .35, onComplete: () => killMesh(line) });
   flashAt(to, 0xd9ffe4);
 }
-const boxFor = (obj, height, ar, col, tag) => {
-  const w = new THREE.Vector3(); obj.getWorldPosition(w);
-  return { top: w.clone().setY(w.y + height), bot: w.clone().setY(w.y + .02), ar, col, tag };
-};
 
 // real field captures (project archive) — the strongest possible evidence
 const FIELD = {};
 for (const k of ['people-walk', 'people-close', 'elephant-walk', 'elephant-bull', 'multi-class']) {
   const im = new Image();
   im.src = `./assets/field/${k}.jpg`;
+  im.decode?.().catch(() => {});                        // decode eagerly so the beat never paints a blank frame
   FIELD[k] = im;
 }
 function fieldCard(key, maxH = 300, zoom = 1) {
   const im = FIELD[key];
   const c = document.createElement('canvas');
-  const W = 504, natW = im.naturalWidth || 400, natH = im.naturalHeight || 220;
-  let H = Math.round(W * natH / natW), sy = 0, sh = natH, sx = 0, sw = natW;
-  if (H > maxH) {                                       // cover-crop tall frames, keep faces high
-    H = maxH;
-    sh = Math.round(natW * H / W);
-    sy = Math.round((natH - sh) * .3);
-  }
-  if (zoom > 1) {                                       // a tighter second frame of the same capture
-    const sw2 = sw / zoom, sh2 = sh / zoom;
-    sx += (sw - sw2) * .5; sy += (sh - sh2) * .4;
-    sw = sw2; sh = sh2;
-  }
-  c.width = W; c.height = H;
-  const x = c.getContext('2d');
-  x.drawImage(im, sx, sy, sw, sh, 0, 0, W, H);
-  x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 27, W, 27);
-  x.fillStyle = '#e8efe6'; x.font = "700 14.5px 'Hanken Grotesk'";
-  x.fillText(clockStr() + ' · field capture', 11, H - 9);
-  x.fillStyle = '#ff5a4d'; x.beginPath(); x.arc(W - 17, H - 14, 5, 0, 7); x.fill();
+  const W = 504;
+  const paint = () => {
+    const ready = im.complete && im.naturalWidth;
+    const natW = im.naturalWidth || 504, natH = im.naturalHeight || 300;
+    let H = Math.round(W * natH / natW), sy = 0, sh = natH, sx = 0, sw = natW;
+    if (H > maxH) {                                     // cover-crop tall frames, keep faces high
+      H = maxH;
+      sh = Math.round(natW * H / W);
+      sy = Math.round((natH - sh) * .3);
+    }
+    if (zoom > 1) {                                     // a tighter second frame of the same capture
+      const sw2 = sw / zoom, sh2 = sh / zoom;
+      sx += (sw - sw2) * .5; sy += (sh - sh2) * .4;
+      sw = sw2; sh = sh2;
+    }
+    c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    if (ready) x.drawImage(im, sx, sy, sw, sh, 0, 0, W, H);
+    else { x.fillStyle = '#0c140c'; x.fillRect(0, 0, W, H); }   // neutral frame until the capture decodes
+    x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, H - 27, W, 27);
+    x.fillStyle = '#e8efe6'; x.font = "700 14.5px 'Hanken Grotesk'";
+    x.fillText(clockStr() + ' · field capture', 11, H - 9);
+    x.fillStyle = '#ff5a4d'; x.beginPath(); x.arc(W - 17, H - 14, 5, 0, 7); x.fill();
+  };
+  paint();
+  if (!im.complete || !im.naturalWidth) im.decode?.().then(paint).catch(() => {});   // repaint the live card once it lands
   return c;
 }
 // the acoustic card is a spectrogram — a listening sensor shows sound, not pictures
@@ -1440,7 +1431,7 @@ function popup(world, hue, title, conf, sub, kind, hold = 6.5, dx = 0, hero = fa
     old.el.remove();
   }
   gsap.fromTo(el, { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: .55, ease: 'power2.out' });
-  gsap.to(el, { opacity: 0, delay: hold, duration: .6, onComplete: () => { el.remove(); pops.splice(pops.indexOf(rec), 1); } });
+  gsap.to(el, { opacity: 0, delay: hold, duration: .6, onComplete: () => { el.remove(); const ix = pops.indexOf(rec); if (ix !== -1) pops.splice(ix, 1); } });   // guard: reset may have already cleared pops (splice(-1) would drop the wrong card)
 }
 function clockStr() {
   const mins = 1055 + Math.floor(tl.time() * 1.4);            // 17:35 — the film runs the dusk window it is lit for
@@ -1599,20 +1590,20 @@ tl.call(() => { howl(wolvesAnim[0]); if (mPack) markerPulse(mPack, true); }, nul
 tl.call(() => {
   const wp = new THREE.Vector3();
   wp.set(pack.position.x, pack.position.y + 1, pack.position.z);
-  wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
+  wolves.forEach((w, i) => fxTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
 }, null, 57.3);
 tl.call(() => { howl(wolvesAnim[1] || wolvesAnim[0]); if (mPack) markerPulse(mPack); }, null, 58.2);                       // …an answer…
 tl.call(() => {
   const wp = new THREE.Vector3();
   wp.set(pack.position.x - .8, pack.position.y + 1, pack.position.z + .6);
-  wolves.forEach((w, i) => setTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
+  wolves.forEach((w, i) => fxTimeout(() => soundWave(wp, w, { freq: 5, amp: .6, hue: 0xE682E6, dur: 1.4 }), i * 260));
 }, null, 58.9);
 tl.call(() => {                                                     // …and a bird overhead — rapid chirp waveform
   {
     const wp = (storks[0] && storks[0].b.visible)
       ? storks[0].b.position.clone()
       : V3(AN.pack[0] + 5, heightAt(AN.pack[0] + 5, AN.pack[1] - 3) + 4.5, AN.pack[1] - 3);   // birdsong from the bird itself
-    wolves.forEach((w, i) => setTimeout(() => soundWave(wp.clone(), w, { freq: 16, amp: .26, hue: 0xc9a4ff, dur: 1.1 }), i * 220));
+    wolves.forEach((w, i) => fxTimeout(() => soundWave(wp.clone(), w, { freq: 16, amp: .26, hue: 0xc9a4ff, dur: 1.1 }), i * 220));
   }
 }, null, 61.2);
 tl.call(() => bearings(AN.pack[0], AN.pack[1]), null, 59.6);
@@ -1674,6 +1665,10 @@ function resetWorld() {
   herd.rotation.y = 0;                                            // the turn tween accumulates otherwise
   rangers.forEach(r => { r.visible = false; setGait(r, 'Idle'); });
   gsap.set(lampMat, { emissiveIntensity: 0 }); gsap.set(villageLight, { intensity: 0 });
+  // restore lights/aim the beats tween one-way, else replays lose them:
+  pFigs[0].traverse(o => { if (o.isSpotLight) gsap.set(o, { intensity: 12 }); });   // poacher hand-lamp
+  if (jeep.userData.hlTgt) jeep.userData.hlTgt.position.set(7, -.6, 0);              // jeep headlight forward
+  clearFxTimers();                                                                  // no stray rings/waves after a jump
   $('#feed-list').innerHTML = '<div class="tg-day"><span>Today</span></div>';
   $('#phone').classList.remove('on');
   document.querySelectorAll('.pop').forEach(el => el.remove());
@@ -1771,7 +1766,7 @@ function dropCrumb(pos, hue) {
   sp.scale.setScalar(.9);
   sp.position.copy(pos);
   scene.add(sp);
-  gsap.to(sp.material, { opacity: 0, duration: 3.2, ease: 'power1.in', onComplete: () => scene.remove(sp) });
+  gsap.to(sp.material, { opacity: 0, duration: 3.2, ease: 'power1.in', onComplete: () => killMesh(sp) });
 }
 function markerPulse(rec, big = false) {
   rec.el.classList.remove('pulse', 'pulse-big');
@@ -1888,15 +1883,25 @@ function pickSensor(e) {
   for (const rec of SENSORS) if (sRay.intersectObject(rec.g, true).length) return rec;
   return null;
 }
+// coalesce pointermove → at most one raycast per animation frame (the deep
+// intersect against 7 device groups is far too heavy to run 60–120×/sec)
+let _ptrEv = null, _pickQueued = false;
 addEventListener('pointermove', (e) => {
-  const hit = pickSensor(e);
-  $('#scene').style.cursor = hit ? 'pointer' : '';
-  if (hit) {
-    stip.textContent = `View ${NAMES[hit.id]} in the catalogue →`;
-    stip.style.left = e.clientX + 'px';
-    stip.style.top = e.clientY + 'px';
-    stip.style.opacity = 1;
-  } else stip.style.opacity = 0;
+  _ptrEv = e;
+  if (_pickQueued) return;
+  _pickQueued = true;
+  requestAnimationFrame(() => {
+    _pickQueued = false;
+    const ev = _ptrEv;
+    const hit = pickSensor(ev);
+    $('#scene').style.cursor = hit ? 'pointer' : '';
+    if (hit) {
+      stip.textContent = `View ${NAMES[hit.id]} in the catalogue →`;
+      stip.style.left = ev.clientX + 'px';
+      stip.style.top = ev.clientY + 'px';
+      stip.style.opacity = 1;
+    } else stip.style.opacity = 0;
+  });
 });
 addEventListener('click', (e) => {
   if (e.target !== $('#scene')) return;
@@ -1921,6 +1926,7 @@ function normalizeUI(T) {
   }
   for (const f of [fovSer1, fovSer2, fovVG]) { gsap.killTweensOf(f); f.opacity = .1; }
   for (const L of [packLight, arrestLight]) { gsap.killTweensOf(L); L.intensity = 0; }
+  clearFxTimers();                                               // and no wall-clock FX bleeds across the jump
   if (TWIN) { gsap.killTweensOf(sceneLight); if (T < 10) { sceneLight.intensity = 0; stage('none', .01); } }
   endcta.classList.toggle('on', T >= 74.2);
   $('#phone').classList.toggle('on', T >= 10.3);
@@ -1937,6 +1943,7 @@ const setupSettled = () => {
   placeOnCurve(poachers, trail, .95, 0, .05);
   jeepState.on = true; jeepState.arrived = true; jeep.visible = true; jeepState.u = .7;
   placeOnCurve(jeep, road, .7, 0, .05, true);
+  pFigs[0].traverse(o => { if (o.isSpotLight) gsap.set(o, { intensity: 0 }); });   // arrested — hand-lamp out (resetWorld lit it for the from-0 replay)
 };
 const CHSETUP = {
   overview() {},
@@ -1985,6 +1992,15 @@ function placeOnCurve(group, curve, u, bobT, bobA = .05, faceX = false) {
 }
 
 let frame = 0;
+// static per-chapter focus sets + a once-sorted icon list — hoisted out of the
+// per-frame path so tick() allocates nothing in steady state (no new Set / sort)
+const FOCUS_SETS = {
+  a: new Set(['ser1', 'ser2', 'gateway', 'ai', 'intruders']),
+  b: new Set(['ser2', 'gateway', 'ai', 'patrol', 'intruders']),
+  c: new Set(['villageguard', 'ai', 'herd', 'village', 'rangers']),
+  d: new Set(['w1', 'w2', 'junglewallah', 'gateway', 'pack', 'birds']),
+};
+const ICONS_BY_PRI = [...ICONS].sort((a, b) => b.pri - a.pri);
 function animate() {
   requestAnimationFrame(animate);
   tick(clock.getDelta(), clock.elapsedTime);
@@ -2069,7 +2085,7 @@ function tick(dt, t) {
   waterTex.offset.x = t * .012; waterTex.offset.y = t * .004;
   water.material.opacity = .88 + Math.sin(t * 1.3) * .03;
   for (const cs of cloudShadows) {
-    cs.m.position.x += .006;
+    cs.m.position.x += .36 * dt;                                    // wall-clock drift (was frame-locked)
     if (cs.m.position.x > 90) cs.m.position.x = -90;
   }
   if (fireflies) {
@@ -2084,7 +2100,7 @@ function tick(dt, t) {
     fa.needsUpdate = true;
     fireflies.material.opacity = .5 + .3 * Math.sin(t * 2.2);
   }
-  sun.intensity = 2.75 + .18 * Math.sin(t * .13) + .1 * noise(t * .05, 3.3);       // living light
+  sun.intensity = (TWIN ? 3.5 : 2.75) + .18 * Math.sin(t * .13) + .1 * noise(t * .05, 3.3);   // living light — keep the TWIN hillshade base
   grade.uniforms.uTime.value = t;
   if (TWIN) SENSORS.forEach((rec, i) => {               // device tokens hover and turn — instruments, not scenery
     rec.g.position.y = rec.baseY + .5 + Math.sin(t * .9 + i * 1.3) * .12;
@@ -2112,10 +2128,10 @@ function tick(dt, t) {
   const FOCUS = (() => {
     const T3 = tl.time();
     if (T3 < 9.8 || T3 >= 62) return null;                          // overview + network: everything lit
-    if (T3 < 18.5) return new Set(['ser1', 'ser2', 'gateway', 'ai', 'intruders']);
-    if (T3 < 36.5) return new Set(['ser2', 'gateway', 'ai', 'patrol', 'intruders']);
-    if (T3 < 54)  return new Set(['villageguard', 'ai', 'herd', 'village', 'rangers']);
-    return new Set(['w1', 'w2', 'junglewallah', 'gateway', 'pack', 'birds']);
+    if (T3 < 18.5) return FOCUS_SETS.a;
+    if (T3 < 36.5) return FOCUS_SETS.b;
+    if (T3 < 54) return FOCUS_SETS.c;
+    return FOCUS_SETS.d;
   })();
   {
     const wmap = { ser1: fovSer1, ser2: fovSer2, villageguard: fovVG };
@@ -2126,8 +2142,7 @@ function tick(dt, t) {
     }
   }
   const shownPills = [];
-  const byPri = [...ICONS].sort((a, b) => b.pri - a.pri);
-  for (const ic of byPri) {
+  for (const ic of ICONS_BY_PRI) {
     if (!ic.fixed && ic.follow) ic.pos.set(ic.follow.position.x, ic.follow.position.y + (ic.lift || 1.2), ic.follow.position.z);
     proj.copy(ic.pos).project(camera);
     const hidden = proj.z > 1 || (ic.follow && ic.follow.visible === false);
@@ -2194,6 +2209,7 @@ if (terr) {
   // if (TWIN && !dem) terr.textContent = 'Twin data unavailable';
 }
 
+let _lastStepT = 0;                                    // tracks step() timeline time for correct mixer deltas
 window.__demo = {
   dbg() {
     const v = new THREE.Vector3(), out = {};
@@ -2207,8 +2223,10 @@ window.__demo = {
   tl, camera, camP, camL, CH, ICONS,
   herd, get eles() { return eles; },              // herd inspection for automation
   // manual frame-step for automation: render an exact timeline moment even
-  // when the tab is backgrounded and requestAnimationFrame is paused
-  step(T) { tl.pause(); tl.time(T, false); tick(1 / 60, T); },
+  // when the tab is backgrounded and requestAnimationFrame is paused. Advance
+  // the skeletal mixers by the true elapsed timeline delta (not a fixed 1/60),
+  // so a stepped snapshot shows the same walking pose real playback would.
+  step(T) { tl.pause(); tl.time(T, false); const d = Math.max(0, Math.min(4, T - _lastStepT)); _lastStepT = T; tick(d || 1 / 60, T); },
 };
 animate();
 // boot via plain timers so it completes even in a backgrounded tab
