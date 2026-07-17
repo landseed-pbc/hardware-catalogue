@@ -449,6 +449,20 @@ body.sat.ai-page{
 
 @media(max-width:560px){ .layers{top:8px;right:8px} .layers .lyr{font-size:11px;padding:5px 10px 5px 8px} .lyr-sub .sub{font-size:10px} }
 
+/* ── phone: keep the app bar one row (its height sets the content offset) and
+   make the view tabs a scrollable strip so all four stay reachable; the
+   "sample data" badge stays visible (honesty), the clock and the "· CTDAMS"
+   suffix yield the width. Desktop untouched. ─────────────────────────────────*/
+@media(max-width:560px){
+  .app-bar{padding:10px 14px;gap:8px}
+  .app-name span{display:none}
+  .app-clock{display:none}
+  .app-tabs{margin-left:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .app-tabs::-webkit-scrollbar{display:none}
+  .app-tabs button{flex:none;padding:7px 13px;font-size:13px}
+  .app-bar .sp-badge{flex:none}
+}
+
 /* ── overhauled right rail — a scrolling dashboard column ──────────────────── */
 .col-rail{overflow-y:auto;gap:0;scrollbar-width:thin;scrollbar-color:rgba(155,108,224,.3) transparent}
 .col-rail::-webkit-scrollbar{width:5px}.col-rail::-webkit-scrollbar-thumb{background:rgba(155,108,224,.3);border-radius:99px}

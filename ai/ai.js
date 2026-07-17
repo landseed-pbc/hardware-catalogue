@@ -17,6 +17,10 @@ function setView(name) {
   currentView = name;
   tabs.forEach(t => t.classList.toggle('on', t.dataset.view === name));
   views.forEach(v => v.classList.toggle('on', v.id === 'view-' + name));
+  // centre the active tab within the strip (mobile: the tabs scroll; a no-op on
+  // desktop where they all fit — only the horizontal tab container is scrolled)
+  const active = tabs.find(t => t.dataset.view === name), strip = active?.parentElement;
+  if (strip) strip.scrollTo({ left: active.offsetLeft - strip.clientWidth / 2 + active.offsetWidth / 2, behavior: 'smooth' });
   revealView(name);
 }
 tabs.forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));

@@ -599,6 +599,9 @@ function deviceFrame(d) {
     .addScaledVector(front, dist)
     .addScaledVector(side, dist * .28);
   const tgt = new THREE.Vector3(x, ty, z);
+  // phone portrait: drop the look-target so the unit rides the top band, clear
+  // of the scrollable spec sheet below (desktop framing untouched — ≤560 only)
+  if (innerWidth <= 560) { tgt.y -= dist * .5; pos.y += dist * .1; }
   // per-device frame pan: the battery box hangs off one side of each camera,
   // so the ensemble is re-centred — gateway right, monitor left, VG right
   const PAN = { gateway: .27, serengeti: -.12, villageguard: .1, ai: -.12 };

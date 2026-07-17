@@ -103,14 +103,20 @@ for (const asset of ['demo.js', 'demo.css']) {
   if (hint && real && hint[1] !== real[1]) { failed++; console.error(`DRIFT  index.html prefetch ${asset}?v=${hint[1]} ≠ /demo/ loads ?v=${real[1]}`); }
 }
 
-// every importer of devices.js must pin the SAME ?v= — a partial bump serves a
-// stale builder to whichever page was missed
-const devVers = new Set();
-for (const f of ['src/main.js', 'demo/demo.js', 'ai/map3d.js']) {
-  const mm = read(f).match(/devices\.js\?v=(\d+)/);
-  if (mm) devVers.add(mm[1]);
+// every importer of a shared file must pin the SAME ?v= — a partial bump serves
+// a stale copy to whichever page was missed (devices.js → builders; satellite.css
+// → both /ai/ and /faqs/; palette.js → every colour map)
+for (const [file, importers] of [
+  ['devices.js', ['src/main.js', 'demo/demo.js', 'ai/map3d.js']],
+  ['satellite.css', ['ai/index.html', 'faqs/index.html']],
+  ['styles.css', ['index.html', 'ai/index.html', 'faqs/index.html']],
+  ['palette.js', ['src/main.js', 'demo/demo.js', 'ai/map3d.js', 'ai/ai.js']],
+]) {
+  const esc = file.replace('.', '\\.');
+  const vers = new Set();
+  for (const f of importers) { const mm = read(f).match(new RegExp(`${esc}\\?v=(\\d+)`)); if (mm) vers.add(mm[1]); }
+  if (vers.size > 1) { failed++; console.error(`DRIFT  ${file} imported at diverging ?v= (${[...vers].join(', ')}) — unify every importer`); }
 }
-if (devVers.size > 1) { failed++; console.error(`DRIFT  devices.js imported at diverging ?v= (${[...devVers].join(', ')}) — unify every importer`); }
 
 if (failed) { console.error(`\n${failed} check(s) failed`); process.exit(1); }
 console.log(`all checks pass (${CHECKS.length} facts + honesty + device-coupling + version guards)`);
