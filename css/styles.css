@@ -256,8 +256,12 @@ body.devview #cap-links{margin-top:12px}
    brand header and the page nav remain. Desktop never gets body.mcat, so all of
    this is inert there — the 3D catalogue above is untouched. ─────────────────*/
 body.mcat{overflow-y:auto;overflow-x:hidden;height:auto}
-body.mcat #scene,body.mcat #leaders,body.mcat #labels,body.mcat #verb,body.mcat #hint,
+body.mcat #leaders,body.mcat #labels,body.mcat #verb,body.mcat #hint,
 body.mcat #plegend,body.mcat #howto,body.mcat #specs,body.mcat #caption{display:none!important}
+/* the live 3D layer — one canvas (the world renderer) that main.js floats over
+   the centred card's hero and auto-rotates that device (still underneath = the
+   fallback for off-screen cards) */
+.mc-live{position:fixed;inset:auto;z-index:6;pointer-events:none;display:block;opacity:0;transition:opacity .18s ease;border-radius:16px 16px 0 0}
 #mcat{display:block;max-width:600px;margin:0 auto;padding:66px 14px 94px}
 .mc-hero{padding:6px 4px 2px}
 .mc-hero h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:9px 0 11px;color:#F0F0EA}

@@ -886,6 +886,59 @@ function buildMobileCatalogue(startId) {
   document.body.classList.remove('booting');
   const loader = $('#loader'); if (loader) gsap.to(loader, { opacity: 0, duration: .5, onComplete: () => loader.remove() });
   if (startId && startId !== 'catalogue') requestAnimationFrame(() => document.getElementById('mc-' + startId)?.scrollIntoView());
+  mobileStage();
+}
+
+/* the live 3D layer: ONE canvas (the world renderer, reused) that floats over
+   whichever card's hero is centred and renders THAT device, auto-rotating. The
+   stills stay under it as fallbacks for the off-screen cards, so there's no
+   blank slot and only one WebGL context. Phone-only; desktop never calls this. */
+function mobileStage() {
+  const r = world.renderer, scene = world.scene, cv = r.domElement;
+  cv.classList.add('mc-live');
+  const cam = new THREE.PerspectiveCamera(34, 1, .05, 60);
+  const DIR = new THREE.Vector3(.55, .48, .92).normalize();
+  const sph = new THREE.Sphere();
+  for (const d of DEVICES) {                                // precompute a rotation-stable frame per device
+    new THREE.Box3().setFromObject(d.group).getBoundingSphere(sph);
+    d._sc = sph.center.clone();
+    d._sd = sph.radius / Math.sin(THREE.MathUtils.degToRad(19)) * 1.04;
+    d.group.visible = false;
+    if (d.plinth) d.plinth.visible = false;
+  }
+  const stages = DEVICES.map(d => ({ d, el: document.getElementById('mc-' + d.id).querySelector('.mc-thumb') }));
+  let active = null, sizedFor = null;
+  const clock = new THREE.Clock(); let spin = 0;
+  function loop() {
+    requestAnimationFrame(loop);
+    if (document.hidden) return;
+    const cyTarget = innerHeight * .42;
+    let best = null, bestD = 1e9;
+    for (const st of stages) {
+      const b = st.el.getBoundingClientRect();
+      if (b.bottom < 30 || b.top > innerHeight - 30) continue;
+      const dd = Math.abs((b.top + b.bottom) / 2 - cyTarget);
+      if (dd < bestD) { bestD = dd; best = st; }
+    }
+    if (!best) { cv.style.opacity = '0'; return; }
+    if (best.d !== active) {
+      if (active) active.group.visible = false;
+      active = best.d; active.group.visible = true; spin = 0;
+    }
+    const b = best.el.getBoundingClientRect();
+    if (sizedFor !== active || Math.abs(b.width - (cv._w || 0)) > 1) {
+      cv._w = b.width; sizedFor = active;
+      r.setSize(b.width, b.height, false);
+      cv.style.width = b.width + 'px'; cv.style.height = b.height + 'px';
+      cam.aspect = b.width / b.height; cam.updateProjectionMatrix();
+    }
+    cv.style.left = b.left + 'px'; cv.style.top = b.top + 'px'; cv.style.opacity = '1';
+    spin += clock.getDelta() * .35;
+    active.group.rotation.y = (active.group.userData.rotY0 ?? 0) + spin;
+    cam.position.copy(active._sc).addScaledVector(DIR, active._sd); cam.lookAt(active._sc);
+    r.render(scene, cam);
+  }
+  loop();
 }
 
 window.__hw = { world, camera, controls, goView, DEVICES, layoutCallouts, revealCallouts, get current() { return current; } };
